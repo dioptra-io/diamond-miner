@@ -1,6 +1,6 @@
 import ipaddress
 
-from reader.next_round import next_round
+from reader import next_round, next_max_ttl
 
 
 measurement_uuid = "9ef5b32d-614a-4ef0-8d2f-b0a78f7c50b3"
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     source_ip = int(ipaddress.ip_address("132.227.123.9"))
     round_number = 1
 
-    output_file = "resources/reader_flow_4.csv"
+    output_file = "resources/reader_ttl_1.csv"
 
     fd = open(output_file, "a+", newline="")
-    next_round(database_host, table_name, source_ip, round_number, fd)
+    next_max_ttl(database_host, table_name, source_ip, round_number, fd)

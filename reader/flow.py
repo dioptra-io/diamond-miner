@@ -30,7 +30,7 @@ class SequentialFlowMapper(ABC):
         n = 2 ** (32 - prefix_size)
         if flow_id < n:
             return (flow_id, 0)
-        return (0, flow_id - n + 1)
+        return (254, flow_id - n + 1)
 
 
 class ReverseByteOrderFlowMapper(ABC):
@@ -46,4 +46,4 @@ class ReverseByteOrderFlowMapper(ABC):
         n = 2 ** (32 - prefix_size)
         if flow_id < n:
             return (self._reverse_bytes(flow_id), 0)
-        return (0, flow_id - n + 1)
+        return (254, flow_id - n + 1)

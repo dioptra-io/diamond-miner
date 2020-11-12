@@ -1,9 +1,35 @@
+import csv
+
 from collections import defaultdict
+from socket import htonl
 
 from reader.flush import flush_traceroute, Options
-
 from reader.flow import SequentialFlowMapper
-from reader.links import links
+from reader.database import query_max_ttl, query_next_round
+
+
+def next_max_ttl(
+    database_host: str, table_name: str, source_ip: int, round_number: int, ostream
+):
+    """Compute the next max TTL."""
+
+    # TODO Better parameters handling
+    sport = 24000
+    dport = 33434
+
+    first_round_max_ttl = 30  # TODO should be the `max_ttl` passed in Iris measurement
+    absolute_max_ttl = 40
+
+    writer = csv.writer(ostream, delimiter=",", lineterminator="\n")
+
+    for (src_ip, dst_ip, max_ttl) in query_max_ttl(
+        database_host, table_name, source_ip, round_number
+    ):
+        if max_ttl > absolute_max_ttl:
+            continue
+        if max_ttl > 20:
+            for ttl in range(first_round_max_ttl + 1, absolute_max_ttl + 1):
+                writer.writerow([htonl(src_ip), htonl(dst_ip), sport, dport, ttl])
 
 
 def next_round(
@@ -31,6 +57,8 @@ def next_round(
     nodes_per_ttl = defaultdict(int)
     links_per_ttl = defaultdict(int)
 
+    writer = csv.writer(ostream, delimiter=",", lineterminator="\n")
+
     for (
         src_ip,
         dst_prefix,
@@ -42,7 +70,7 @@ def next_round(
         max_dst_port,
         max_round,
         n_nodes,
-    ) in links(database_host, table_name, source_ip, round_number):
+    ) in query_next_round(database_host, table_name, source_ip, round_number):
         # Each iteration is the information of a tuple (src_ip, dst_prefix, dst_ip, ttl)
         if not current_prefix:
             # Initialization of the current prefix
@@ -77,7 +105,7 @@ def next_round(
                     links_per_ttl,
                     max_flow_per_ttl,
                     Options(sport, dport),
-                    ostream,
+                    writer,
                 )
 
             # Initialize the variables again
@@ -97,7 +125,8 @@ def next_round(
         # Compute the maximum flow from the `max_dst_ip`
         # NOTE We don't take into account the `src_port` (for now)
         # to avoid issues due to NAT source port re-writing
-        max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix)
+        # The `-1` is to begin to flow 0
+        max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix - 1)
 
         nodes_per_ttl[ttl] = n_nodes
         links_per_ttl[ttl] = n_links
@@ -115,5 +144,5 @@ def next_round(
         links_per_ttl,
         max_flow_per_ttl,
         Options(sport, dport),
-        ostream,
+        writer,
     )

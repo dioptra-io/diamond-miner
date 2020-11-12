@@ -1,10 +1,98 @@
-"""Links generator."""
+"""Database interface."""
 
 from clickhouse_driver import Client
 
 
-def links(database_host, table_name, src_ip, round_number):
-    """Generator of links."""
+def query_max_ttl(database_host, table_name, src_ip, round_number):
+    """Generator of max TTL database query."""
+    snapshot = 1  # not used
+    # ipv4_split = 4096  # HACK (default value: 64)
+    ipv4_split = 64
+    ttl_column_name = "ttl_from_udp_length"
+
+    for j in range(0, ipv4_split):
+        inf_born = int(j * ((2 ** 32 - 1) / ipv4_split))
+        sup_born = int((j + 1) * ((2 ** 32 - 1) / ipv4_split))
+
+        # TODO Excluded prefix ?
+
+        if sup_born > 3758096384:
+            # exclude prefixes >= 224.0.0.0 (multicast)
+            break
+
+        query = (
+            "SELECT \n"
+            "    src_ip, \n"
+            "    dst_ip, \n"
+            f"    max({ttl_column_name}) as max_ttl \n"
+            "FROM \n"
+            "(\n"
+            "    SELECT *\n"
+            f"   FROM {table_name}\n"
+            f"   WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
+            f"   AND round <= {round_number}\n"
+            f"   AND src_ip = {src_ip} \n"
+            f"   AND snapshot = {snapshot} \n"
+            ") \n"
+            "WHERE "
+            " dst_prefix NOT IN "
+            "(\n"
+            " SELECT distinct(dst_prefix)\n"
+            "    FROM \n"
+            "    (\n"
+            "        SELECT \n"
+            "            src_ip, \n"
+            "            dst_prefix, \n"
+            "            MAX(round) AS max_round\n"
+            f"       FROM {table_name}\n"
+            f"       WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
+            f"        AND src_ip = {src_ip} \n"
+            f"       AND snapshot = {snapshot} \n"
+            "        GROUP BY (src_ip, dst_prefix)\n"
+            f"        HAVING max_round < {round_number - 1}\n"
+            "    ) \n"
+            ") "
+            " AND dst_prefix NOT IN (\n"
+            " SELECT distinct(dst_prefix)\n"
+            "    FROM \n"
+            "    (\n"
+            "        SELECT \n"
+            "            src_ip, \n"
+            "            dst_prefix, \n"
+            f"            {ttl_column_name}, \n"
+            "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow, \n"
+            f"            COUNT((src_ip, dst_ip,  {ttl_column_name}, src_port, dst_port)) AS cnt \n"  # noqa: E501
+            f"       FROM {table_name}\n"
+            f"       WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
+            f"        AND src_ip = {src_ip} \n"
+            f"       AND snapshot = {snapshot} \n"
+            f"        GROUP BY (src_ip, dst_prefix, dst_ip, {ttl_column_name}, src_port, dst_port, snapshot)\n"  # noqa: E501
+            "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
+            "    ) \n"
+            "    GROUP BY (src_ip, dst_prefix)\n"
+            "   )"
+            " AND dst_ip != reply_ip \n"
+            " GROUP BY (src_ip, dst_ip) \n"
+        )
+
+        client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
+        for row in client.execute_iter(
+            query,
+            settings={
+                "max_block_size": 100000,
+                "connect_timeout": 1000,
+                "send_timeout": 6000,
+                "receive_timeout": 6000,
+            },
+        ):
+            yield row
+
+        # HACK remove it to do the full next round !
+        break
+
+
+def query_next_round(database_host, table_name, src_ip, round_number):
+    """Generator of next round database query."""
     snapshot = 1  # not used
     # ipv4_split = 4096  # HACK (default value: 64)
     ipv4_split = 64

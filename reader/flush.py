@@ -1,5 +1,3 @@
-import csv
-
 from reader.flow import SequentialFlowMapper
 from reader.mda import stopping_point
 
@@ -30,7 +28,7 @@ def flush_traceroute(
     links_per_ttl,
     previous_max_flow_per_ttl,
     options,
-    ostream,
+    writer,
 ):
     # Number of flows to send at `ttl`.
     flows_per_ttl = {}
@@ -40,7 +38,6 @@ def flush_traceroute(
 
     # TODO: Factor #flows computation out.
     # TODO: Factor IO out of this function.
-    writer = csv.writer(ostream, delimiter=",", lineterminator="\n")
 
     for ttl in range(max_ttl):
         # Skip this TTL if there are no nodes or links.
