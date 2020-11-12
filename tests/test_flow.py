@@ -7,9 +7,8 @@ def test_sequential_flow_mapper():
     mapper = SequentialFlowMapper()
 
     # dst_ip + src_port => flow_id
-    assert mapper.flow_id(1, 1, 24) == 1
-    assert mapper.flow_id(0, 1, 24) == 256
-    assert mapper.flow_id(0, 257, 24) == 512
+    assert mapper.flow_id(1) == 1
+    assert mapper.flow_id(6) == 6
 
     # flow_id => dst_ip + src_port
     assert mapper.offset(1, 24) == (1, 0)
@@ -24,10 +23,8 @@ def test_reverse_order_flow_mapper():
     mapper = ReverseByteOrderFlowMapper()
 
     # dst_ip + src_port => flow_id
-    assert mapper.flow_id(1, 0, 24) == 128
-    assert mapper.flow_id(6, 0, 24) == 96
-    assert mapper.flow_id(0, 1, 24) == 256
-    assert mapper.flow_id(0, 257, 24) == 512
+    assert mapper.flow_id(1) == 128
+    assert mapper.flow_id(6) == 96
 
     # flow_id => dst_ip + src_port
     assert mapper.offset(128, 24) == (1, 0)

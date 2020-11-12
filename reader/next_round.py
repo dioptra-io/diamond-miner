@@ -95,15 +95,9 @@ def next_round(
             continue
 
         # Compute the maximum flow from the `max_dst_ip`
-        # max_flow = max_dst_ip - (dst_prefix + 1)
-        # if round_number == 1:
-        #     if max_flow < 6:
-        #         max_flow = 6
-
-        # TODO: Remove the +1 in `max_dst_ip - (dst_prefix -1)` ?
-        max_flow = mapper.flow_id(max_dst_ip - dst_prefix, max_src_port - sport, 24)
-
-        max_flow_per_ttl[ttl] = max_flow
+        # NOTE We don't take into account the `src_port` (for now)
+        # to avoid issues due to NAT source port re-writing
+        max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix)
 
         nodes_per_ttl[ttl] = n_nodes
         links_per_ttl[ttl] = n_links

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 class AbtractFlowMapper(ABC):
     @abstractmethod
-    def flow_id(self, addr_offset, port_offset, prefix_size):
+    def flow_id(self, addr_offset):
         """
         Retrieve the flow_id from the tuple (addr_offset, port_offset).
         """
@@ -23,11 +23,8 @@ class AbtractFlowMapper(ABC):
 class SequentialFlowMapper(ABC):
     """Sequential flow mapper (legacy)."""
 
-    def flow_id(self, addr_offset, port_offset, prefix_size):
-        n = 2 ** (32 - prefix_size)
-        if addr_offset:
-            return addr_offset
-        return n + port_offset - 1
+    def flow_id(self, addr_offset):
+        return addr_offset
 
     def offset(self, flow_id, prefix_size):
         n = 2 ** (32 - prefix_size)
@@ -40,15 +37,10 @@ class ReverseByteOrderFlowMapper(ABC):
     """Reverse byte order flow mapper."""
 
     def _reverse_bytes(self, i):
-        if i > 255:
-            raise ValueError
         return int("{:08b}".format(i)[::-1], 2)
 
-    def flow_id(self, addr_offset, port_offset, prefix_size):
-        n = 2 ** (32 - prefix_size)
-        if addr_offset:
-            return self._reverse_bytes(addr_offset)
-        return n + port_offset - 1
+    def flow_id(self, addr_offset):
+        return self._reverse_bytes(addr_offset)
 
     def offset(self, flow_id, prefix_size):
         n = 2 ** (32 - prefix_size)

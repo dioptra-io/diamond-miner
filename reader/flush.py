@@ -61,7 +61,7 @@ def flush_traceroute(
         # so we make sure that we are not below.
         # TODO: Can we possibly be above this (6) at the first round?
         if round == 1:
-            max_flow = max(max_flow, default_1_round_flows)
+            max_flow = default_1_round_flows
 
         real_previous_max_flow_per_ttl[ttl] = max_flow
 
