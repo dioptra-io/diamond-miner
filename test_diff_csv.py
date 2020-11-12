@@ -2,6 +2,7 @@ from collections import defaultdict
 from pathlib import Path
 from socket import htonl
 
+
 def read_file(file):
     rows = set()
     src_ips = set()
@@ -29,6 +30,7 @@ def read_file(file):
             ttl_dist[int(ttl)] += 1
     return rows, src_ips, dst_pfxs, dst_offs, sports, dports, ttls, tpls, ttl_dist
 
+
 def print_set_stats(a, b):
     print(f"a = {len(a)}")
     print(f"b = {len(b)}")
@@ -36,12 +38,17 @@ def print_set_stats(a, b):
     print(f"a - b = {len(a - b)}")
     print(f"b - a = {len(b - a)}")
 
-if __name__ == "__main__":
-    file_test = Path("resources/reader_test_1.csv")
-    file_new = Path("resources/reader_new_1.csv")
 
-    rows1, src1, dstp1, dsto1, sports1, dports1, ttls1, tpls1, dist1 = read_file(file_test)
-    rows2, src2, dstp2, dsto2, sports2, dports2, ttls2, tpls2, dist2 = read_file(file_new)
+if __name__ == "__main__":
+    file_test = Path("resources/reader_flow_3.csv")
+    file_new = Path("resources/reader_flow_4.csv")
+
+    rows1, src1, dstp1, dsto1, sports1, dports1, ttls1, tpls1, dist1 = read_file(
+        file_test
+    )
+    rows2, src2, dstp2, dsto2, sports2, dports2, ttls2, tpls2, dist2 = read_file(
+        file_new
+    )
 
     for i in range(40):
         print(f"[{i}] {dist1[i]} {dist2[i]}")

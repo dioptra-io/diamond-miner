@@ -58,7 +58,8 @@ def links(database_host, table_name, src_ip, round_number):
             " AND (p1.src_port = p2.src_port) AND (p1.dst_port = p2.dst_port) "
             " AND (p1.round = p2.round) AND (p1.snapshot = p2.snapshot) "
             f" AND (toUInt8(p1.{ttl_column_name} + toUInt8(1)) = p2.{ttl_column_name})\n"  # noqa: E501
-            # Exclude dest. prefixes for which no probes have been sent during the previous round (?)
+            # Exclude dest. prefixes for which no probes have been sent
+            # during the previous round (?)
             "WHERE dst_prefix NOT IN (\n"
             "    SELECT DISTINCT(dst_prefix)\n"
             f"   FROM {table_name}\n"
@@ -110,4 +111,5 @@ def links(database_host, table_name, src_ip, round_number):
         ):
             yield row
 
+        # HACK remove it to do the full next round !
         break

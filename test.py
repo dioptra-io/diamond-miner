@@ -19,7 +19,7 @@ if __name__ == "__main__":
     source_ip = int(ipaddress.ip_address("132.227.123.9"))
     round_number = 1
 
-    output_file = "resources/reader_new_1.csv"
+    output_file = "resources/reader_flow_4.csv"
 
     fd = open(output_file, "a+", newline="")
     next_round(database_host, table_name, source_ip, round_number, fd)

@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 from reader.flush import flush_traceroute, Options
+
+from reader.flow import SequentialFlowMapper
 from reader.links import links
 
 
@@ -9,10 +11,13 @@ def next_round(
 ):
     """Compute the next round."""
 
-    # TODO Parameters
+    # TODO Better arameters handling
     sport = 24000
     dport = 33434
     max_ttl = 40
+
+    # TODO Flow Mapper strategy
+    mapper = SequentialFlowMapper()
 
     current_prefix = None
     current_max_dst_ip = 0
@@ -90,10 +95,13 @@ def next_round(
             continue
 
         # Compute the maximum flow from the `max_dst_ip`
-        max_flow = max_dst_ip - (dst_prefix + 1)
-        if round_number == 1:
-            if max_flow < 6:
-                max_flow = 6
+        # max_flow = max_dst_ip - (dst_prefix + 1)
+        # if round_number == 1:
+        #     if max_flow < 6:
+        #         max_flow = 6
+
+        # TODO: Remove the +1 in `max_dst_ip - (dst_prefix -1)` ?
+        max_flow = mapper.flow_id(max_dst_ip - dst_prefix, max_src_port - sport, 24)
 
         max_flow_per_ttl[ttl] = max_flow
 
