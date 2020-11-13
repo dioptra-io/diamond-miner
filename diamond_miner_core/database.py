@@ -3,10 +3,10 @@
 from clickhouse_driver import Client
 
 
-def query_max_ttl(database_host, table_name, src_ip, round_number):
+def query_max_ttl(database_host, table_name, source_ip, round_number):
     """Generator of max TTL database query."""
+
     snapshot = 1  # not used
-    # ipv4_split = 4096  # HACK (default value: 64)
     ipv4_split = 64
     ttl_column_name = "ttl_from_udp_length"
 
@@ -31,7 +31,7 @@ def query_max_ttl(database_host, table_name, src_ip, round_number):
             f"   FROM {table_name}\n"
             f"   WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
             f"   AND round <= {round_number}\n"
-            f"   AND src_ip = {src_ip} \n"
+            f"   AND src_ip = {source_ip} \n"
             f"   AND snapshot = {snapshot} \n"
             ") \n"
             "WHERE "
@@ -46,7 +46,7 @@ def query_max_ttl(database_host, table_name, src_ip, round_number):
             "            MAX(round) AS max_round\n"
             f"       FROM {table_name}\n"
             f"       WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
-            f"        AND src_ip = {src_ip} \n"
+            f"        AND src_ip = {source_ip} \n"
             f"       AND snapshot = {snapshot} \n"
             "        GROUP BY (src_ip, dst_prefix)\n"
             f"        HAVING max_round < {round_number - 1}\n"
@@ -64,7 +64,7 @@ def query_max_ttl(database_host, table_name, src_ip, round_number):
             f"            COUNT((src_ip, dst_ip,  {ttl_column_name}, src_port, dst_port)) AS cnt \n"  # noqa: E501
             f"       FROM {table_name}\n"
             f"       WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
-            f"        AND src_ip = {src_ip} \n"
+            f"        AND src_ip = {source_ip} \n"
             f"       AND snapshot = {snapshot} \n"
             f"        GROUP BY (src_ip, dst_prefix, dst_ip, {ttl_column_name}, src_port, dst_port, snapshot)\n"  # noqa: E501
             "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1)\n"
@@ -87,14 +87,11 @@ def query_max_ttl(database_host, table_name, src_ip, round_number):
         ):
             yield row
 
-        # HACK remove it to do the full next round !
-        break
 
-
-def query_next_round(database_host, table_name, src_ip, round_number):
+def query_next_round(database_host, table_name, source_ip, round_number):
     """Generator of next round database query."""
+
     snapshot = 1  # not used
-    # ipv4_split = 4096  # HACK (default value: 64)
     ipv4_split = 64
     ttl_column_name = "ttl_from_udp_length"
 
@@ -132,7 +129,7 @@ def query_next_round(database_host, table_name, src_ip, round_number):
             "    SELECT *\n"
             f"    FROM  {table_name}\n"
             f"    WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} AND round <= {round_number}\n"  # noqa: E501
-            f"    AND src_ip = {src_ip} \n"
+            f"    AND src_ip = {source_ip} \n"
             f"    AND snapshot = {snapshot} \n"
             ") AS p1 \n"
             "LEFT OUTER JOIN \n"
@@ -140,7 +137,7 @@ def query_next_round(database_host, table_name, src_ip, round_number):
             "    SELECT *\n"
             f"    FROM {table_name}\n"
             f"    WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} AND round <=  {round_number}\n"  # noqa: E501
-            f"    AND src_ip = {src_ip} \n"
+            f"    AND src_ip = {source_ip} \n"
             f"    AND snapshot = {snapshot} \n"
             ") AS p2 ON (p1.src_ip = p2.src_ip) AND (p1.dst_ip = p2.dst_ip) "
             " AND (p1.src_port = p2.src_port) AND (p1.dst_port = p2.dst_port) "
@@ -152,7 +149,7 @@ def query_next_round(database_host, table_name, src_ip, round_number):
             "    SELECT DISTINCT(dst_prefix)\n"
             f"   FROM {table_name}\n"
             f"   WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
-            f"   AND src_ip = {src_ip} \n"
+            f"   AND src_ip = {source_ip} \n"
             f"   AND snapshot = {snapshot} \n"
             "    GROUP BY (src_ip, dst_prefix)\n"
             f"   HAVING MAX(round) < {round_number - 1}\n"
@@ -171,7 +168,7 @@ def query_next_round(database_host, table_name, src_ip, round_number):
             + ", src_port, dst_port)) AS cnt \n"
             f"        FROM {table_name}\n"
             f"        WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born}\n"
-            f"        AND src_ip = {src_ip} \n"
+            f"        AND src_ip = {source_ip} \n"
             f"        AND snapshot = {snapshot} \n"
             f"        GROUP BY (src_ip, dst_prefix, dst_ip, {ttl_column_name}"
             + ", src_port, dst_port, snapshot)\n"
@@ -198,6 +195,3 @@ def query_next_round(database_host, table_name, src_ip, round_number):
             },
         ):
             yield row
-
-        # HACK remove it to do the full next round !
-        break

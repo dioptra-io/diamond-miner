@@ -1,4 +1,4 @@
-from reader.mda import stopping_point
+from diamond_miner_core.mda import stopping_point
 
 
 def test_stopping_point():

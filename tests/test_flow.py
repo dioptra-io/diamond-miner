@@ -1,4 +1,4 @@
-from reader.flow import SequentialFlowMapper, ReverseByteOrderFlowMapper
+from diamond_miner_core.flow import SequentialFlowMapper, ReverseByteOrderFlowMapper
 
 
 def test_sequential_flow_mapper():

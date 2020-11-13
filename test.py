@@ -1,6 +1,7 @@
 import ipaddress
+import sys
 
-from reader import next_round, next_max_ttl
+from diamond_miner_core import compute_next_round, MeasurementParameters
 
 
 measurement_uuid = "9ef5b32d-614a-4ef0-8d2f-b0a78f7c50b3"
@@ -16,10 +17,25 @@ if __name__ == "__main__":
     database_host = "127.0.0.1"
     table_name = f"iris.results__{sanitize(measurement_uuid)}__{sanitize(agent_uuid)}"
 
-    source_ip = int(ipaddress.ip_address("132.227.123.9"))
-    round_number = 1
+    measurement_parameters = MeasurementParameters(
+        source_ip=int(ipaddress.ip_address("132.227.123.9")),
+        source_port=24000,
+        destination_port=33434,
+        min_ttl=2,
+        max_ttl=30,
+        round_number=1,
+    )
 
-    output_file = "resources/reader_ttl_1.csv"
+    try:
+        output_file_path = sys.argv[1]
+    except IndexError:
+        print("Output file path required. Exiting.")
+        exit(1)
 
-    fd = open(output_file, "a+", newline="")
-    next_max_ttl(database_host, table_name, source_ip, round_number, fd)
+    compute_next_round(
+        database_host,
+        table_name,
+        measurement_parameters,
+        output_file_path,
+        use_max_ttl_feature=False,
+    )
