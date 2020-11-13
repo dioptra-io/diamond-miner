@@ -25,10 +25,8 @@ def compute_next_round(
     measurement_parameters: MeasurementParameters,
     output_file_path: str,
     use_max_ttl_feature=False,
-    Mapper=SequentialFlowMapper,
+    mapper=SequentialFlowMapper(),
 ):
-    mapper = Mapper()
-
     with open(output_file_path, "w", newline="") as fout:
         writer = csv.writer(fout, delimiter=",", lineterminator="\n")
         if use_max_ttl_feature:

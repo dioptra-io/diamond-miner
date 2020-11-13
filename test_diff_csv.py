@@ -41,7 +41,7 @@ def print_set_stats(a, b):
 
 if __name__ == "__main__":
     file_test = Path("resources/reader_test_1.csv")
-    file_new = Path("resources/reader_new_full_2.csv")
+    file_new = Path("resources/reader_new_full_3.csv")
 
     rows1, src1, dstp1, dsto1, sports1, dports1, ttls1, tpls1, dist1 = read_file(
         file_test

@@ -36,11 +36,13 @@ if __name__ == "__main__":
         print("Output file path required. Exiting.")
         exit(1)
 
+    mapper = SequentialFlowMapper()
+
     compute_next_round(
         database_host,
         table_name,
         measurement_parameters,
         output_file_path,
-        mapper=SequentialFlowMapper,
+        mapper=mapper,
         use_max_ttl_feature=False,
     )
