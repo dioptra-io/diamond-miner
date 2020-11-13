@@ -20,7 +20,7 @@ def flush_traceroute(
     nodes_per_ttl,
     links_per_ttl,
     previous_max_flow_per_ttl,
-    options,
+    measurement_parameters,
     mapper,
     writer,
 ):
@@ -31,15 +31,6 @@ def flush_traceroute(
     real_previous_max_flow_per_ttl = {}
 
     # TODO: Factor #flows computation out.
-    # TODO: Factor IO out of this function.
-
-    if (min_dst_port != options.source_port) or (
-        max_dst_port != options.destination_port
-    ):
-        # There is a case where max_src_port > sport,
-        # but real_flow_id < 255 (see dst_prefix == 28093440)
-        # It's probably NAT, nothing to do more
-        return
 
     # TODO: `absolute_max_ttl` or `max_ttl` ?
     for ttl in range(absolute_max_ttl):
@@ -51,7 +42,6 @@ def flush_traceroute(
         # It is the n_k closest (above) to the maximum destination IP for
         # which a reply was received in the previous round.
         # e.g. max_dst_ip = 5 => closest n_k = n_1 = 6.
-        # TODO: Does this work if we increased the src_port instead at the prev round ?
         # TODO: We can make this much faster by reducing the size of stopping_points,
         # or by searching from the left (since the expected k is probably small).
         prev_k = bisect_left(stopping_points, previous_max_flow_per_ttl[ttl])
@@ -81,11 +71,11 @@ def flush_traceroute(
 
         # If there is at least one link.
         if links_per_ttl.get(ttl, 0) > 0 or links_per_ttl.get(ttl - 1, 0) > 0:
-            flows = [flows_per_ttl.get(ttl - 1, 0), flows_per_ttl.get(ttl, 0)]
-
-            # TODO: `absolute_max_ttl` or `max_ttl` ?
-            if ttl < absolute_max_ttl:
-                flows.append(flows_per_ttl.get(ttl + 1, 0))
+            flows = [
+                flows_per_ttl.get(ttl - 1, 0),
+                flows_per_ttl.get(ttl, 0),
+                flows_per_ttl.get(ttl + 1, 0),  # TODO Check with paper
+            ]
 
             n_to_send = max(flows)
             dominant_ttl = ttl - 1 + flows.index(n_to_send)
@@ -100,12 +90,22 @@ def flush_traceroute(
             real_flow_id = real_previous_max_flow_per_ttl[dominant_ttl] + flow_id
             offset = mapper.offset(real_flow_id, 24)
 
+            if (
+                offset[1] > 0
+                and (min_dst_port != measurement_parameters.source_port)
+                or (max_dst_port != measurement_parameters.destination_port)
+            ):
+                # There is a case where max_src_port > sport,
+                # but real_flow_id < 255 (see dst_prefix == 28093440)
+                # It's probably NAT, nothing to do more
+                continue
+
             writer.writerow(
                 [
-                    htonl(options.source_ip),
+                    htonl(measurement_parameters.source_ip),
                     htonl(dst_prefix + 1 + offset[0]),
-                    options.source_port + offset[1],
-                    options.destination_port,
+                    measurement_parameters.source_port + offset[1],
+                    measurement_parameters.destination_port,
                     ttl,
                 ]
             )

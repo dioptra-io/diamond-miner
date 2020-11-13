@@ -1,6 +1,6 @@
 import csv
 
-from diamond_miner_core.flow import SequentialFlowMapper
+from diamond_miner_core.flow import SequentialFlowMapper, ReverseByteOrderFlowMapper
 from diamond_miner_core.processors import next_max_ttl, next_round
 
 from collections import namedtuple
@@ -25,15 +25,21 @@ def compute_next_round(
     measurement_parameters: MeasurementParameters,
     output_file_path: str,
     use_max_ttl_feature=False,
+    Mapper=SequentialFlowMapper,
 ):
-    mapper = SequentialFlowMapper()
+    mapper = Mapper()
 
-    with open(output_file_path, "a+", newline="") as fout:
+    with open(output_file_path, "w", newline="") as fout:
         writer = csv.writer(fout, delimiter=",", lineterminator="\n")
         if use_max_ttl_feature:
             next_max_ttl(database_host, table_name, measurement_parameters, writer)
         next_round(database_host, table_name, measurement_parameters, mapper, writer)
 
 
-__all__ = ["compute_next_round", "MeasurementParameters"]
+__all__ = [
+    "compute_next_round",
+    "MeasurementParameters",
+    "SequentialFlowMapper",
+    "ReverseByteOrderFlowMapper",
+]
 __version__ = "0.1.0"

@@ -25,7 +25,7 @@ def read_file(file):
             dst_offs.add(dst_off)
             sports.add(sport)
             dports.add(dport)
-            tpls.add((dst_off, ttl))
+            tpls.add((dst_pfx, dst_off, ttl))
             ttls.add(ttl)
             ttl_dist[int(ttl)] += 1
     return rows, src_ips, dst_pfxs, dst_offs, sports, dports, ttls, tpls, ttl_dist
@@ -40,8 +40,8 @@ def print_set_stats(a, b):
 
 
 if __name__ == "__main__":
-    file_test = Path("resources/reader_flow_3.csv")
-    file_new = Path("resources/reader_flow_4.csv")
+    file_test = Path("resources/reader_test_1.csv")
+    file_new = Path("resources/reader_new_full_2.csv")
 
     rows1, src1, dstp1, dsto1, sports1, dports1, ttls1, tpls1, dist1 = read_file(
         file_test
@@ -70,3 +70,5 @@ if __name__ == "__main__":
     print_set_stats(tpls1, tpls2)
     print("rows")
     print_set_stats(rows1, rows2)
+
+    # print(rows1 - rows2)

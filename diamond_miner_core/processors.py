@@ -42,7 +42,7 @@ def next_round(
     current_prefix = None
     current_max_dst_ip = 0
     current_max_src_port = 0
-    current_min_dst_port = measurement_parameters.source_port
+    current_min_dst_port = measurement_parameters.destination_port
     current_max_dst_port = measurement_parameters.destination_port
     current_max_round = 0
 
@@ -122,7 +122,7 @@ def next_round(
         # Compute the maximum flow from the `max_dst_ip`
         # NOTE We don't take into account the `src_port` (for now)
         # to avoid issues due to NAT source port re-writing
-        # The `-1` is to begin to flow 0
+        # TODO The `-1` is to begin to flow 0, is it correct ?
         max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix - 1)
 
         nodes_per_ttl[ttl] = n_nodes

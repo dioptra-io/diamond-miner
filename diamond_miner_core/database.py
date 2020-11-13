@@ -195,3 +195,5 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             },
         ):
             yield row
+
+        break

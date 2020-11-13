@@ -1,7 +1,11 @@
 import ipaddress
 import sys
 
-from diamond_miner_core import compute_next_round, MeasurementParameters
+from diamond_miner_core import (
+    compute_next_round,
+    MeasurementParameters,
+    SequentialFlowMapper,
+)
 
 
 measurement_uuid = "9ef5b32d-614a-4ef0-8d2f-b0a78f7c50b3"
@@ -37,5 +41,6 @@ if __name__ == "__main__":
         table_name,
         measurement_parameters,
         output_file_path,
+        mapper=SequentialFlowMapper,
         use_max_ttl_feature=False,
     )
