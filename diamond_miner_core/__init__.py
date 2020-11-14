@@ -24,8 +24,8 @@ def compute_next_round(
     table_name: str,
     measurement_parameters: MeasurementParameters,
     output_file_path: str,
-    use_max_ttl_feature=False,
     mapper=SequentialFlowMapper(),
+    use_max_ttl_feature=False,
 ):
     with open(output_file_path, "w", newline="") as fout:
         writer = csv.writer(fout, delimiter=",", lineterminator="\n")
