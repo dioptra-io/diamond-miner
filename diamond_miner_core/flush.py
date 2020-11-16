@@ -103,7 +103,7 @@ def flush_traceroute(
             writer.writerow(
                 [
                     htonl(measurement_parameters.source_ip),
-                    htonl(dst_prefix + 1 + offset[0]),
+                    htonl(dst_prefix + offset[0]),
                     measurement_parameters.source_port + offset[1],
                     measurement_parameters.destination_port,
                     ttl,
