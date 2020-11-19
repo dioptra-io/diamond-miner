@@ -11,6 +11,10 @@ default_1_round_flows = 6
 stopping_points = [stopping_point(k, 0.05) for k in range(1, 65536)]
 
 
+def flush_format(dst_ip, src_port, dst_port, ttl):
+    return [f"{dst_ip:010}", f"{src_port:05}", f"{dst_port:05}", f"{ttl:03}"]
+
+
 def flush_traceroute(
     dst_prefix,
     dst_ip,
@@ -101,11 +105,10 @@ def flush_traceroute(
                 continue
 
             writer.writerow(
-                [
-                    htonl(measurement_parameters.source_ip),
+                flush_format(
                     htonl(dst_prefix + offset[0]),
                     measurement_parameters.source_port + offset[1],
                     measurement_parameters.destination_port,
                     ttl,
-                ]
+                )
             )

@@ -2,7 +2,7 @@ from collections import defaultdict
 from socket import htonl
 
 
-from diamond_miner_core.flush import flush_traceroute
+from diamond_miner_core.flush import flush_traceroute, flush_format
 from diamond_miner_core.database import query_max_ttl, query_next_round
 
 
@@ -22,13 +22,12 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
         if max_ttl > 20:
             for ttl in range(measurement_parameters.max_ttl + 1, absolute_max_ttl + 1):
                 writer.writerow(
-                    [
-                        htonl(src_ip),
+                    flush_format(
                         htonl(dst_ip),
                         measurement_parameters.source_port,
                         measurement_parameters.destination_port,
                         ttl,
-                    ]
+                    )
                 )
 
 
