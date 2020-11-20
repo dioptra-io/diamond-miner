@@ -92,7 +92,7 @@ def flush_traceroute(
         for flow_id in range(n_to_send):
 
             real_flow_id = real_previous_max_flow_per_ttl[dominant_ttl] + flow_id
-            offset = mapper.offset(real_flow_id, 24)
+            offset = mapper.offset(real_flow_id, 24, dst_prefix)
 
             if (
                 offset[1] > 0

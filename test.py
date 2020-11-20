@@ -4,7 +4,7 @@ import sys
 from diamond_miner_core import (
     compute_next_round,
     MeasurementParameters,
-    SequentialFlowMapper,
+    RandomFlowMapper,
 )
 
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         print("Output file path required. Exiting.")
         exit(1)
 
-    mapper = SequentialFlowMapper()
+    mapper = RandomFlowMapper(master_seed=27)
 
     compute_next_round(
         database_host,

@@ -122,7 +122,7 @@ def next_round(
         # NOTE We don't take into account the `src_port` (for now)
         # to avoid issues due to NAT source port re-writing
         # TODO The `-1` is to begin to flow 0, is it correct ?
-        max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix)
+        max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix, dst_prefix)
 
         nodes_per_ttl[ttl] = n_nodes
         links_per_ttl[ttl] = n_links
