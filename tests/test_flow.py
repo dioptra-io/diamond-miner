@@ -1,4 +1,8 @@
-from diamond_miner_core.flow import SequentialFlowMapper, ReverseByteOrderFlowMapper
+from diamond_miner_core.flow import (
+    SequentialFlowMapper,
+    ReverseByteOrderFlowMapper,
+    RandomFlowMapper,
+)
 
 
 def test_sequential_flow_mapper():
@@ -29,5 +33,21 @@ def test_reverse_order_flow_mapper():
     # flow_id => dst_ip + src_port
     assert mapper.offset(128, 24) == (1, 0)
     assert mapper.offset(96, 24) == (6, 0)
+    assert mapper.offset(256, 24) == (254, 1)
+    assert mapper.offset(512, 24) == (254, 257)
+
+
+def test_random_flow_mapper():
+    """Test of `RandomFlowMapper` class."""
+
+    mapper = RandomFlowMapper(seed=27)
+
+    # dst_ip + src_port => flow_id
+    assert mapper.flow_id(1) == 117
+    assert mapper.flow_id(6) == 62
+
+    # flow_id => dst_ip + src_port
+    assert mapper.offset(117, 24) == (1, 0)
+    assert mapper.offset(62, 24) == (6, 0)
     assert mapper.offset(256, 24) == (254, 1)
     assert mapper.offset(512, 24) == (254, 257)

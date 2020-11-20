@@ -1,6 +1,10 @@
 import csv
 
-from diamond_miner_core.flow import SequentialFlowMapper, ReverseByteOrderFlowMapper
+from diamond_miner_core.flow import (
+    SequentialFlowMapper,
+    ReverseByteOrderFlowMapper,
+    RandomFlowMapper,
+)
 from diamond_miner_core.processors import next_max_ttl, next_round
 
 from collections import namedtuple
@@ -39,5 +43,6 @@ __all__ = [
     "MeasurementParameters",
     "SequentialFlowMapper",
     "ReverseByteOrderFlowMapper",
+    "RandomFlowMapper",
 ]
 __version__ = "0.1.0"
