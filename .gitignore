@@ -139,4 +139,3 @@ cython_debug/
 
 .vscode
 resources
-poetry.lock
