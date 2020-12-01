@@ -5,7 +5,7 @@ description = ""
 authors = ["Matthieu Gouel <matthieu.gouel@protonamil.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 clickhouse-driver = "^0.1.5"
 cperm = "^0.1.4"
 

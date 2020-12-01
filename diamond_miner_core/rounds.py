@@ -1,6 +1,6 @@
 from ipaddress import ip_address
 from math import ceil, log2
-from random import randbytes
+from secrets import token_bytes
 
 from cperm import Permutation
 
@@ -20,7 +20,7 @@ async def exhaustive_round(mapper, src_port=24000, dst_port=33434, seed=None):
     Returns:
         destination address (little endian), source port, destination port, TTL.
     """
-    seed = seed or randbytes(8)
+    seed = seed or token_bytes(8)
     perm = Permutation(2 ** 32 - 1, "cycle", "speck", seed)
     for val in perm:
         # 1. Unpack bits
@@ -40,7 +40,7 @@ async def targets_round(targets, src_port=24000, dst_port=33434, seed=None):
     Generate 1 probe per TTLs in (1, 32) per targets.
     See `exhaustive_round` for the arguments and the return values.
     """
-    seed = seed or randbytes(8)
+    seed = seed or token_bytes(8)
     target_bits = ceil(log2(len(targets)))
     range_ = 2 ** (target_bits + 5)
     assert range_ < 2 ** 32, "targets list is too long"
