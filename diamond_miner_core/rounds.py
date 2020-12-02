@@ -7,9 +7,9 @@ from cperm import Permutation
 # TODO: Move "flush_traceroute" ("mda_round"?) here?
 
 
-async def exhaustive_round(mapper, src_port=24000, dst_port=33434, seed=None):
+async def exhaustive_round(mapper, n_flows=8, src_port=24000, dst_port=33434, seed=None):
     """
-    Generate 2**32 probes: 8 probes per TTLs in (1, 32) per /24 subnets.
+    Generate 2**32 probes: `n_flows` probes per TTLs in (1, 32) per /24 subnets.
 
     Args:
         mapper: flow mapper used to compute the destination address and the
@@ -35,7 +35,8 @@ async def exhaustive_round(mapper, src_port=24000, dst_port=33434, seed=None):
         addr_offset, port_offset = mapper.offset(
             flow_id=flow_id, prefix=prefix, prefix_size=24
         )
-        yield (prefix + addr_offset, src_port + port_offset, dst_port, ttl)
+        if flow_id < n_flows:
+            yield (prefix + addr_offset, src_port + port_offset, dst_port, ttl)
 
 
 async def targets_round(targets, src_port=24000, dst_port=33434, seed=None):
