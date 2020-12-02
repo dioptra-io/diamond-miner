@@ -6,6 +6,7 @@ from cperm import Permutation
 
 # TODO: Move "flush_traceroute" ("mda_round"?) here?
 
+
 async def exhaustive_round(mapper, src_port=24000, dst_port=33434, seed=None):
     """
     Generate 2**32 probes: 8 probes per TTLs in (1, 32) per /24 subnets.
@@ -31,7 +32,9 @@ async def exhaustive_round(mapper, src_port=24000, dst_port=33434, seed=None):
         ttl = ((val >> 24) & 0x0000001F) + 1
         flow_id = val >> 29
         # 2. Generate probe
-        addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix_size=24)
+        addr_offset, port_offset = mapper.offset(
+            flow_id=flow_id, prefix=prefix, prefix_size=24
+        )
         yield (prefix + addr_offset, src_port + port_offset, dst_port, ttl)
 
 
@@ -57,7 +60,7 @@ async def targets_round(targets, src_port=24000, dst_port=33434, seed=None):
         # 2. Generate probe
         target = targets[target_i]
         if isinstance(target, str):
-            target = int(ip_address(target))
+            target = int(ip_address(target.strip()))
         yield (target, src_port, dst_port, ttl)
 
 
