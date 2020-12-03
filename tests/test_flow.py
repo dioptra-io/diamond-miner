@@ -43,17 +43,17 @@ def test_random_flow_mapper():
     mapper = RandomFlowMapper(master_seed=27)
 
     # dst_ip + src_port => flow_id
-    assert mapper.flow_id(1, 134744064) == 176
-    assert mapper.flow_id(6, 134744064) == 43
+    assert mapper.flow_id(1, 134744064) == 157
+    assert mapper.flow_id(6, 134744064) == 214
 
-    assert mapper.flow_id(1, 167772160) == 89
-    assert mapper.flow_id(6, 167772160) == 76
+    assert mapper.flow_id(1, 167772160) == 223
+    assert mapper.flow_id(6, 167772160) == 193
 
     # flow_id => dst_ip + src_port
-    assert mapper.offset(177, 24, 134744064) == (117, 0)
-    assert mapper.offset(44, 24, 134744064) == (65, 0)
+    assert mapper.offset(177, 24, 134744064) == (125, 0)
+    assert mapper.offset(44, 24, 134744064) == (19, 0)
     assert mapper.offset(256, 24, 134744064) == (254, 1)
     assert mapper.offset(512, 24, 134744064) == (254, 257)
 
-    assert mapper.offset(89, 24, 167772160) == (1, 0)
-    assert mapper.offset(76, 24, 167772160) == (6, 0)
+    assert mapper.offset(223, 24, 167772160) == (1, 0)
+    assert mapper.offset(193, 24, 167772160) == (6, 0)

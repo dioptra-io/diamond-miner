@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 # NOTE: Currently we map IPs to (0, 254).
 # NOTE: By convention we make the flow ID starts at 0.
 
+
 class AbstractFlowMapper(ABC):
     def flow_id(self, addr_offset, *args, **kwargs):
         """
@@ -65,23 +66,23 @@ class ReverseByteOrderFlowMapper(AbstractFlowMapper):
 class RandomFlowMapper(AbstractFlowMapper):
     """Random flow mapper."""
 
-    def __init__(self, master_seed):
+    def __init__(self, master_seed, n_array=1000):
         self.master_seed = master_seed
-
-    def _generate_flow_array(self, prefix):
-        flow_array = [i for i in range(0, 255)]
-        random.seed(prefix + self.master_seed)
-        random.shuffle(flow_array)
-        return flow_array
+        self.flow_arrays = []
+        random.seed(master_seed)
+        for i in range(1000):
+            flow_array = [i for i in range(0, 255)]
+            random.shuffle(flow_array)
+            self.flow_arrays.append(flow_array)
 
     def _flow_id(self, addr_offset, prefix):
-        flow_array = self._generate_flow_array(prefix)
+        flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
         return flow_array.index(addr_offset)
 
     def _offset(self, flow_id, prefix_size, prefix):
         n = 2 ** (32 - prefix_size)
         if flow_id < n:
-            flow_array = self._generate_flow_array(prefix)
+            flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
             return (flow_array[flow_id], 0)
         else:
             return (254, flow_id - n + 1)

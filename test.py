@@ -36,7 +36,7 @@ if __name__ == "__main__":
         print("Output file path required. Exiting.")
         exit(1)
 
-    mapper = RandomFlowMapper(master_seed=27)
+    mapper = RandomFlowMapper(master_seed=27, n_array=1000)
 
     compute_next_round(
         database_host,
