@@ -71,7 +71,7 @@ class RandomFlowMapper(AbstractFlowMapper):
         self.flow_arrays = []
         random.seed(master_seed)
         for i in range(1000):
-            flow_array = [i for i in range(0, 255)]
+            flow_array = [i for i in range(0, 256)]
             random.shuffle(flow_array)
             self.flow_arrays.append(flow_array)
 
@@ -80,6 +80,7 @@ class RandomFlowMapper(AbstractFlowMapper):
         return flow_array.index(addr_offset)
 
     def _offset(self, flow_id, prefix_size, prefix):
+        assert prefix_size == 24, "TODO: Handle other sizes"
         n = 2 ** (32 - prefix_size)
         if flow_id < n:
             flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
