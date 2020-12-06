@@ -21,7 +21,19 @@ async def test_exhaustive_round():
         assert 0 <= probe[0] <= (2 ** 32 - 1)
         assert probe[1] == 24000
         assert probe[2] == 33434
-        assert 1 <= probe[3] <= 32
+        assert 0 <= probe[3] <= 31
+    # Test that we have the same values as in Kevin's code.
+    # (We compare the little endian values).
+    probes = exhaustive_round(mapper, seed=(0).to_bytes(16, 'little'))
+    probe = await probes.__anext__()
+    assert probe[0] == 431368709
+    assert probe[3] == 30
+    probe = await probes.__anext__()
+    assert probe[0] == 8071169
+    assert probe[3] == 6
+    probe = await probes.__anext__()
+    assert probe[0] == 3694434308
+    assert probe[3] == 16
 
 @pytest.mark.asyncio
 async def test_targets_round():
@@ -32,4 +44,4 @@ async def test_targets_round():
         assert 0 <= probe[0] <= (2 ** 32 - 1)
         assert probe[1] == 24000
         assert probe[2] == 33434
-        assert 1 <= probe[3] <= 32
+        assert 0 <= probe[3] <= 31
