@@ -6,14 +6,19 @@ from cperm import Permutation
 
 # TODO: Move "flush_traceroute" ("mda_round"?) here?
 
+
 def swap32(x):
-    return (((x << 24) & 0xFF000000) |
-            ((x <<  8) & 0x00FF0000) |
-            ((x >>  8) & 0x0000FF00) |
-            ((x >> 24) & 0x000000FF))
+    return (
+        ((x << 24) & 0xFF000000)
+        | ((x << 8) & 0x00FF0000)
+        | ((x >> 8) & 0x0000FF00)
+        | ((x >> 24) & 0x000000FF)
+    )
 
 
-async def exhaustive_round(mapper, min_ttl=0, max_ttl=31, n_flows=8, src_port=24000, dst_port=33434, seed=None):
+async def exhaustive_round(
+    mapper, min_ttl=0, max_ttl=31, n_flows=8, src_port=24000, dst_port=33434, seed=None
+):
     """
     Generate 2**32 probes: `n_flows` probes per TTLs in (1, 32) per /24 subnets.
 

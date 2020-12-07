@@ -1,7 +1,9 @@
 import ipaddress
 
 
-def select_resolved_prefixes(table_name, src_ip, round_number, snapshot, inf_born, sup_born):
+def select_resolved_prefixes(
+    table_name, src_ip, round_number, snapshot, inf_born, sup_born
+):
     return (
         " SELECT dst_prefix"
         "    FROM"
@@ -19,7 +21,10 @@ def select_resolved_prefixes(table_name, src_ip, round_number, snapshot, inf_bor
         "    )"
     )
 
-def select_resolved_prefixes2(table_name, src_ip, round_number, snapshot, inf_born, sup_born):
+
+def select_resolved_prefixes2(
+    table_name, src_ip, round_number, snapshot, inf_born, sup_born
+):
     return (
         # " SELECT dst_prefix"
         # "    FROM"
@@ -37,13 +42,14 @@ def select_resolved_prefixes2(table_name, src_ip, round_number, snapshot, inf_bo
         # "    )"
     )
 
+
 if __name__ == "__main__":
     j = 0
     ipv4_split = 64
     # inf_born = int(j * ((2 ** 32 - 1) / ipv4_split))
     # sup_born = int((j + 1) * ((2 ** 32 - 1) / ipv4_split))
     inf_born = 0
-    sup_born = 2**32
+    sup_born = 2 ** 32
     print(
         select_resolved_prefixes2(
             "results__9ef5b32d_614a_4ef0_8d2f_b0a78f7c50b3__ddd8541d_b4f5_42ce_b163_e3e9bfcd0a47",
@@ -51,6 +57,6 @@ if __name__ == "__main__":
             10,
             1,
             inf_born,
-            sup_born
+            sup_born,
         )
     )
