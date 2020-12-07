@@ -1,5 +1,4 @@
 from collections import defaultdict
-from socket import htonl
 
 
 from diamond_miner_core.flush import flush_traceroute, flush_format
@@ -23,7 +22,7 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
             for ttl in range(measurement_parameters.max_ttl + 1, absolute_max_ttl + 1):
                 writer.writerow(
                     flush_format(
-                        htonl(dst_ip),
+                        dst_ip,
                         measurement_parameters.source_port,
                         measurement_parameters.destination_port,
                         ttl,
