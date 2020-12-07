@@ -1,0 +1,28 @@
+name: Python Code Quality
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+      - name: Lint
+        run: |
+          poetry run flake8 diamond_miner_core --max-line-length=88
+      - name: Tests
+        run: |
+          poetry run pytest tests
