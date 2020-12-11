@@ -5,6 +5,7 @@ from diamond_miner_core.flow import (
     RandomFlowMapper,
     ReverseByteOrderFlowMapper,
     SequentialFlowMapper,
+    BetterFlowMapper,
 )
 from diamond_miner_core.processors import next_max_ttl, next_round
 
