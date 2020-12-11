@@ -6,7 +6,7 @@ from clickhouse_driver import Client
 def query_max_ttl(database_host, table_name, source_ip, round_number):
     """Generator of max TTL database query."""
 
-    snapshot = 1  # not used
+    snapshot = 1  # NOTE Not currently used
     ipv4_split = 64
     ttl_column_name = "ttl_from_udp_length"
 
@@ -91,7 +91,7 @@ def query_max_ttl(database_host, table_name, source_ip, round_number):
 def query_next_round(database_host, table_name, source_ip, round_number):
     """Generator of next round database query."""
 
-    snapshot = 1  # not used
+    snapshot = 1  # NOTE Not currently used
     ipv4_split = 64
     ttl_column_name = "ttl_from_udp_length"
 
