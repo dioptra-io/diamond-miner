@@ -1,14 +1,12 @@
 import csv
-
-from diamond_miner_core.flow import (
-    SequentialFlowMapper,
-    ReverseByteOrderFlowMapper,
-    RandomFlowMapper,
-)
-from diamond_miner_core.processors import next_max_ttl, next_round
-
 from collections import namedtuple
 
+from diamond_miner_core.flow import (
+    RandomFlowMapper,
+    ReverseByteOrderFlowMapper,
+    SequentialFlowMapper,
+)
+from diamond_miner_core.processors import next_max_ttl, next_round
 
 MeasurementParameters = namedtuple(
     "MeasurementParameters",

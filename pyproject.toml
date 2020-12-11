@@ -5,11 +5,14 @@ description = ""
 authors = ["Matthieu Gouel <matthieu.gouel@protonamil.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 clickhouse-driver = "^0.1.5"
+cperm = "^0.1.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+pytest-asyncio = "^0.14.0"
+flake8 = "^3.8.4"
 
 [build-system]
 requires = ["poetry>=0.12"]

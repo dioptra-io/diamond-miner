@@ -1,9 +1,7 @@
 from collections import defaultdict
-from socket import htonl
 
-
-from diamond_miner_core.flush import flush_traceroute, flush_format
 from diamond_miner_core.database import query_max_ttl, query_next_round
+from diamond_miner_core.flush import flush_format, flush_traceroute
 
 
 def next_max_ttl(database_host: str, table_name: str, measurement_parameters, writer):
@@ -23,7 +21,7 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
             for ttl in range(measurement_parameters.max_ttl + 1, absolute_max_ttl + 1):
                 writer.writerow(
                     flush_format(
-                        htonl(dst_ip),
+                        dst_ip,
                         measurement_parameters.source_port,
                         measurement_parameters.destination_port,
                         ttl,
@@ -121,7 +119,6 @@ def next_round(
         # Compute the maximum flow from the `max_dst_ip`
         # NOTE We don't take into account the `src_port` (for now)
         # to avoid issues due to NAT source port re-writing
-        # TODO The `-1` is to begin to flow 0, is it correct ?
         max_flow_per_ttl[ttl] = mapper.flow_id(max_dst_ip - dst_prefix, dst_prefix)
 
         nodes_per_ttl[ttl] = n_nodes

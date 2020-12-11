@@ -1,8 +1,6 @@
-from diamond_miner_core.mda import stopping_point
-
 from bisect import bisect_left
-from socket import htonl
 
+from diamond_miner_core.mda import stopping_point
 
 # NOTE: max_ttl = 30 in probing_options_t.cpp !?
 absolute_max_ttl = 40  # TODO Better parameter handling
@@ -106,7 +104,7 @@ def flush_traceroute(
 
             writer.writerow(
                 flush_format(
-                    htonl(dst_prefix + offset[0]),
+                    dst_prefix + offset[0],
                     measurement_parameters.source_port + offset[1],
                     measurement_parameters.destination_port,
                     ttl,
