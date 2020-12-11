@@ -1,7 +1,6 @@
 from subprocess import PIPE, Popen
 
 
-
 # TODO: Raise error if the subprocess crash.
 class Prober(object):
     def __init__(self, exe="diamond-miner-prober", options=[]):
