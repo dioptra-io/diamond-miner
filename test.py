@@ -2,11 +2,10 @@ import ipaddress
 import sys
 
 from diamond_miner_core import (
-    compute_next_round,
     MeasurementParameters,
     RandomFlowMapper,
+    compute_next_round,
 )
-
 
 measurement_uuid = "9ef5b32d-614a-4ef0-8d2f-b0a78f7c50b3"
 agent_uuid = "ddd8541d-b4f5-42ce-b163-e3e9bfcd0a47"

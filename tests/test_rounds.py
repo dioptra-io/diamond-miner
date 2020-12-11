@@ -1,5 +1,6 @@
-import pytest
 from ipaddress import ip_address
+
+import pytest
 
 from diamond_miner_core.flow import SequentialFlowMapper
 from diamond_miner_core.rounds import exhaustive_round, probe_to_csv, targets_round

@@ -1,7 +1,7 @@
 from diamond_miner_core.flow import (
-    SequentialFlowMapper,
-    ReverseByteOrderFlowMapper,
     RandomFlowMapper,
+    ReverseByteOrderFlowMapper,
+    SequentialFlowMapper,
 )
 
 

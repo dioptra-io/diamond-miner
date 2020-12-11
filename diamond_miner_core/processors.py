@@ -1,8 +1,7 @@
 from collections import defaultdict
 
-
-from diamond_miner_core.flush import flush_traceroute, flush_format
 from diamond_miner_core.database import query_max_ttl, query_next_round
+from diamond_miner_core.flush import flush_format, flush_traceroute
 
 
 def next_max_ttl(database_host: str, table_name: str, measurement_parameters, writer):

@@ -1,7 +1,6 @@
 """Flow mapper operations."""
 
 import random
-
 from abc import ABC, abstractmethod
 
 # NOTE: Currently we map IPs to (0, 254).
