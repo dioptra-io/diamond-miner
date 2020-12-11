@@ -42,5 +42,6 @@ __all__ = [
     "SequentialFlowMapper",
     "ReverseByteOrderFlowMapper",
     "RandomFlowMapper",
+    "BetterFlowMapper",
 ]
 __version__ = "0.1.0"
