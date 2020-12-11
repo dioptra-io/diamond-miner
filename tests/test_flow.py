@@ -1,4 +1,5 @@
 from diamond_miner_core.flow import (
+    BetterFlowMapper,
     RandomFlowMapper,
     ReverseByteOrderFlowMapper,
     SequentialFlowMapper,
@@ -35,6 +36,17 @@ def test_reverse_order_flow_mapper():
     assert mapper.offset(96, 24) == (6, 0)
     assert mapper.offset(256, 24) == (254, 1)
     assert mapper.offset(512, 24) == (254, 257)
+
+
+def test_better_flow_mapper():
+    """Test of `BetterFlowMapper` class."""
+
+    mapper = BetterFlowMapper()
+
+    assert mapper.offset(0, 24) == (1, 0)
+    assert mapper.offset(1, 24) == (33, 0)
+    assert mapper.flow_id(1) == 0
+    assert mapper.flow_id(33) == 1
 
 
 def test_random_flow_mapper():

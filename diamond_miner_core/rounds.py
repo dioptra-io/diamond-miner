@@ -16,8 +16,8 @@ def swap32(x):
     )
 
 
-async def exhaustive_round(
-    mapper, min_ttl=0, max_ttl=31, n_flows=8, src_port=24000, dst_port=33434, seed=None
+async def original_exhaustive_round(
+    mapper, n_flows=8, src_port=24000, dst_port=33434, seed=None
 ):
     """
     Generate 2**32 probes: `n_flows` probes per TTLs in (1, 32) per /24 subnets.
@@ -52,14 +52,48 @@ async def exhaustive_round(
         addr_offset, port_offset = mapper.offset(
             flow_id=flow_id, prefix=prefix, prefix_size=24
         )
-        # Reproduce Kevin's code
+        # Reproduce original code:
         last_byte = prefix >> 24
         if last_byte + addr_offset <= 255:
             dst_addr = prefix + addr_offset
         else:
             dst_addr = prefix - addr_offset
-        if flow_id < n_flows and ttl >= min_ttl and ttl <= max_ttl:
+        if flow_id < n_flows:
             yield (dst_addr, src_port + port_offset, dst_port, ttl)
+
+
+async def exhaustive_round(
+    mapper, n_flows=8, src_port=24000, dst_port=33434, seed=None
+):
+    """
+    Generate 2**32 probes: `n_flows` probes per TTLs in (1, 32) per /24 subnets.
+
+    Args:
+        mapper: flow mapper used to compute the destination address and the
+        source port from the flow id.
+        src_port: minimum source port.
+        dst_port: minimum destination port.
+        seed: 8 bytes string.
+
+    Returns:
+        destination address (little endian), source port, destination port, TTL.
+    """
+    seed = seed or token_bytes(8)
+    perm = Permutation(2 ** 32 - 1, "cycle", "speck", seed)
+    for val in perm:
+        # 1. Unpack bits
+        # Prefix: 24 bits
+        # TTL: 5 bits (0, 31)
+        # Flow ID: 3 bits (0, 7)
+        prefix = val & 0xFFFFFF00
+        ttl = (val & 0x000000F8) >> 3
+        flow_id = val & 0x00000007
+        # 2. Generate probe
+        addr_offset, port_offset = mapper.offset(
+            flow_id=flow_id, prefix=prefix, prefix_size=24
+        )
+        if flow_id < n_flows:
+            yield (prefix + addr_offset, src_port + port_offset, dst_port, ttl)
 
 
 async def targets_round(targets, src_port=24000, dst_port=33434, seed=None):
