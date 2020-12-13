@@ -42,11 +42,19 @@ def test_better_flow_mapper():
     """Test of `BetterFlowMapper` class."""
 
     mapper = BetterFlowMapper()
+    prefix_size = 24
+
+    for flow_id in range(255):
+        addr_offset, port_offset = mapper.offset(flow_id, prefix_size)
+        assert mapper.flow_id(addr_offset) == flow_id
 
     assert mapper.offset(0, 24) == (1, 0)
     assert mapper.offset(1, 24) == (33, 0)
+    assert mapper.offset(254, 24) == (224, 0)
+    assert mapper.offset(255, 24) == (254, 1)
     assert mapper.flow_id(1) == 0
     assert mapper.flow_id(33) == 1
+    assert mapper.flow_id(255) == 255
 
 
 def test_random_flow_mapper():
