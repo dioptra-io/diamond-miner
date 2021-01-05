@@ -1,5 +1,5 @@
 from diamond_miner_core.flow import (
-    BetterFlowMapper,
+    HeidemannFlowMapper,
     RandomFlowMapper,
     ReverseByteOrderFlowMapper,
     SequentialFlowMapper,
@@ -38,10 +38,10 @@ def test_reverse_order_flow_mapper():
     assert mapper.offset(512, 24) == (254, 257)
 
 
-def test_better_flow_mapper():
-    """Test of `BetterFlowMapper` class."""
+def test_heidemann_flow_mapper():
+    """Test of `HeidemannFlowMapper` class."""
 
-    mapper = BetterFlowMapper()
+    mapper = HeidemannFlowMapper()
     prefix_size = 24
 
     for flow_id in range(255):

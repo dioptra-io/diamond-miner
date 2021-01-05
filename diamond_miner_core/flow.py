@@ -62,8 +62,8 @@ class ReverseByteOrderFlowMapper(AbstractFlowMapper):
         return (254, flow_id - n + 1)
 
 
-class BetterFlowMapper(AbstractFlowMapper):
-    """A better flow mapper..."""
+class HeidemannFlowMapper(AbstractFlowMapper):
+    """Host distribution from Heidemann paper."""
 
     def __init__(self, step=32):
         assert step % 2 == 0, "`step` must be pair"

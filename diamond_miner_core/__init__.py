@@ -5,7 +5,7 @@ from diamond_miner_core.flow import (
     RandomFlowMapper,
     ReverseByteOrderFlowMapper,
     SequentialFlowMapper,
-    BetterFlowMapper,
+    HeidemannFlowMapper,
 )
 from diamond_miner_core.processors import next_max_ttl, next_round
 
@@ -43,6 +43,6 @@ __all__ = [
     "SequentialFlowMapper",
     "ReverseByteOrderFlowMapper",
     "RandomFlowMapper",
-    "BetterFlowMapper",
+    "HeidemannFlowMapper",
 ]
 __version__ = "0.1.0"
