@@ -19,6 +19,7 @@ def flush_traceroute(
     min_dst_port,
     max_dst_port,
     max_src_port,
+    max_round,
     nodes_per_ttl,
     links_per_ttl,
     previous_max_flow_per_ttl,
@@ -37,7 +38,7 @@ def flush_traceroute(
     # TODO: `absolute_max_ttl` or `max_ttl` ?
     for ttl in range(absolute_max_ttl):
         # Skip this TTL if there are no nodes or links.
-        if links_per_ttl[ttl] == 0 and nodes_per_ttl[ttl] == 0:
+        if len(links_per_ttl[ttl]) == 0 and len(nodes_per_ttl[ttl]) == 0:
             continue
 
         # Recover the number of flows sent during the previous round.
@@ -52,27 +53,25 @@ def flush_traceroute(
         # We know the max_flow for the first round (exhaustive scan),
         # so we make sure that we are not below.
         # TODO: Can we possibly be above this (6) at the first round?
-        if round == 1:
+        if max_round == 1:
             max_flow = default_1_round_flows
 
         real_previous_max_flow_per_ttl[ttl] = max_flow
 
         # Compute the number of flows to send.
-        if links_per_ttl[ttl] == 0:
-            flows_per_ttl[ttl] = stopping_points[nodes_per_ttl[ttl]] - max_flow
+        if len(links_per_ttl[ttl]) == 0 and len(nodes_per_ttl[ttl]) > 1:
+            flows_per_ttl[ttl] = stopping_points[len(nodes_per_ttl[ttl])] - max_flow
         else:
-            flows_per_ttl[ttl] = stopping_points[links_per_ttl[ttl]] - max_flow
+            flows_per_ttl[ttl] = stopping_points[len(links_per_ttl[ttl])] - max_flow
 
     # TODO: `absolute_max_ttl` or `max_ttl` ?
     for ttl in range(absolute_max_ttl):
-        # TODO: This is contradictory with the previous loop,
-        # where we assign a value to flows_per_ttl without
-        # checking if nodes_per_ttl[ttl] == 0.
-        if nodes_per_ttl[ttl] == 0:
+        # This is due to avoid sending unnecessary probes to `*`
+        if len(nodes_per_ttl[ttl]) == 0:
             continue
 
         # If there is at least one link.
-        if links_per_ttl.get(ttl, 0) > 0 or links_per_ttl.get(ttl - 1, 0) > 0:
+        if len(links_per_ttl[ttl]) > 0 or len(links_per_ttl.get(ttl - 1, set())) > 0:
             flows = [
                 flows_per_ttl.get(ttl - 1, 0),
                 flows_per_ttl.get(ttl, 0),
@@ -83,7 +82,7 @@ def flush_traceroute(
             dominant_ttl = ttl - 1 + flows.index(n_to_send)
         # Otherwise, only look at the nodes if there are no links
         else:
-            n_to_send = flows_per_ttl[ttl]
+            n_to_send = flows_per_ttl.get(ttl, 0)
             dominant_ttl = ttl
 
         # Generate the next probes to send
