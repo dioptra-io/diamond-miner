@@ -44,7 +44,7 @@ def next_round(
     current_max_round = 0
 
     max_flow_per_ttl = defaultdict(int)
-    max_flow_per_ttl_previous_round = defaultdict(int)
+    # max_flow_per_ttl_previous_round = defaultdict(int)
     nodes_per_ttl = defaultdict(list)
     links_per_ttl = defaultdict(list)
 
@@ -56,7 +56,7 @@ def next_round(
         dst_port,
         nodes,
         links,
-        max_round
+        max_round,
     ) in query_next_round(
         database_host,
         table_name,
@@ -107,7 +107,7 @@ def next_round(
             current_max_dst_port = dst_port
             current_max_round = max_round
             max_flow_per_ttl = defaultdict(int)
-            max_flow_per_ttl_previous_round = defaultdict(int)
+            # max_flow_per_ttl_previous_round = defaultdict(int)
             nodes_per_ttl = defaultdict(list)
             links_per_ttl = defaultdict(list)
 
@@ -129,18 +129,15 @@ def next_round(
             if max_flow_per_ttl[d_ttl] < max_flow:
                 max_flow_per_ttl[d_ttl] = max_flow
 
-
-
             # if s_round < measurement_parameters.round_number:
-            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
+            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)  # noqa
             #     if max_flow_per_ttl_previous_round[s_ttl] < max_flow_previous_round:
             #         max_flow_per_ttl_previous_round[s_ttl] = max_flow_previous_round
             #
             # if d_round < measurement_parameters.round_number:
-            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
+            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)  # noqa
             #     if max_flow_per_ttl_previous_round[d_ttl] < max_flow_previous_round:
             #         max_flow_per_ttl_previous_round[d_ttl] = max_flow_previous_round
-
 
             links_per_ttl[s_ttl].append(((s_reply_ip, s_round), (d_reply_ip, d_round)))
 
@@ -156,12 +153,11 @@ def next_round(
             if max_flow_per_ttl[ttl] < max_flow:
                 max_flow_per_ttl[ttl] = max_flow
 
-            # # Compute the max flow for the previous round (necessary in flush traceroute)
+            # # Compute the max flow for the previous round (necessary in flush traceroute)  # noqa
             # if round < measurement_parameters.round_number:
-            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
+            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)  # noqa
             #     if max_flow_per_ttl_previous_round[ttl] < max_flow_previous_round:
             #         max_flow_per_ttl_previous_round[ttl] = max_flow_previous_round
-
 
             nodes_per_ttl[ttl].append((node, round))
 
