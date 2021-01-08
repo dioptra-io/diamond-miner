@@ -44,8 +44,9 @@ def next_round(
     current_max_round = 0
 
     max_flow_per_ttl = defaultdict(int)
-    nodes_per_ttl = defaultdict(set)
-    links_per_ttl = defaultdict(set)
+    max_flow_per_ttl_previous_round = defaultdict(int)
+    nodes_per_ttl = defaultdict(list)
+    links_per_ttl = defaultdict(list)
 
     for (
         src_ip,
@@ -53,9 +54,9 @@ def next_round(
         dst_ip,
         src_port,
         dst_port,
-        round_number,
         nodes,
         links,
+        max_round
     ) in query_next_round(
         database_host,
         table_name,
@@ -74,8 +75,8 @@ def next_round(
                 current_max_dst_ip = dst_ip
             if current_max_src_port < src_port:
                 current_max_src_port = src_port
-            if current_max_round < round_number:
-                current_max_round = round_number
+            if current_max_round < max_round:
+                current_max_round = max_round
             if current_min_dst_port > dst_port:
                 current_min_dst_port = dst_port
             if current_max_dst_port < dst_port:
@@ -104,14 +105,15 @@ def next_round(
             current_max_src_port = src_port
             current_min_dst_port = dst_port
             current_max_dst_port = dst_port
-            current_max_round = round_number
+            current_max_round = max_round
             max_flow_per_ttl = defaultdict(int)
-            nodes_per_ttl = defaultdict(set)
-            links_per_ttl = defaultdict(set)
+            max_flow_per_ttl_previous_round = defaultdict(int)
+            nodes_per_ttl = defaultdict(list)
+            links_per_ttl = defaultdict(list)
 
         for s_node, d_node in links:
-            s_reply_ip, s_ttl = s_node
-            d_reply_ip, d_ttl = d_node
+            s_reply_ip, s_ttl, s_round = s_node
+            d_reply_ip, d_ttl, d_round = d_node
 
             # TODO `absolute_max_ttl` or `max_ttl` ?
             if s_ttl > absolute_max_ttl:
@@ -124,9 +126,25 @@ def next_round(
             if max_flow_per_ttl[s_ttl] < max_flow:
                 max_flow_per_ttl[s_ttl] = max_flow
 
-            links_per_ttl[s_ttl].add((s_reply_ip, d_reply_ip))
+            if max_flow_per_ttl[d_ttl] < max_flow:
+                max_flow_per_ttl[d_ttl] = max_flow
 
-        for node, ttl in nodes:
+
+
+            # if s_round < measurement_parameters.round_number:
+            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
+            #     if max_flow_per_ttl_previous_round[s_ttl] < max_flow_previous_round:
+            #         max_flow_per_ttl_previous_round[s_ttl] = max_flow_previous_round
+            #
+            # if d_round < measurement_parameters.round_number:
+            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
+            #     if max_flow_per_ttl_previous_round[d_ttl] < max_flow_previous_round:
+            #         max_flow_per_ttl_previous_round[d_ttl] = max_flow_previous_round
+
+
+            links_per_ttl[s_ttl].append(((s_reply_ip, s_round), (d_reply_ip, d_round)))
+
+        for node, ttl, round in nodes:
             # TODO `absolute_max_ttl` or `max_ttl` ?
             if ttl > absolute_max_ttl:
                 continue
@@ -138,7 +156,14 @@ def next_round(
             if max_flow_per_ttl[ttl] < max_flow:
                 max_flow_per_ttl[ttl] = max_flow
 
-            nodes_per_ttl[ttl].add(node)
+            # # Compute the max flow for the previous round (necessary in flush traceroute)
+            # if round < measurement_parameters.round_number:
+            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
+            #     if max_flow_per_ttl_previous_round[ttl] < max_flow_previous_round:
+            #         max_flow_per_ttl_previous_round[ttl] = max_flow_previous_round
+
+
+            nodes_per_ttl[ttl].append((node, round))
 
     # Flush the last prefix
     flush_traceroute(
