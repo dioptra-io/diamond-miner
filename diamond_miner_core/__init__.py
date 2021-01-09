@@ -29,12 +29,20 @@ def compute_next_round(
     output_file_path: str,
     mapper=SequentialFlowMapper(),
     use_max_ttl_feature=False,
+    skip_unpopulated_ttl=False,
 ):
     with open(output_file_path, "w", newline="") as fout:
         writer = csv.writer(fout, delimiter=",", lineterminator="\n")
         if use_max_ttl_feature:
             next_max_ttl(database_host, table_name, measurement_parameters, writer)
-        next_round(database_host, table_name, measurement_parameters, mapper, writer)
+        next_round(
+            database_host,
+            table_name,
+            measurement_parameters,
+            mapper,
+            writer,
+            skip_unpopulated_ttl,
+        )
 
 
 __all__ = [
