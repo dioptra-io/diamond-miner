@@ -1,6 +1,10 @@
 from collections import defaultdict
 
-from diamond_miner_core.database import query_max_ttl, query_next_round
+from diamond_miner_core.database import (
+    query_max_ttl,
+    query_next_round,
+    query_discoveries_per_ttl,
+)
 from diamond_miner_core.flush import flush_format, flush_traceroute
 
 
@@ -30,7 +34,12 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
 
 
 def next_round(
-    database_host: str, table_name: str, measurement_parameters, mapper, writer
+    database_host: str,
+    table_name: str,
+    measurement_parameters,
+    mapper,
+    writer,
+    skip_unpopulated_ttl=False,
 ):
     """Compute the next round."""
 
@@ -47,6 +56,21 @@ def next_round(
     # max_flow_per_ttl_previous_round = defaultdict(int)
     nodes_per_ttl = defaultdict(list)
     links_per_ttl = defaultdict(list)
+
+    # With this manimulation we skip the TTLs that are not very populated to avoid
+    # re-probing it extensively (e.g., low TTLs)
+    ttl_skipped = set()
+    if skip_unpopulated_ttl is True:
+        population_threshold = 100
+        for ttl, n_discoveries in query_discoveries_per_ttl(
+            database_host,
+            table_name,
+            measurement_parameters.source_ip,
+            measurement_parameters.round_number,
+            absolute_max_ttl,
+        ):
+            if n_discoveries < population_threshold:
+                ttl_skipped.add(ttl)
 
     for (
         src_ip,
@@ -97,6 +121,7 @@ def next_round(
                 measurement_parameters,
                 mapper,
                 writer,
+                ttl_skipped,
             )
 
             # Initialize the variables again
@@ -175,4 +200,5 @@ def next_round(
         measurement_parameters,
         mapper,
         writer,
+        ttl_skipped,
     )

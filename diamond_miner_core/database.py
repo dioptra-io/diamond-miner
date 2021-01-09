@@ -100,9 +100,7 @@ def query_next_round(database_host, table_name, source_ip, round_number):
     for j in range(0, ipv4_split):
         inf_born = int(j * ((2 ** 32 - 1) / ipv4_split))
         sup_born = int((j + 1) * ((2 ** 32 - 1) / ipv4_split))
-        # if j < 35:
-        #     continue
-        print(j)
+
         # TODO Excluded prefixed ?
 
         if sup_born > 3758096384:
@@ -170,7 +168,7 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             "HAVING length(links) >= 1 or length(replies_s) >= 1  "
             "ORDER BY dst_prefix ASC"
         )
-        print(query)
+        # print(query)
         client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
         for row in client.execute_iter(
             query,
@@ -183,3 +181,28 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             },
         ):
             yield row
+
+
+def query_discoveries_per_ttl(
+    database_host, table_name, source_ip, round_number, absolute_max_ttl=255
+):
+    query = (
+        "SELECT ttl, CountDistinct(reply_ip)"
+        f"FROM {table_name} "
+        f"WHERE src_ip = {source_ip} AND dst_prefix > 0 "
+        "AND reply_ip != dst_ip AND type = 11 "
+        f"AND ttl <= {absolute_max_ttl} "
+        "GROUP BY ttl"
+    )
+    client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
+    for row in client.execute_iter(
+        query,
+        settings={
+            "max_block_size": 100000,
+            "connect_timeout": 1000,
+            "send_timeout": 6000,
+            "receive_timeout": 6000,
+            "read_backoff_min_latency_ms": 100000,
+        },
+    ):
+        yield row

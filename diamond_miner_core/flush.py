@@ -154,43 +154,9 @@ def flush_traceroute(
     measurement_parameters,
     mapper,
     writer,
+    ttl_skipped,
 ):
-    # if dst_prefix != 17129728:
-    #     return
-    # Number of flows to send at `ttl`.
-    # flows_per_ttl = {}
-
-    # TODO: Factor #flows computation out.
-
-    # TODO: `absolute_max_ttl` or `max_ttl` ?
-    # for ttl in range(absolute_max_ttl):
-    #     # Skip this TTL if there are no nodes or links.
-    #     if len(links_per_ttl[ttl]) == 0 and len(nodes_per_ttl[ttl]) == 0:
-    #         continue
-    #
-    #     # Recover the number of flows sent during the previous round.
-    #     # It is the n_k closest (above) to the maximum destination IP for
-    #     # which a reply was received in the previous round.
-    #     # e.g. max_dst_ip = 5 => closest n_k = n_1 = 6.
-    #     # TODO: We can make this much faster by reducing the size of stopping_points,
-    #     # or by searching from the left (since the expected k is probably small).
-    #     prev_k = bisect_left(stopping_points, previous_max_flow_per_ttl[ttl])
-    #     max_flow = stopping_points[prev_k]
-    #
-    #     # We know the max_flow for the first round (exhaustive scan),
-    #     # so we make sure that we are not below.
-    #     # TODO: Can we possibly be above this (6) at the first round?
-    #     if max_round == 1:
-    #         max_flow = default_1_round_flows
-    #
-    #     real_previous_max_flow_per_ttl[ttl] = max_flow
-    #
-    #     # Compute the number of flows to send.
-    #     if len(links_per_ttl[ttl]) == 0 and len(nodes_per_ttl[ttl]) > 1:
-    #         flows_per_ttl[ttl] = stopping_points[len(nodes_per_ttl[ttl])] - max_flow
-    #     else:
-    #         flows_per_ttl[ttl] = stopping_points[len(links_per_ttl[ttl])] - max_flow
-
+    # Compute the topology state ah round N
     (
         topology_state,
         distribution_probes_per_ttl,
@@ -201,6 +167,7 @@ def flush_traceroute(
         nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
     )
 
+    # Compute the topology state ah round N-1
     (
         topology_state_previous,
         distribution_probes_per_ttl_previous,
@@ -215,6 +182,7 @@ def flush_traceroute(
     n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
     if len(n_nodes_per_ttl) == 0 or max(n_nodes_per_ttl.values()) == 0:
         return
+
     # Now adapt the epsilon such that it fits to the number of load balancer.
     # epsilon is the probablity to fail to reach statistical guarantees for 1 LB
     # let assume target epsilon (failure probability) is 0.01 (for the whole topology)
@@ -228,7 +196,6 @@ def flush_traceroute(
     else:
         epsilon = 1 - math.exp(math.log(1 - target_epsilon) / n_load_balancers)
 
-    # epsilon = 0.05
     if len(star_nodes_star_per_ttl) > 0:
         max_stopping_point = max(max_successors, max(star_nodes_star_per_ttl.values()))
     else:
@@ -254,7 +221,6 @@ def flush_traceroute(
         epsilon_previous_round = 1 - math.exp(
             math.log(1 - target_epsilon) / n_load_balancers_previous
         )
-        # epsilon_previous_round = 0.05
         stopping_points_previous = [
             stopping_point(k, epsilon_previous_round)
             for k in range(1, max_stopping_point_previous + 2)
@@ -294,8 +260,12 @@ def flush_traceroute(
             real_previous_max_flow_per_ttl[ttl] = previous_max_flow
 
     probes_per_ttl = {ttl: max(probes_per_ttl[ttl]) for ttl in probes_per_ttl}
-    # print(probes_per_ttl)
     for ttl, n_to_send in probes_per_ttl.items():
+
+        # Re-probe unpopulated TTLs avoidance
+        if ttl in ttl_skipped:
+            continue
+
         # Generate the next probes to send
         for flow_id in range(0, n_to_send):
 
