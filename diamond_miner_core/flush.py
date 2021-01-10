@@ -37,7 +37,10 @@ def compute_next_round_probes_per_ttl(
                 n_probes / total_probes_ttl
             )
             next_round_probes.append(int(probes_to_send))
-        n_next_round_probes = max(0, max(next_round_probes))
+        if not next_round_probes:
+            n_next_round_probes = 0
+        else:
+            n_next_round_probes = max(next_round_probes)
         probes_per_ttl.setdefault(ttl, []).append(n_next_round_probes)
         probes_per_ttl.setdefault(ttl + 1, []).append(n_next_round_probes)
 
@@ -218,9 +221,12 @@ def flush_traceroute(
             for k in range(1, max_stopping_point_previous + 3)
         ]
     else:
-        epsilon_previous_round = 1 - math.exp(
-            math.log(1 - target_epsilon) / n_load_balancers_previous
-        )
+        if n_load_balancers_previous == 0:
+            epsilon_previous_round = target_epsilon
+        else:
+            epsilon_previous_round = 1 - math.exp(
+                math.log(1 - target_epsilon) / n_load_balancers_previous
+            )
         stopping_points_previous = [
             stopping_point(k, epsilon_previous_round)
             for k in range(1, max_stopping_point_previous + 2)
