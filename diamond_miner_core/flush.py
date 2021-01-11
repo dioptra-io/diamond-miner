@@ -26,7 +26,7 @@ def compute_next_round_probes_per_ttl(
             continue
         # Number of probes is the number given in the NSDI D-Miner paper
         next_round_probes = []
-        total_probes_ttl = sum(distribution_probes_per_ttl[ttl].values())
+        total_probes_ttl = distribution_probes_per_ttl[ttl]
         for node, (n_successors, n_probes) in topology_state[ttl].items():
             # Check if the node has reached its statistical guarantees
             if stopping_points[n_successors] <= n_probes:
@@ -143,48 +143,43 @@ def compute_topology_state(nodes_per_ttl, links_per_ttl, round):
 def flush_format(dst_ip, src_port, dst_port, ttl):
     return [f"{dst_ip:010}", f"{src_port:05}", f"{dst_port:05}", f"{ttl:03}"]
 
-
 def flush_traceroute(
+    topology_state,
+    distribution_probes_per_ttl,
+    star_nodes_star_per_ttl,
+    n_load_balancers,
+    max_successors,
+    topology_state_previous,
+    distribution_probes_per_ttl_previous,
+    star_nodes_star_per_ttl_previous,
+    n_load_balancers_previous,
+    max_successors_previous,
     dst_prefix,
-    dst_ip,
     min_dst_port,
     max_dst_port,
-    max_src_port,
-    max_round,
-    nodes_per_ttl,
-    links_per_ttl,
-    previous_max_flow_per_ttl,
+    min_src_port,
     measurement_parameters,
     mapper,
     writer,
     ttl_skipped,
 ):
     # Compute the topology state ah round N
-    (
-        topology_state,
-        distribution_probes_per_ttl,
-        star_nodes_star_per_ttl,
-        max_successors,
-        n_load_balancers,
-    ) = compute_topology_state(
-        nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
-    )
+    # (
+    #     topology_state,
+    #     distribution_probes_per_ttl,
+    #     star_nodes_star_per_ttl,
+    #     max_successors,
+    #     n_load_balancers,
+    # ) = compute_topology_state(
+    #     nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
+    # )
 
-    # Compute the topology state ah round N-1
-    (
-        topology_state_previous,
-        distribution_probes_per_ttl_previous,
-        star_nodes_star_per_ttl_previous,
-        max_successors_previous,
-        n_load_balancers_previous,
-    ) = compute_topology_state(
-        nodes_per_ttl, links_per_ttl, measurement_parameters.round_number - 1
-    )
 
-    # This clause is for avoiding generating new probes * nodes *
-    n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
-    if len(n_nodes_per_ttl) == 0 or max(n_nodes_per_ttl.values()) == 0:
-        return
+
+    # # This clause is for avoiding generating new probes when no nodes
+    # n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
+    # if len(n_nodes_per_ttl) == 0 or max(n_nodes_per_ttl.values()) == 0:
+    #     return
 
     # Now adapt the epsilon such that it fits to the number of load balancer.
     # epsilon is the probablity to fail to reach statistical guarantees for 1 LB
@@ -280,8 +275,13 @@ def flush_traceroute(
 
             if (
                 offset[1] > 0
-                and (min_dst_port != measurement_parameters.source_port)
-                or (max_dst_port != measurement_parameters.destination_port)
+                and
+                    (
+                            (min_dst_port != measurement_parameters.destination_port) or
+                            (max_dst_port != measurement_parameters.destination_port) or
+                            (min_src_port < measurement_parameters.source_port)
+                    )
+
             ):
                 # There is a case where max_src_port > sport,
                 # but real_flow_id < 255 (see dst_prefix == 28093440)

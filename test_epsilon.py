@@ -123,9 +123,11 @@ def test_paper_data():
     for r in range(1, 3):
         mp = MeasurementParameters()
         mp.round_number = r
+        if r < 2:
+            continue
         with open("try.csv", "w") as fd:
             writer = csv.writer(fd)
-            next_round(
+            next_round_new(
                 "127.0.0.1",
                 # "iris.results__51aec6e6_030e_4a7d_b52f_54c58c3ef6f6__2d339af6_6e30_4393_8436_78a2080bc151",  # noqa
                 f"{db}.{table}",
@@ -139,7 +141,7 @@ def test_paper_data():
 
 def test_iris_data():
     db = "iris"
-    table = "results__51aec6e6_030e_4a7d_b52f_54c58c3ef6f6__2d339af6_6e30_4393_8436_78a2080bc151"
+    table = "results__b0965916_ac69_4d36_a436_3d52d93adcd5__ddd8541d_b4f5_42ce_b163_e3e9bfcd0a47"
     mp = MeasurementParameters()
     mp.source_ip = 2165314631
     with open("try.csv", "w") as fd:
@@ -155,7 +157,7 @@ def test_iris_data():
 if __name__ == "__main__":
     import time
     start = time.time()
-    test_iris_data()
+    test_paper_data()
     elapsed = time.time() - start
     print(f"{elapsed} seconds.")
 

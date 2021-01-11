@@ -106,9 +106,85 @@ def query_next_round(database_host, table_name, source_ip, round_number):
         if sup_born > 3758096384:
             # exclude prefixes >= 224.0.0.0 (multicast)
             break
-
+        print(j)
         query = (
-            "WITH groupUniqArray((reply_ip, ttl, round)) as replies_s, "
+
+
+            f"WITH "
+            # Compute max src_port per ttl
+            f"groupUniqArray(src_port) as src_ports, "
+            f"arrayReduce('min', src_ports) as min_src_port, "
+            # f" arrayFlatten(groupArray(src_port_ttl)) as src_port_ttls, "
+            # f" arrayDistinct(arrayMap(x->x.2, src_port_ttls)) as distinct_src_ttls, "
+            # f" arrayMap(x->(x, arrayFilter(y->y.2=x, src_port_ttls)), distinct_src_ttls) as src_port_ttl_per_ttl, "
+            # f" arrayMap(x->(x.1, arrayMap(y->y.1, x.2)), src_port_ttl_per_ttl) as src_port_per_ttl,"
+            # f" arrayMap(x->(x.1, arrayReduce('max', x.2)), src_port_per_ttl) as max_src_port_per_ttl,"
+            
+            # Compute max dst_port per ttl
+            f"groupUniqArray(dst_port) as dst_ports, "
+            f"arrayReduce('min', dst_ports) as min_dst_port, "
+            f"arrayReduce('max', dst_ports) as max_dst_port, "
+            # f" arrayFlatten(groupArray(dst_port_ttl)) as dst_port_ttls,"
+            # f" arrayDistinct(arrayMap(x->x.2, dst_port_ttls)) as distinct_dst_ttls, "
+            # f" arrayMap(x->(x, arrayFilter(y->y.2=x, dst_port_ttls)), distinct_dst_ttls) as dst_port_ttl_per_ttl, "
+            # f" arrayMap(x->(x.1, arrayMap(y->y.1, x.2)), dst_port_ttl_per_ttl) as dst_port_per_ttl,"
+            # f" arrayMap(x->(x.1, arrayReduce('max', x.2)), dst_port_per_ttl) as max_dst_port_per_ttl,"
+            
+            # Compute number of probes per src, ttl
+            f" arrayFlatten(groupArray(replies_s)) as replies,"
+            # x is (node, ttl, round)
+            f" arrayDistinct(arrayMap(x->(x.1, x.2), replies)) as nodes, "
+            # f" arrayDistinct(arrayMap(x->x.2, replies)) as distinct_nodes_ttl, "
+            # # Compute nodes per TTL
+            # f" arrayMap(x->(x, arrayFilter(y->y.2=x, nodes)), distinct_nodes_ttl) as nodes_ttl_per_ttl, "
+            # f" arrayMap(x->x.1, arrayMap(y->y.1,x.2)), nodes_ttl_per_ttl) as nodes_per_ttl, "
+            # x is (node, ttl), y is (node, ttl, round)
+            f" arrayMap(x->(x, arrayFilter(y->y.1 == x.1 AND y.2 == x.2, replies)), nodes) as probes_per_node, "
+            f" arrayMap(x->(x.1, length(x.2)), probes_per_node) as n_probes_per_node, "
+            
+            f" arrayFilter(x->x.3 < {round_number}, replies) as replies_previous, "
+            f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_previous)) as nodes_previous, "
+            # x is (node, ttl), y is (node, ttl, round)
+            f" arrayMap(x->(x, arrayFilter(y->y.1 == x.1 AND y.2 == x.2, replies_previous)), nodes_previous) as probes_per_node_previous, "
+            f" arrayMap(x->(x.1, length(x.2)), probes_per_node_previous) as n_probes_per_node_previous, "
+            # Compute the number of load balancer for now and previous round
+            # Flatten the links
+            f"arrayFlatten(groupArray(links)) as links_per_prefix, "
+            # Compute a map with (src, ttl)
+            f" arrayDistinct(arrayMap(x->(x.1.1,x.1.2), links_per_prefix)) as sources, "
+            # x is (s, ttl), y is ((s, ttl, s_r), (d, ttl + 1, d_r))
+            f" arrayMap(x->(x, arrayFilter(y->y.1.1 == x.1 AND y.1.2 == x.2, links_per_prefix)), sources) as links_per_sources, "
+            # x is (src, ttl)
+            f" arrayMap(x->(x.1, arrayUniq(arrayMap(y->((y.1.1,y.1.2),(y.2.1, y.2.2)), x.2))), links_per_sources) as n_links_per_sources, "
+            # n_load_balancers is the number of load balancer with
+            # x is ((src, ttl), successors)
+            # f" arrayFilter(x->x.2 > 1, n_links_per_sources) as load_balancers,"
+            
+            f" arrayDistinct("
+            f" arrayMap(x->(x.1.1,x.1.2), "
+            f" arrayFilter(x-> x.1.3 < {round_number} AND x.2.3 < {round_number}, links_per_prefix))) as sources_previous, "
+            # n_load_balancers_previous is the number of load balancers in the previous round 
+            # (needed for the epsilon computation)
+            f" arrayMap(x->(x, "
+            f" arrayFilter(y->y.1.1 == x.1 AND y.1.2 == x.2 AND y.1.3 < {round_number} AND y.2.3 < {round_number}, links_per_prefix))"
+            f", sources) as links_per_sources_previous, "
+            
+            f" arrayMap(x->(x.1, arrayUniq(arrayMap(y->((y.1.1,y.1.2),(y.2.1, y.2.2)), x.2))), links_per_sources_previous) as n_links_per_sources_previous "
+            # n_load_balancers is the number of load balancer with  
+            # f" arrayFilter(x->x.2 > 1, n_links_per_sources_previous) as load_balancers_previous "
+            # Compute topology state and topology state previous
+            # f" arrayMap(x->(x.1, x.2), n_probes_per_node) as topology_state "
+            # f" arrayMap(x->(x.1, x.2, arrayFilter(y->y.1 == x.1, n_links_per_sources)), n_probes_per_node) as topology_state "
+            f""
+            " SELECT src_ip, dst_prefix, "
+            " n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "
+            " min_src_port, min_dst_port, max_dst_port "
+            "FROM "
+            "("
+            "WITH "
+            # "groupUniqArray(src_port, ttl)) as src_port_ttl,"
+            # "groupUniqArray((dst_port, ttl)) as dst_port_ttl,"
+            "groupUniqArray((reply_ip, ttl, round)) as replies_s, "
             "arraySort(x->(x.2, x.1), replies_s) as sorted_replies_s, "
             "arrayPopFront(sorted_replies_s) as replies_d, "
             "arrayConcat(replies_d, [(0,0,0)]) as replies_d_sized, "
@@ -166,9 +242,12 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             "GROUP BY (src_ip, dst_prefix, dst_ip, src_port, dst_port) "
             # Exclude TTLs where there are no nodes and no links (?)
             "HAVING length(links) >= 1 or length(replies_s) >= 1  "
+            # "ORDER BY dst_prefix DESC"
+            ")"
+            "GROUP BY  src_ip, dst_prefix "
             "ORDER BY dst_prefix ASC"
         )
-        # print(query)
+        print(query)
         client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
         for row in client.execute_iter(
             query,
