@@ -5,7 +5,7 @@ from diamond_miner_core.database import (
     query_next_round,
     query_discoveries_per_ttl,
 )
-from diamond_miner_core.flush import flush_format, flush_traceroute, flush_traceroute_new
+from diamond_miner_core.flush import flush_format, flush_traceroute
 
 
 def next_max_ttl(database_host: str, table_name: str, measurement_parameters, writer):
@@ -114,7 +114,7 @@ def next_round(database_host: str,
         topology_state, distribution_probes_per_ttl, star_nodes_star_per_ttl, n_load_balancers, max_successors  = fill_topology_state(n_probes_per_node, n_links_per_sources)
         topology_state_previous, distribution_probes_per_ttl_previous, star_nodes_star_previous_per_ttl, n_load_balancers_previous, max_successors_previous = fill_topology_state(n_probes_per_node_previous, n_links_per_sources_previous)
 
-        flush_traceroute_new(topology_state,
+        flush_traceroute(topology_state,
                              distribution_probes_per_ttl,
                              star_nodes_star_per_ttl,
                              n_load_balancers,

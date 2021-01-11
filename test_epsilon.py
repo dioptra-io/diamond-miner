@@ -127,7 +127,7 @@ def test_paper_data():
             continue
         with open("try.csv", "w") as fd:
             writer = csv.writer(fd)
-            next_round_new(
+            next_round(
                 "127.0.0.1",
                 # "iris.results__51aec6e6_030e_4a7d_b52f_54c58c3ef6f6__2d339af6_6e30_4393_8436_78a2080bc151",  # noqa
                 f"{db}.{table}",

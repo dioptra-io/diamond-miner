@@ -193,6 +193,7 @@ def flush_traceroute(
         epsilon = target_epsilon
     else:
         epsilon = 1 - math.exp(math.log(1 - target_epsilon) / n_load_balancers)
+        epsilon = 0.05
 
     if len(star_nodes_star_per_ttl) > 0:
         max_stopping_point = max(max_successors, max(star_nodes_star_per_ttl.values()))
@@ -222,6 +223,7 @@ def flush_traceroute(
             epsilon_previous_round = 1 - math.exp(
                 math.log(1 - target_epsilon) / n_load_balancers_previous
             )
+            epsilon_previous_round = 0.05
         stopping_points_previous = [
             stopping_point(k, epsilon_previous_round)
             for k in range(1, max_stopping_point_previous + 2)
