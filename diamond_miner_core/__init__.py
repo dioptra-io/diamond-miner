@@ -1,4 +1,4 @@
-import csv
+# import csv
 from collections import namedtuple
 
 from diamond_miner_core.flow import (
@@ -32,15 +32,15 @@ def compute_next_round(
     skip_unpopulated_ttl=False,
 ):
     with open(output_file_path, "w", newline="") as fout:
-        writer = csv.writer(fout, delimiter=",", lineterminator="\n")
+        # writer = csv.writer(fout, delimiter=",", lineterminator="\n")
         if use_max_ttl_feature:
-            next_max_ttl(database_host, table_name, measurement_parameters, writer)
+            next_max_ttl(database_host, table_name, measurement_parameters, fout)
         next_round(
             database_host,
             table_name,
             measurement_parameters,
             mapper,
-            writer,
+            fout,
             skip_unpopulated_ttl,
         )
 
