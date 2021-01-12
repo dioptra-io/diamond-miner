@@ -1,4 +1,4 @@
-from collections import defaultdict
+import ipaddress
 
 from diamond_miner_core.database import (
     query_max_ttl,
@@ -33,6 +33,45 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
                 )
 
 
+def fill_topology_state(n_probes_per_node, n_links_per_source):
+    # Compute topology state
+    topology_state = {}
+    distribution_probes_per_ttl = {}
+    nodes_per_ttl = {}
+    n_load_balancers = 0
+    max_successors = 0
+    for (node, ttl), n_probes in n_probes_per_node:
+        nodes_per_ttl.setdefault(ttl, set()).add(node)
+        topology_state.setdefault(ttl, {}).setdefault(node, ())
+        distribution_probes_per_ttl.setdefault(ttl, 0)
+        distribution_probes_per_ttl[ttl] += n_probes
+        if (node, ttl) in n_links_per_source:
+            n_successors = n_links_per_source[(node, ttl)]
+            if n_successors > 1:
+                n_load_balancers += 1
+            if n_successors > max_successors:
+                max_successors = n_successors
+            topology_state[ttl][node] = (n_successors, n_probes)
+        else:
+            topology_state[ttl][node] = (0, n_probes)
+
+        # Not sure we want to continue probing nodes without sucessors...
+        # else:
+        #     topology_state[ttl][node] = (0, n_probes)
+    star_nodes_star = {}
+    for ttl, nodes in nodes_per_ttl.items():
+        if ttl - 1 not in nodes_per_ttl and ttl + 1 not in nodes:
+            star_nodes_star[ttl] = len(nodes)
+
+    return (
+        topology_state,
+        distribution_probes_per_ttl,
+        star_nodes_star,
+        n_load_balancers,
+        max_successors,
+    )
+
+
 def next_round(
     database_host: str,
     table_name: str,
@@ -41,21 +80,8 @@ def next_round(
     writer,
     skip_unpopulated_ttl=False,
 ):
-    """Compute the next round."""
 
     absolute_max_ttl = 40  # TODO Better parameter handling
-
-    current_prefix = None
-    current_max_dst_ip = 0
-    current_max_src_port = 0
-    current_min_dst_port = measurement_parameters.destination_port
-    current_max_dst_port = measurement_parameters.destination_port
-    current_max_round = 0
-
-    max_flow_per_ttl = defaultdict(int)
-    # max_flow_per_ttl_previous_round = defaultdict(int)
-    nodes_per_ttl = defaultdict(list)
-    links_per_ttl = defaultdict(list)
 
     # With this manimulation we skip the TTLs that are not very populated to avoid
     # re-probing it extensively (e.g., low TTLs)
@@ -75,130 +101,64 @@ def next_round(
     for (
         src_ip,
         dst_prefix,
-        dst_ip,
-        src_port,
-        dst_port,
-        nodes,
-        links,
-        max_round,
+        nodes_active,
+        nodes_active_previous,
+        n_probes_per_node,
+        n_probes_per_node_previous,
+        n_links_per_sources,
+        n_links_per_sources_previous,
+        min_src_port,
+        min_dst_port,
+        max_dst_port,
     ) in query_next_round(
         database_host,
         table_name,
         measurement_parameters.source_ip,
         measurement_parameters.round_number,
     ):
-        # Each iteration is the information of a tuple (src_ip, dst_prefix, dst_ip, ttl)
-        if not current_prefix:
-            # Initialization of the current prefix
-            current_prefix = dst_prefix
 
-        if current_prefix == dst_prefix:
-            # The computation for the prefix is not finished yet
-            # So we update the current variables
-            if current_max_dst_ip < dst_ip:
-                current_max_dst_ip = dst_ip
-            if current_max_src_port < src_port:
-                current_max_src_port = src_port
-            if current_max_round < max_round:
-                current_max_round = max_round
-            if current_min_dst_port > dst_port:
-                current_min_dst_port = dst_port
-            if current_max_dst_port < dst_port:
-                current_max_dst_port = dst_port
-        else:
-            # We are beginning to compute a new prefix
-            # So we can flush the previous prefix.
-            flush_traceroute(
-                current_prefix,
-                current_max_dst_ip,
-                current_min_dst_port,
-                current_max_dst_port,
-                current_max_src_port,
-                current_max_round,
-                nodes_per_ttl,
-                links_per_ttl,
-                max_flow_per_ttl,
-                measurement_parameters,
-                mapper,
-                writer,
-                ttl_skipped,
-            )
+        if ipaddress.ip_address(dst_prefix).is_private:
+            continue
 
-            # Initialize the variables again
-            current_prefix = dst_prefix
-            current_max_dst_ip = dst_ip
-            current_max_src_port = src_port
-            current_min_dst_port = dst_port
-            current_max_dst_port = dst_port
-            current_max_round = max_round
-            max_flow_per_ttl = defaultdict(int)
-            # max_flow_per_ttl_previous_round = defaultdict(int)
-            nodes_per_ttl = defaultdict(list)
-            links_per_ttl = defaultdict(list)
+        n_links_per_sources = dict(n_links_per_sources)
+        n_links_per_sources_previous = dict(n_links_per_sources_previous)
 
-        for s_node, d_node in links:
-            s_reply_ip, s_ttl, s_round = s_node
-            d_reply_ip, d_ttl, d_round = d_node
+        (
+            topology_state,
+            distribution_probes_per_ttl,
+            star_nodes_star_per_ttl,
+            n_load_balancers,
+            max_successors,
+        ) = fill_topology_state(n_probes_per_node, n_links_per_sources)
+        (
+            topology_state_previous,
+            distribution_probes_per_ttl_previous,
+            star_nodes_star_previous_per_ttl,
+            n_load_balancers_previous,
+            max_successors_previous,
+        ) = fill_topology_state(
+            n_probes_per_node_previous, n_links_per_sources_previous
+        )
 
-            # TODO `absolute_max_ttl` or `max_ttl` ?
-            if s_ttl > absolute_max_ttl:
-                continue
-
-            # Compute the maximum flow from the `max_dst_ip`
-            # NOTE We don't take into account the `src_port` (for now)
-            # to avoid issues due to NAT source port re-writing
-            max_flow = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
-            if max_flow_per_ttl[s_ttl] < max_flow:
-                max_flow_per_ttl[s_ttl] = max_flow
-
-            if max_flow_per_ttl[d_ttl] < max_flow:
-                max_flow_per_ttl[d_ttl] = max_flow
-
-            # if s_round < measurement_parameters.round_number:
-            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)  # noqa
-            #     if max_flow_per_ttl_previous_round[s_ttl] < max_flow_previous_round:
-            #         max_flow_per_ttl_previous_round[s_ttl] = max_flow_previous_round
-            #
-            # if d_round < measurement_parameters.round_number:
-            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)  # noqa
-            #     if max_flow_per_ttl_previous_round[d_ttl] < max_flow_previous_round:
-            #         max_flow_per_ttl_previous_round[d_ttl] = max_flow_previous_round
-
-            links_per_ttl[s_ttl].append(((s_reply_ip, s_round), (d_reply_ip, d_round)))
-
-        for node, ttl, round in nodes:
-            # TODO `absolute_max_ttl` or `max_ttl` ?
-            if ttl > absolute_max_ttl:
-                continue
-
-            # Compute the maximum flow from the `max_dst_ip`
-            # NOTE We don't take into account the `src_port` (for now)
-            # to avoid issues due to NAT source port re-writing
-            max_flow = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)
-            if max_flow_per_ttl[ttl] < max_flow:
-                max_flow_per_ttl[ttl] = max_flow
-
-            # # Compute the max flow for the previous round (necessary in flush traceroute)  # noqa
-            # if round < measurement_parameters.round_number:
-            #     max_flow_previous_round = mapper.flow_id(dst_ip - dst_prefix, dst_prefix)  # noqa
-            #     if max_flow_per_ttl_previous_round[ttl] < max_flow_previous_round:
-            #         max_flow_per_ttl_previous_round[ttl] = max_flow_previous_round
-
-            nodes_per_ttl[ttl].append((node, round))
-
-    # Flush the last prefix
-    flush_traceroute(
-        current_prefix,
-        current_max_dst_ip,
-        current_min_dst_port,
-        current_max_dst_port,
-        current_max_src_port,
-        current_max_round,
-        nodes_per_ttl,
-        links_per_ttl,
-        max_flow_per_ttl,
-        measurement_parameters,
-        mapper,
-        writer,
-        ttl_skipped,
-    )
+        flush_traceroute(
+            topology_state,
+            distribution_probes_per_ttl,
+            star_nodes_star_per_ttl,
+            n_load_balancers,
+            max_successors,
+            topology_state_previous,
+            distribution_probes_per_ttl_previous,
+            star_nodes_star_previous_per_ttl,
+            n_load_balancers_previous,
+            max_successors_previous,
+            set(nodes_active),
+            set(nodes_active_previous),
+            dst_prefix,
+            min_dst_port,
+            max_dst_port,
+            min_src_port,
+            measurement_parameters,
+            mapper,
+            writer,
+            ttl_skipped,
+        )

@@ -7,8 +7,8 @@ from diamond_miner_core.mda import stopping_point
 # NOTE: max_ttl = 30 in probing_options_t.cpp !?
 absolute_max_ttl = 40  # TODO Better parameter handling
 
-default_1_round_flows = 6
-stopping_points = [stopping_point(k, 0.05) for k in range(1, 65536)]
+# default_1_round_flows = 6
+# stopping_points = [stopping_point(k, 0.05) for k in range(1, 65536)]
 
 
 def compute_next_round_probes_per_ttl(
@@ -16,6 +16,7 @@ def compute_next_round_probes_per_ttl(
     distribution_probes_per_ttl,
     star_nodes_star_per_ttl,
     stopping_points,
+    nodes_active,
 ):
     # Now that we have the epsilon, compute the number of probes needed per TTL.
     # Recovered max_flow at `ttl` from the previous `round`.
@@ -26,10 +27,13 @@ def compute_next_round_probes_per_ttl(
             continue
         # Number of probes is the number given in the NSDI D-Miner paper
         next_round_probes = []
-        total_probes_ttl = sum(distribution_probes_per_ttl[ttl].values())
+        total_probes_ttl = distribution_probes_per_ttl[ttl]
         for node, (n_successors, n_probes) in topology_state[ttl].items():
-            # Check if the node has reached its statistical guarantees
-            if stopping_points[n_successors] <= n_probes:
+            # Check if the node has reached its statistical guarantees or is not active
+            if (
+                stopping_points[n_successors] <= n_probes
+                or (node, ttl) not in nodes_active
+            ):
                 next_round_probes.append(0)
                 continue
             # The nkv/Dh(v) of the paper
@@ -145,46 +149,42 @@ def flush_format(dst_ip, src_port, dst_port, ttl):
 
 
 def flush_traceroute(
+    topology_state,
+    distribution_probes_per_ttl,
+    star_nodes_star_per_ttl,
+    n_load_balancers,
+    max_successors,
+    topology_state_previous,
+    distribution_probes_per_ttl_previous,
+    star_nodes_star_per_ttl_previous,
+    n_load_balancers_previous,
+    max_successors_previous,
+    nodes_active,
+    nodes_active_previous,
     dst_prefix,
-    dst_ip,
     min_dst_port,
     max_dst_port,
-    max_src_port,
-    max_round,
-    nodes_per_ttl,
-    links_per_ttl,
-    previous_max_flow_per_ttl,
+    min_src_port,
     measurement_parameters,
     mapper,
     writer,
     ttl_skipped,
 ):
     # Compute the topology state ah round N
-    (
-        topology_state,
-        distribution_probes_per_ttl,
-        star_nodes_star_per_ttl,
-        max_successors,
-        n_load_balancers,
-    ) = compute_topology_state(
-        nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
-    )
+    # (
+    #     topology_state,
+    #     distribution_probes_per_ttl,
+    #     star_nodes_star_per_ttl,
+    #     max_successors,
+    #     n_load_balancers,
+    # ) = compute_topology_state(
+    #     nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
+    # )
 
-    # Compute the topology state ah round N-1
-    (
-        topology_state_previous,
-        distribution_probes_per_ttl_previous,
-        star_nodes_star_per_ttl_previous,
-        max_successors_previous,
-        n_load_balancers_previous,
-    ) = compute_topology_state(
-        nodes_per_ttl, links_per_ttl, measurement_parameters.round_number - 1
-    )
-
-    # This clause is for avoiding generating new probes * nodes *
-    n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
-    if len(n_nodes_per_ttl) == 0 or max(n_nodes_per_ttl.values()) == 0:
-        return
+    # # This clause is for avoiding generating new probes when no nodes
+    # n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
+    # if len(n_nodes_per_ttl) == 0 or max(n_nodes_per_ttl.values()) == 0:
+    #     return
 
     # Now adapt the epsilon such that it fits to the number of load balancer.
     # epsilon is the probablity to fail to reach statistical guarantees for 1 LB
@@ -198,6 +198,7 @@ def flush_traceroute(
         epsilon = target_epsilon
     else:
         epsilon = 1 - math.exp(math.log(1 - target_epsilon) / n_load_balancers)
+        # epsilon = 0.05
 
     if len(star_nodes_star_per_ttl) > 0:
         max_stopping_point = max(max_successors, max(star_nodes_star_per_ttl.values()))
@@ -227,6 +228,7 @@ def flush_traceroute(
             epsilon_previous_round = 1 - math.exp(
                 math.log(1 - target_epsilon) / n_load_balancers_previous
             )
+            # epsilon_previous_round = 0.05
         stopping_points_previous = [
             stopping_point(k, epsilon_previous_round)
             for k in range(1, max_stopping_point_previous + 2)
@@ -237,6 +239,7 @@ def flush_traceroute(
         distribution_probes_per_ttl,
         star_nodes_star_per_ttl,
         stopping_points,
+        nodes_active,
     )
 
     # To compute the number of probes previously sent,
@@ -250,9 +253,13 @@ def flush_traceroute(
             distribution_probes_per_ttl_previous,
             star_nodes_star_per_ttl_previous,
             stopping_points_previous,
+            nodes_active_previous,
         )
 
-        for ttl, probes_to_send in probes_per_ttl.items():
+        for ttl, probes_to_send in sorted(probes_per_ttl.items(), key=lambda x: x[0]):
+            if ttl not in probes_per_ttl_previous_round:
+                probes_per_ttl[ttl] = [0]
+                continue
             previous_max_flow = max(probes_per_ttl_previous_round[ttl])
             for i in range(len(probes_to_send)):
                 probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
@@ -265,6 +272,7 @@ def flush_traceroute(
                 probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
             real_previous_max_flow_per_ttl[ttl] = previous_max_flow
 
+    rows_to_flush = []
     probes_per_ttl = {ttl: max(probes_per_ttl[ttl]) for ttl in probes_per_ttl}
     for ttl, n_to_send in probes_per_ttl.items():
 
@@ -278,21 +286,25 @@ def flush_traceroute(
             real_flow_id = real_previous_max_flow_per_ttl[ttl] + flow_id
             offset = mapper.offset(real_flow_id, 24, dst_prefix)
 
-            if (
-                offset[1] > 0
-                and (min_dst_port != measurement_parameters.source_port)
+            if offset[1] > 0 and (
+                (min_dst_port != measurement_parameters.destination_port)
                 or (max_dst_port != measurement_parameters.destination_port)
+                or (min_src_port < measurement_parameters.source_port)
             ):
                 # There is a case where max_src_port > sport,
                 # but real_flow_id < 255 (see dst_prefix == 28093440)
                 # It's probably NAT, nothing to do more
                 continue
 
-            writer.writerow(
-                flush_format(
-                    dst_prefix + offset[0],
-                    measurement_parameters.source_port + offset[1],
-                    measurement_parameters.destination_port,
-                    ttl,
-                )
+            rows_to_flush.append(
+                # flush_format(
+                [
+                    str(dst_prefix + offset[0]),
+                    str(measurement_parameters.source_port + offset[1]),
+                    str(measurement_parameters.destination_port),
+                    str(ttl),
+                ]
+                # )
             )
+
+    writer.write("".join(["\n".join([",".join(row) for row in rows_to_flush]), "\n"]))
