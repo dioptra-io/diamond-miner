@@ -16,6 +16,7 @@ def compute_next_round_probes_per_ttl(
     distribution_probes_per_ttl,
     star_nodes_star_per_ttl,
     stopping_points,
+    nodes_active,
 ):
     # Now that we have the epsilon, compute the number of probes needed per TTL.
     # Recovered max_flow at `ttl` from the previous `round`.
@@ -28,8 +29,8 @@ def compute_next_round_probes_per_ttl(
         next_round_probes = []
         total_probes_ttl = distribution_probes_per_ttl[ttl]
         for node, (n_successors, n_probes) in topology_state[ttl].items():
-            # Check if the node has reached its statistical guarantees
-            if stopping_points[n_successors] <= n_probes:
+            # Check if the node has reached its statistical guarantees or is not active
+            if stopping_points[n_successors] <= n_probes or (node, ttl) not in nodes_active:
                 next_round_probes.append(0)
                 continue
             # The nkv/Dh(v) of the paper
@@ -154,6 +155,9 @@ def flush_traceroute(
     star_nodes_star_per_ttl_previous,
     n_load_balancers_previous,
     max_successors_previous,
+
+    nodes_active,
+    nodes_active_previous,
     dst_prefix,
     min_dst_port,
     max_dst_port,
@@ -193,7 +197,7 @@ def flush_traceroute(
         epsilon = target_epsilon
     else:
         epsilon = 1 - math.exp(math.log(1 - target_epsilon) / n_load_balancers)
-        epsilon = 0.05
+        # epsilon = 0.05
 
     if len(star_nodes_star_per_ttl) > 0:
         max_stopping_point = max(max_successors, max(star_nodes_star_per_ttl.values()))
@@ -223,7 +227,7 @@ def flush_traceroute(
             epsilon_previous_round = 1 - math.exp(
                 math.log(1 - target_epsilon) / n_load_balancers_previous
             )
-            epsilon_previous_round = 0.05
+            # epsilon_previous_round = 0.05
         stopping_points_previous = [
             stopping_point(k, epsilon_previous_round)
             for k in range(1, max_stopping_point_previous + 2)
@@ -234,6 +238,7 @@ def flush_traceroute(
         distribution_probes_per_ttl,
         star_nodes_star_per_ttl,
         stopping_points,
+        nodes_active,
     )
 
     # To compute the number of probes previously sent,
@@ -247,6 +252,7 @@ def flush_traceroute(
             distribution_probes_per_ttl_previous,
             star_nodes_star_per_ttl_previous,
             stopping_points_previous,
+            nodes_active_previous,
         )
 
         for ttl, probes_to_send in probes_per_ttl.items():

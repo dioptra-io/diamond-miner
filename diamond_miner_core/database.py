@@ -142,6 +142,14 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             f" arrayMap(x->(x, arrayFilter(y->y.1 == x.1 AND y.2 == x.2, replies)), nodes) as probes_per_node, "
             f" arrayMap(x->(x.1, length(x.2)), probes_per_node) as n_probes_per_node, "
             
+            # WARNING: New optimization. Compute the nodes seen at this round. 
+            # Avoid counting the others as they might have disappeared due to routing change or w/e
+            f" arrayFilter(x->x.3 == {round_number}, replies) as replies_active, "
+            f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_active)) as nodes_active, "
+            
+            f" arrayFilter(x->x.3 == {round_number} - 1, replies) as replies_active_previous, "
+            f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_active_previous)) as nodes_active_previous, "
+            
             f" arrayFilter(x->x.3 < {round_number}, replies) as replies_previous, "
             f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_previous)) as nodes_previous, "
             # x is (node, ttl), y is (node, ttl, round)
@@ -177,7 +185,7 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             # f" arrayMap(x->(x.1, x.2, arrayFilter(y->y.1 == x.1, n_links_per_sources)), n_probes_per_node) as topology_state "
             f""
             " SELECT src_ip, dst_prefix, "
-            " n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "
+            " nodes_active, nodes_active_previous, n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "
             " min_src_port, min_dst_port, max_dst_port "
             "FROM "
             "("
@@ -245,7 +253,7 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             # "ORDER BY dst_prefix DESC"
             ")"
             "GROUP BY  src_ip, dst_prefix "
-            "ORDER BY dst_prefix ASC"
+            # "ORDER BY dst_prefix ASC"
         )
         print(query)
         client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
