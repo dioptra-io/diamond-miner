@@ -5,7 +5,7 @@ from diamond_miner_core.database import (
     query_next_round,
     query_discoveries_per_ttl,
 )
-from diamond_miner_core.flush import flush_format, flush_traceroute
+from diamond_miner_core.flush import flush_traceroute
 
 
 def next_max_ttl(database_host: str, table_name: str, measurement_parameters, writer):
