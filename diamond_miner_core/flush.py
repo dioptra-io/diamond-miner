@@ -7,8 +7,8 @@ from diamond_miner_core.mda import stopping_point
 # NOTE: max_ttl = 30 in probing_options_t.cpp !?
 absolute_max_ttl = 40  # TODO Better parameter handling
 
-default_1_round_flows = 6
-stopping_points = [stopping_point(k, 0.05) for k in range(1, 65536)]
+# default_1_round_flows = 6
+# stopping_points = [stopping_point(k, 0.05) for k in range(1, 65536)]
 
 
 def compute_next_round_probes_per_ttl(
@@ -30,7 +30,10 @@ def compute_next_round_probes_per_ttl(
         total_probes_ttl = distribution_probes_per_ttl[ttl]
         for node, (n_successors, n_probes) in topology_state[ttl].items():
             # Check if the node has reached its statistical guarantees or is not active
-            if stopping_points[n_successors] <= n_probes or (node, ttl) not in nodes_active:
+            if (
+                stopping_points[n_successors] <= n_probes
+                or (node, ttl) not in nodes_active
+            ):
                 next_round_probes.append(0)
                 continue
             # The nkv/Dh(v) of the paper
@@ -144,6 +147,7 @@ def compute_topology_state(nodes_per_ttl, links_per_ttl, round):
 def flush_format(dst_ip, src_port, dst_port, ttl):
     return [f"{dst_ip:010}", f"{src_port:05}", f"{dst_port:05}", f"{ttl:03}"]
 
+
 def flush_traceroute(
     topology_state,
     distribution_probes_per_ttl,
@@ -155,7 +159,6 @@ def flush_traceroute(
     star_nodes_star_per_ttl_previous,
     n_load_balancers_previous,
     max_successors_previous,
-
     nodes_active,
     nodes_active_previous,
     dst_prefix,
@@ -177,8 +180,6 @@ def flush_traceroute(
     # ) = compute_topology_state(
     #     nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
     # )
-
-
 
     # # This clause is for avoiding generating new probes when no nodes
     # n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
@@ -256,7 +257,11 @@ def flush_traceroute(
         )
 
         for ttl, probes_to_send in probes_per_ttl.items():
-            previous_max_flow = max(probes_per_ttl_previous_round[ttl])
+            if ttl not in probes_per_ttl_previous_round:
+                previous_max_flow = 6
+                print("chelou", dst_prefix, ttl)
+            else:
+                previous_max_flow = max(probes_per_ttl_previous_round[ttl])
             for i in range(len(probes_to_send)):
                 probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
             real_previous_max_flow_per_ttl[ttl] = previous_max_flow
@@ -268,6 +273,7 @@ def flush_traceroute(
                 probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
             real_previous_max_flow_per_ttl[ttl] = previous_max_flow
 
+    rows_to_flush = []
     probes_per_ttl = {ttl: max(probes_per_ttl[ttl]) for ttl in probes_per_ttl}
     for ttl, n_to_send in probes_per_ttl.items():
 
@@ -281,26 +287,25 @@ def flush_traceroute(
             real_flow_id = real_previous_max_flow_per_ttl[ttl] + flow_id
             offset = mapper.offset(real_flow_id, 24, dst_prefix)
 
-            if (
-                offset[1] > 0
-                and
-                    (
-                            (min_dst_port != measurement_parameters.destination_port) or
-                            (max_dst_port != measurement_parameters.destination_port) or
-                            (min_src_port < measurement_parameters.source_port)
-                    )
-
+            if offset[1] > 0 and (
+                (min_dst_port != measurement_parameters.destination_port)
+                or (max_dst_port != measurement_parameters.destination_port)
+                or (min_src_port < measurement_parameters.source_port)
             ):
                 # There is a case where max_src_port > sport,
                 # but real_flow_id < 255 (see dst_prefix == 28093440)
                 # It's probably NAT, nothing to do more
                 continue
 
-            writer.writerow(
-                flush_format(
-                    dst_prefix + offset[0],
-                    measurement_parameters.source_port + offset[1],
-                    measurement_parameters.destination_port,
-                    ttl,
-                )
+            rows_to_flush.append(
+                # flush_format(
+                [
+                    str(dst_prefix + offset[0]),
+                    str(measurement_parameters.source_port + offset[1]),
+                    str(measurement_parameters.destination_port),
+                    str(ttl),
+                ]
+                # )
             )
+
+    writer.write("".join(["\n".join([",".join(row) for row in rows_to_flush]), "\n"]))

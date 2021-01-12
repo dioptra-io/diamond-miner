@@ -32,6 +32,7 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
                     )
                 )
 
+
 def fill_topology_state(n_probes_per_node, n_links_per_source):
     # Compute topology state
     topology_state = {}
@@ -62,15 +63,40 @@ def fill_topology_state(n_probes_per_node, n_links_per_source):
         if ttl - 1 not in nodes_per_ttl and ttl + 1 not in nodes:
             star_nodes_star[ttl] = len(nodes)
 
-    return topology_state, distribution_probes_per_ttl, star_nodes_star, n_load_balancers, max_successors
+    return (
+        topology_state,
+        distribution_probes_per_ttl,
+        star_nodes_star,
+        n_load_balancers,
+        max_successors,
+    )
 
 
-def next_round(database_host: str,
+def next_round(
+    database_host: str,
     table_name: str,
     measurement_parameters,
     mapper,
     writer,
-    skip_unpopulated_ttl=False,):
+    skip_unpopulated_ttl=False,
+):
+
+    absolute_max_ttl = 40  # TODO Better parameter handling
+
+    # With this manimulation we skip the TTLs that are not very populated to avoid
+    # re-probing it extensively (e.g., low TTLs)
+    ttl_skipped = set()
+    if skip_unpopulated_ttl is True:
+        population_threshold = 100
+        for ttl, n_discoveries in query_discoveries_per_ttl(
+            database_host,
+            table_name,
+            measurement_parameters.source_ip,
+            measurement_parameters.round_number,
+            absolute_max_ttl,
+        ):
+            if n_discoveries < population_threshold:
+                ttl_skipped.add(ttl)
 
     for (
         src_ip,
@@ -84,62 +110,52 @@ def next_round(database_host: str,
         min_src_port,
         min_dst_port,
         max_dst_port,
-
     ) in query_next_round(
         database_host,
         table_name,
         measurement_parameters.source_ip,
         measurement_parameters.round_number,
     ):
-        absolute_max_ttl = 40  # TODO Better parameter handling
-
-        # With this manimulation we skip the TTLs that are not very populated to avoid
-        # re-probing it extensively (e.g., low TTLs)
-        ttl_skipped = set()
-        if skip_unpopulated_ttl is True:
-            population_threshold = 100
-            for ttl, n_discoveries in query_discoveries_per_ttl(
-                    database_host,
-                    table_name,
-                    measurement_parameters.source_ip,
-                    measurement_parameters.round_number,
-                    absolute_max_ttl,
-            ):
-                if n_discoveries < population_threshold:
-                    ttl_skipped.add(ttl)
-
 
         n_links_per_sources = dict(n_links_per_sources)
         n_links_per_sources_previous = dict(n_links_per_sources_previous)
 
+        (
+            topology_state,
+            distribution_probes_per_ttl,
+            star_nodes_star_per_ttl,
+            n_load_balancers,
+            max_successors,
+        ) = fill_topology_state(n_probes_per_node, n_links_per_sources)
+        (
+            topology_state_previous,
+            distribution_probes_per_ttl_previous,
+            star_nodes_star_previous_per_ttl,
+            n_load_balancers_previous,
+            max_successors_previous,
+        ) = fill_topology_state(
+            n_probes_per_node_previous, n_links_per_sources_previous
+        )
 
-        topology_state, distribution_probes_per_ttl, star_nodes_star_per_ttl, n_load_balancers, max_successors  = fill_topology_state(n_probes_per_node, n_links_per_sources)
-        topology_state_previous, distribution_probes_per_ttl_previous, star_nodes_star_previous_per_ttl, n_load_balancers_previous, max_successors_previous = fill_topology_state(n_probes_per_node_previous, n_links_per_sources_previous)
-
-        flush_traceroute(topology_state,
-                         distribution_probes_per_ttl,
-                         star_nodes_star_per_ttl,
-                         n_load_balancers,
-                         max_successors,
-                         topology_state_previous,
-                         distribution_probes_per_ttl_previous,
-                         star_nodes_star_previous_per_ttl,
-                         n_load_balancers_previous,
-                         max_successors_previous,
-                         set(nodes_active),
-                         set(nodes_active_previous),
-                         dst_prefix,
-                         min_dst_port,
-                         max_dst_port,
-                         min_src_port,
-                         measurement_parameters,
-                         mapper,
-                         writer,
-                         ttl_skipped,
-                             )
-
-
-
-
-
-
+        flush_traceroute(
+            topology_state,
+            distribution_probes_per_ttl,
+            star_nodes_star_per_ttl,
+            n_load_balancers,
+            max_successors,
+            topology_state_previous,
+            distribution_probes_per_ttl_previous,
+            star_nodes_star_previous_per_ttl,
+            n_load_balancers_previous,
+            max_successors_previous,
+            set(nodes_active),
+            set(nodes_active_previous),
+            dst_prefix,
+            min_dst_port,
+            max_dst_port,
+            min_src_port,
+            measurement_parameters,
+            mapper,
+            writer,
+            ttl_skipped,
+        )
