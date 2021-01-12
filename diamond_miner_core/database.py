@@ -203,7 +203,10 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             # Exclude dest. prefixes for which no probes have been sent
             # during the previous round (?)
             # " WHERE 1 = 1 " #
-            "WHERE dst_prefix NOT IN ( "
+            "WHERE "
+            # f"dst_prefix=95640576 "
+            # f" AND "
+            "  dst_prefix NOT IN ( "
             "    SELECT DISTINCT(dst_prefix) "
             f"   FROM {table_name} "
             f"   WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} "
@@ -240,13 +243,16 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             "AND dst_ip != reply_ip AND type = 11  "
             "GROUP BY (src_ip, dst_prefix, dst_ip, src_port, dst_port) "
             # Exclude TTLs where there are no nodes and no links (?)
-            "HAVING length(links) >= 1 or length(replies_s) >= 1  "
+            "HAVING "
+            " length(links) >= 1 OR "
+            " length(replies_s) >= 1  "
             # "ORDER BY dst_prefix DESC"
             ")"
+            # f" WHERE dst_prefix=95640576 "
             "GROUP BY  src_ip, dst_prefix "
             # "ORDER BY dst_prefix ASC"
         )
-        # print(query)
+        print(query)
         client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
         for row in client.execute_iter(
             query,

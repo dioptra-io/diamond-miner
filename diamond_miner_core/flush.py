@@ -256,12 +256,11 @@ def flush_traceroute(
             nodes_active_previous,
         )
 
-        for ttl, probes_to_send in probes_per_ttl.items():
+        for ttl, probes_to_send in sorted(probes_per_ttl.items(), key=lambda x : x[0]):
             if ttl not in probes_per_ttl_previous_round:
-                previous_max_flow = 6
-                print("chelou", dst_prefix, ttl)
-            else:
-                previous_max_flow = max(probes_per_ttl_previous_round[ttl])
+                probes_per_ttl[ttl] = [0]
+                continue
+            previous_max_flow = max(probes_per_ttl_previous_round[ttl])
             for i in range(len(probes_to_send)):
                 probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
             real_previous_max_flow_per_ttl[ttl] = previous_max_flow

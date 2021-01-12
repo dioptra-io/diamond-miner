@@ -1,4 +1,5 @@
 from collections import defaultdict
+import ipaddress
 
 from diamond_miner_core.database import (
     query_max_ttl,
@@ -116,6 +117,9 @@ def next_round(
         measurement_parameters.source_ip,
         measurement_parameters.round_number,
     ):
+
+        if ipaddress.ip_address(dst_prefix).is_private:
+            continue
 
         n_links_per_sources = dict(n_links_per_sources)
         n_links_per_sources_previous = dict(n_links_per_sources_previous)
