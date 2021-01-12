@@ -1,4 +1,3 @@
-from collections import defaultdict
 import ipaddress
 
 from diamond_miner_core.database import (

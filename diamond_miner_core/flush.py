@@ -256,7 +256,7 @@ def flush_traceroute(
             nodes_active_previous,
         )
 
-        for ttl, probes_to_send in sorted(probes_per_ttl.items(), key=lambda x : x[0]):
+        for ttl, probes_to_send in sorted(probes_per_ttl.items(), key=lambda x: x[0]):
             if ttl not in probes_per_ttl_previous_round:
                 probes_per_ttl[ttl] = [0]
                 continue
