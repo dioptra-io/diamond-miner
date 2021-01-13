@@ -307,4 +307,7 @@ def flush_traceroute(
                 # )
             )
 
+    if not rows_to_flush:
+        return
+
     writer.write("".join(["\n".join([",".join(row) for row in rows_to_flush]), "\n"]))
