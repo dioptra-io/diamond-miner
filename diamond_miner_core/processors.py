@@ -127,6 +127,11 @@ def next_round(
         n_links_per_sources = dict(n_links_per_sources)
         n_links_per_sources_previous = dict(n_links_per_sources_previous)
 
+        # Fast fail if nothing more has been discovered between round R and R - 1
+        if measurement_parameters.round_number > 1:
+            if n_links_per_sources_previous == n_links_per_sources:
+                continue
+
         (
             topology_state,
             distribution_probes_per_ttl,
