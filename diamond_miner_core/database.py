@@ -189,41 +189,39 @@ def build_next_round_query(
         # Exclude dest. prefixes for which no probes have been sent
         # during the previous round (?)
         # " WHERE 1 = 1 " #
-        "WHERE "
-        # f"dst_prefix=25082112 "
-        # f" AND "
-        # "  dst_prefix NOT IN ( "
-        # "    SELECT DISTINCT(dst_prefix) "
-        # f"   FROM {table_name} "
-        # f"   WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} "
-        # f"   AND src_ip = {source_ip}  "
-        # f"   AND snapshot = {snapshot}  "
-        # "    GROUP BY (src_ip, dst_prefix) "
-        # f"   HAVING MAX(round) < {round_number - 1} "
-        # ")  "
-        # # Exclude dest. prefixes with per-packet load-balancing (?)
-        # "AND dst_prefix NOT IN ( "
-        # "    SELECT distinct(dst_prefix) "
-        # "    FROM  "
-        # "    ( "
-        # "        SELECT  "
-        # "            src_ip,  "
-        # "            dst_prefix,  "
-        # f"            {ttl_column_name},  "
-        # "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow,  "
-        # f"            COUNT((src_ip, dst_ip, {ttl_column_name}"
-        # + ", src_port, dst_port)) AS cnt  "
-        # f"        FROM {table_name} "
-        # f"        WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} "
-        # f"        AND src_ip = {source_ip}  "
-        # f"        AND snapshot = {snapshot}  "
-        # f"        GROUP BY (src_ip, dst_prefix, dst_ip, {ttl_column_name}"
-        # + ", src_port, dst_port, snapshot) "
-        # "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1) "
-        # "    )  "
-        # "    GROUP BY (src_ip, dst_prefix) "
-        # ")  "
-        # f" AND "
+        "WHERE"
+        "  dst_prefix NOT IN ( "
+        "    SELECT DISTINCT(dst_prefix) "
+        f"   FROM {table_name} "
+        f"   WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} "
+        f"   AND src_ip = {source_ip}  "
+        f"   AND snapshot = {snapshot}  "
+        "    GROUP BY (src_ip, dst_prefix) "
+        f"   HAVING MAX(round) < {round_number - 1} "
+        ")  "
+        # Exclude dest. prefixes with per-packet load-balancing (?)
+        "AND dst_prefix NOT IN ( "
+        "    SELECT distinct(dst_prefix) "
+        "    FROM  "
+        "    ( "
+        "        SELECT  "
+        "            src_ip,  "
+        "            dst_prefix,  "
+        f"            {ttl_column_name},  "
+        "            COUNTDistinct(reply_ip) AS n_ips_per_ttl_flow,  "
+        f"            COUNT((src_ip, dst_ip, {ttl_column_name}"
+        + ", src_port, dst_port)) AS cnt  "
+        f"        FROM {table_name} "
+        f"        WHERE dst_prefix > {inf_born} AND dst_prefix <= {sup_born} "
+        f"        AND src_ip = {source_ip}  "
+        f"        AND snapshot = {snapshot}  "
+        f"        GROUP BY (src_ip, dst_prefix, dst_ip, {ttl_column_name}"
+        + ", src_port, dst_port, snapshot) "
+        "        HAVING (cnt > 2) OR (n_ips_per_ttl_flow > 1) "
+        "    )  "
+        "    GROUP BY (src_ip, dst_prefix) "
+        ")  "
+        f" AND "
         f" src_ip = {source_ip} AND snapshot = {snapshot} "
         f"AND dst_prefix > {inf_born} AND dst_prefix <= {sup_born} "
         f"AND round <= {round_number}  "
@@ -346,9 +344,11 @@ def query_next_round(database_host, table_name, source_ip, round_number):
             break
 
         # print(j)
+        # if j != 3:
+        #     continue
 
         client = Client(database_host, connect_timeout=1000, send_receive_timeout=6000)
-        print(inf_born, sup_born)
+        # print(inf_born, sup_born)
         yield from query_next_round_recurse(
             client,
             table_name,

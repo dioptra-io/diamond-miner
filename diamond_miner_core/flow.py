@@ -62,7 +62,7 @@ class ReverseByteOrderFlowMapper(AbstractFlowMapper):
         return (254, flow_id - n + 1)
 
 
-class HeidemannFlowMapper(AbstractFlowMapper):
+class HeidemannFlowMapper(object):
     """Host distribution from Heidemann paper."""
 
     def __init__(self, step=32):
@@ -76,7 +76,7 @@ class HeidemannFlowMapper(AbstractFlowMapper):
             offset: flow for flow, offset in enumerate(self.flow_to_offset)
         }
 
-    def _flow_id(self, addr_offset, *args, **kwargs):
+    def flow_id(self, addr_offset, *args, **kwargs):
         # flow_to_offset maps [0,254] to [0,254], however we could theoretically
         # receive an (erroneous) reply from .255, in this case we return an
         # aribtraty flow id.
@@ -84,8 +84,8 @@ class HeidemannFlowMapper(AbstractFlowMapper):
             return self.offset_to_flow[addr_offset]
         return 255
 
-    def _offset(self, flow_id, prefix_size, *args, **kwargs):
-        assert prefix_size == 24, "`prefix_size` != 24 are not supported"
+    def offset(self, flow_id, prefix_size, *args, **kwargs):
+        # assert prefix_size == 24, "`prefix_size` != 24 are not supported"
         if flow_id <= 254:
             return (self.flow_to_offset[flow_id], 0)
         return (254, flow_id - 254)
