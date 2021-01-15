@@ -134,6 +134,7 @@ def test_paper_data():
                 mp,
                 SequentialFlowMapper(),
                 writer,
+                skip_unpopulated_ttl=False
             )
     # Clean
     drop_table(db, table)
@@ -159,11 +160,12 @@ def test_iris_data():
             mp,
             HeidemannFlowMapper(),
             writer,
+            skip_unpopulated_ttl=False
         )
 if __name__ == "__main__":
     import time
     start = time.time()
-    test_iris_data()
+    test_paper_data()
     elapsed = time.time() - start
     print(f"{elapsed} seconds.")
 

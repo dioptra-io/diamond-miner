@@ -17,4 +17,4 @@ def stopping_point(k, eps=0.05):
     assert (k >= 1) and (0 <= eps <= 1)
     if k == 1:
         return 0
-    return ceil(log(eps / k, (k - 1) / k))
+    return ceil(log(eps / k) / log((k - 1) / k))
