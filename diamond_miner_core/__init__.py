@@ -27,7 +27,7 @@ def compute_next_round(
     table_name: str,
     measurement_parameters: MeasurementParameters,
     output_file_path: str,
-    mapper=SequentialFlowMapper(),
+    mapper=HeidemannFlowMapper(),
     use_max_ttl_feature=False,
     skip_unpopulated_ttl=False,
 ):
