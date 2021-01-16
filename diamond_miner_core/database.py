@@ -117,13 +117,8 @@ def build_next_round_query(
         # x is (node, ttl, round)
         f" arrayDistinct(arrayMap(x->(x.1, x.2), replies)) as nodes, "
         # f" arrayDistinct(arrayMap(x->x.2, replies)) as distinct_nodes_ttl, "
-        # # Compute nodes per TTL
-        # f" arrayMap(x->(x, arrayFilter(y->y.2=x, nodes)), distinct_nodes_ttl) as nodes_ttl_per_ttl, "  # noqa
-        # f" arrayMap(x->x.1, arrayMap(y->y.1,x.2)), nodes_ttl_per_ttl) as nodes_per_ttl, "  # noqa
-        # x is (node, ttl), y is (node, ttl, round)
-        f" arrayMap(x->(x, arrayFilter(y->y.1 == x.1 AND y.2 == x.2, replies)), nodes) as probes_per_node, "  # noqa
-        f" arrayMap(x->(x.1, length(x.2)), probes_per_node) as n_probes_per_node, "
-        # WARNING: New optimization. Compute the nodes seen at this round.
+        
+        # WARNING: Optimization. Only use the D-Miner formula on active nodes.
         # Avoid counting the others as they might have disappeared due to routing change or w/e  # noqa
         f" arrayFilter(x->x.3 == {round_number}, replies) as replies_active, "
         f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_active)) as nodes_active, "
@@ -131,6 +126,15 @@ def build_next_round_query(
         f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_active_previous)) as nodes_active_previous, "  # noqa
         f" arrayFilter(x->x.3 < {round_number}, replies) as replies_previous, "
         f" arrayDistinct(arrayMap(x->(x.1, x.2), replies_previous)) as nodes_previous, "  # noqa
+        
+        # # Compute nodes per TTL
+        # f" arrayMap(x->(x, arrayFilter(y->y.2=x, nodes)), distinct_nodes_ttl) as nodes_ttl_per_ttl, "  # noqa
+        # f" arrayMap(x->x.1, arrayMap(y->y.1,x.2)), nodes_ttl_per_ttl) as nodes_per_ttl, "  # noqa
+        # x is (node, ttl), y is (node, ttl, round)
+        
+        f" arrayMap(x->(x, arrayFilter(y->y.1 == x.1 AND y.2 == x.2, replies)), nodes) as probes_per_node, "  # noqa
+        f" arrayMap(x->(x.1, length(x.2)), probes_per_node) as n_probes_per_node, "
+        
         # x is (node, ttl), y is (node, ttl, round)
         f" arrayMap(x->(x, arrayFilter(y->y.1 == x.1 AND y.2 == x.2, replies_previous)), nodes_previous) as probes_per_node_previous, "  # noqa
         f" arrayMap(x->(x.1, length(x.2)), probes_per_node_previous) as n_probes_per_node_previous, "  # noqa
@@ -162,10 +166,10 @@ def build_next_round_query(
         f" length(arrayFilter(x->x.2 > 1, n_links_per_sources_previous)) as n_load_balancers_previous, "  # noqa
         f" length(arrayFilter(x->x.2 > 1, n_links_per_sources)) as n_load_balancers, "  # noqa
         f" 0.05 as target_epsilon, "
-        # f" 0.05 as epsilon, "
-        # f" 0.05 as epsilon_previous, "
-        f" if(n_load_balancers == 0, 0.05, 1 - exp(log(1 - target_epsilon) / n_load_balancers)) as epsilon, "
-        f" if(n_load_balancers_previous == 0, 0.05, 1 - exp(log(1 - target_epsilon) / n_load_balancers_previous)) as epsilon_previous, "
+        f" 0.05 as epsilon, "
+        f" 0.05 as epsilon_previous, "
+        # f" if(n_load_balancers == 0, 0.05, 1 - exp(log(1 - target_epsilon) / n_load_balancers)) as epsilon, "
+        # f" if(n_load_balancers_previous == 0, 0.05, 1 - exp(log(1 - target_epsilon) / n_load_balancers_previous)) as epsilon_previous, "
         
         
         ###################### Nodes per TTL ############
@@ -203,14 +207,20 @@ def build_next_round_query(
         f"/ (arrayFilter(y->y.1 == x.1 and y.1.2 == t, n_probes_per_node)[1].2 / D[t]), n_probes_per_node))), ttls) as nkv_Dhv,"
         
         f" arrayMap(t->(t.1, arrayReduce('max', t.2)), nkv_Dhv) as max_nkv_Dhv, "
-        f" arrayMap(t->(t, toUInt32(if(t == 1, max_nkv_Dhv[t].2 - th[t].2,  arrayReduce('max', array(max_nkv_Dhv[t].2 - th[t].2, max_nkv_Dhv[t-1].2 - th[t-1].2))))), ttls) as d_miner_paper_probes, " 
+        f" arrayMap(t->(t, toInt32(if(t == 1, max_nkv_Dhv[t].2 - th[t].2,  arrayReduce('max', array(max_nkv_Dhv[t].2 - th[t].2, max_nkv_Dhv[t-1].2 - th[t-1].2))))), ttls) as d_miner_paper_probes, " 
         
         ########################## * nodes * ############################
         f"arrayMap(t->(t, if(D[t] == 0, 0, d_miner_paper_probes[t].2)),  ttls) as d_miner_paper_probes_no_probe_star, "
-        f"arrayMap(t->(t, if(D[t-1] == 0 and D[t] > 0 and D[t+1] == 0, nks[nodes_per_ttl[t]] - nks_previous[nodes_per_ttl_previous[t]], d_miner_paper_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star "  
+        f"arrayMap(t->(t, if(D[t-1] == 0 and D[t] > 0 and D[t+1] == 0, nks[nodes_per_ttl[t]] - nks_previous[nodes_per_ttl_previous[t]], d_miner_paper_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "  
+        
+        ########################## If the topology is the same as previous round, just return 0 for all TTLs #################
+        f"if(equals(arraySort(x->x.1, n_links_per_sources_previous), arraySort (x->x.1, n_links_per_sources)), 1, 0)  as skip_prefix "         
+        
         
         f""
-        " SELECT src_ip, dst_prefix, max_nodes, d_miner_paper_probes_w_star_nodes_star, d_miner_paper_probes, th, epsilon, epsilon_previous, nks_previous, nkv_Dhv_previous, max_nkv_Dhv_previous, nks, D, "
+        " SELECT src_ip, dst_prefix, skip_prefix, "
+        " max_nkv_Dhv, d_miner_paper_probes, max_nodes, d_miner_paper_probes_w_star_nodes_star, d_miner_paper_probes, th, "
+        " epsilon, epsilon_previous, nks_previous, nkv_Dhv_previous, max_nkv_Dhv_previous, nks, D, "
         " nodes_active, nodes_active_previous, n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "  # noqa
         " min_src_port, min_dst_port, max_dst_port "
         "FROM "
