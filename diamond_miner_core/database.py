@@ -213,6 +213,10 @@ def build_next_round_query(
         f"arrayMap(t->(t, if(D[t] == 0, 0, d_miner_paper_probes[t].2)),  ttls) as d_miner_paper_probes_no_probe_star, "
         f"arrayMap(t->(t, if(D[t-1] == 0 and D[t] > 0 and D[t+1] == 0, nks[nodes_per_ttl[t]] - nks_previous[nodes_per_ttl_previous[t]], d_miner_paper_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "  
         
+        
+        ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################
+        f"arrayMap(t->(t, if(D_prev[t-1] == 0 and D_prev[t] > 0 and D_prev[t+1] == 0, nks_previous[nodes_per_ttl_previous[t]], th[t].2)), ttls) as previous_max_flow_per_ttl, "
+        
         ########################## If the topology is the same as previous round, just return 0 for all TTLs #################
         f"if(equals(arraySort(x->x.1, n_links_per_sources_previous), arraySort (x->x.1, n_links_per_sources)), 1, 0)  as skip_prefix "         
         
@@ -221,7 +225,7 @@ def build_next_round_query(
         " SELECT src_ip, dst_prefix, skip_prefix, "
         # " max_nkv_Dhv,"
         # " d_miner_paper_probes, max_nodes, "
-        " d_miner_paper_probes_w_star_nodes_star, "
+        " d_miner_paper_probes_w_star_nodes_star, previous_max_flow_per_ttl, "
         # " d_miner_paper_probes, th, "
         # " epsilon, epsilon_previous, nks_previous, nkv_Dhv_previous, max_nkv_Dhv_previous, nks, D, "
         # " nodes_active, nodes_active_previous, n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "  # noqa
