@@ -148,132 +148,27 @@ def flush_format(dst_ip, src_port, dst_port, ttl):
     return [f"{dst_ip:010}", f"{src_port:05}", f"{dst_port:05}", f"{ttl:03}"]
 
 
+
 def flush_traceroute(
-    topology_state,
-    distribution_probes_per_ttl,
-    star_nodes_star_per_ttl,
-    n_load_balancers,
-    max_successors,
-    topology_state_previous,
-    distribution_probes_per_ttl_previous,
-    star_nodes_star_per_ttl_previous,
-    n_load_balancers_previous,
-    max_successors_previous,
-    nodes_active,
-    nodes_active_previous,
-    dst_prefix,
-    min_dst_port,
-    max_dst_port,
-    min_src_port,
-    measurement_parameters,
-    mapper,
-    writer,
-    ttl_skipped,
-):
-    # Compute the topology state ah round N
-    # (
-    #     topology_state,
-    #     distribution_probes_per_ttl,
-    #     star_nodes_star_per_ttl,
-    #     max_successors,
-    #     n_load_balancers,
-    # ) = compute_topology_state(
-    #     nodes_per_ttl, links_per_ttl, measurement_parameters.round_number
-    # )
+            d_miner_paper_probes_w_star_nodes_star,
+            previous_max_flow_per_ttl,
+            dst_prefix,
+            min_dst_port,
+            max_dst_port,
+            min_src_port,
+            measurement_parameters,
+            mapper,
+            writer,
+            ttl_skipped,
+        ):
 
-    # # This clause is for avoiding generating new probes when no nodes
-    # n_nodes_per_ttl = {ttl: len(nodes_per_ttl[ttl]) for ttl in nodes_per_ttl}
-    # if len(n_nodes_per_ttl) == 0 or max(n_nodes_per_ttl.values()) == 0:
-    #     return
-
-    # Now adapt the epsilon such that it fits to the number of load balancer.
-    # epsilon is the probablity to fail to reach statistical guarantees for 1 LB
-    # let assume target epsilon (failure probability) is 0.01 (for the whole topology)
-    # We have:
-    # p(success)  = p(success on all load balancers) = p(sucess_1) * ... * p(success_n)
-    # = ((1 - p(fail_1)) * ... * (1 - p(fail_n)) = (1 - epsilon)^n
-    # so we have target_epsilon = (1-epsilon)^n. So we compute the epsilon accordingly.
-    target_epsilon = 0.05
-    if n_load_balancers == 0:
-        epsilon = target_epsilon
-    else:
-        epsilon = 1 - math.exp(math.log(1 - target_epsilon) / n_load_balancers)
-        # epsilon = 0.05
-
-    if len(star_nodes_star_per_ttl) > 0:
-        max_stopping_point = max(max_successors, max(star_nodes_star_per_ttl.values()))
-    else:
-        max_stopping_point = max_successors
-    stopping_points = [
-        stopping_point(k, epsilon) for k in range(1, max_stopping_point + 2)
-    ]
-
-    if len(star_nodes_star_per_ttl_previous) > 0:
-        max_stopping_point_previous = max(
-            max_successors_previous, max(star_nodes_star_per_ttl_previous.values())
-        )
-    else:
-        max_stopping_point_previous = max_successors_previous
-
+    probes_per_ttl = dict(d_miner_paper_probes_w_star_nodes_star)
+    previous_max_flow_per_ttl = dict(previous_max_flow_per_ttl)
     if measurement_parameters.round_number == 1:
-        epsilon_previous_round = target_epsilon
-        stopping_points_previous = [
-            stopping_point(k, epsilon_previous_round)
-            for k in range(1, max_stopping_point_previous + 3)
-        ]
-    else:
-        if n_load_balancers_previous == 0:
-            epsilon_previous_round = target_epsilon
-        else:
-            epsilon_previous_round = 1 - math.exp(
-                math.log(1 - target_epsilon) / n_load_balancers_previous
-            )
-            # epsilon_previous_round = 0.05
-        stopping_points_previous = [
-            stopping_point(k, epsilon_previous_round)
-            for k in range(1, max_stopping_point_previous + 2)
-        ]
-
-    probes_per_ttl = compute_next_round_probes_per_ttl(
-        topology_state,
-        distribution_probes_per_ttl,
-        star_nodes_star_per_ttl,
-        stopping_points,
-        nodes_active,
-    )
-
-    # To compute the number of probes previously sent,
-    # we need to recompute the state of the topology at round - 1...
-    # this should be optimized by keeping it somehwere
-    # th = stopping_points[bisect_left(stopping_points_previous_round, previous_max_flow_per_ttl[ttl])]  # noqa
-    real_previous_max_flow_per_ttl = {}
-    if measurement_parameters.round_number > 1:
-        probes_per_ttl_previous_round = compute_next_round_probes_per_ttl(
-            topology_state_previous,
-            distribution_probes_per_ttl_previous,
-            star_nodes_star_per_ttl_previous,
-            stopping_points_previous,
-            nodes_active_previous,
-        )
-
-        for ttl, probes_to_send in sorted(probes_per_ttl.items(), key=lambda x: x[0]):
-            if ttl not in probes_per_ttl_previous_round:
-                probes_per_ttl[ttl] = [0]
-                continue
-            previous_max_flow = max(probes_per_ttl_previous_round[ttl])
-            for i in range(len(probes_to_send)):
-                probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
-            real_previous_max_flow_per_ttl[ttl] = previous_max_flow
-    else:
-        # Round 1
-        for ttl, probes_to_send in probes_per_ttl.items():
-            previous_max_flow = 6
-            for i in range(len(probes_to_send)):
-                probes_to_send[i] = max(0, probes_to_send[i] - previous_max_flow)
-            real_previous_max_flow_per_ttl[ttl] = previous_max_flow
+        for ttl in previous_max_flow_per_ttl:
+            previous_max_flow_per_ttl[ttl] = 6
 
     rows_to_flush = []
-    probes_per_ttl = {ttl: max(probes_per_ttl[ttl]) for ttl in probes_per_ttl}
     for ttl, n_to_send in probes_per_ttl.items():
 
         # Re-probe unpopulated TTLs avoidance
@@ -283,7 +178,7 @@ def flush_traceroute(
         # Generate the next probes to send
         for flow_id in range(0, n_to_send):
 
-            real_flow_id = real_previous_max_flow_per_ttl[ttl] + flow_id
+            real_flow_id = previous_max_flow_per_ttl[ttl] + flow_id
             offset = mapper.offset(real_flow_id, 24, dst_prefix)
 
             if offset[1] > 0 and (

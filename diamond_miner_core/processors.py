@@ -103,17 +103,14 @@ def next_round(
                 ttl_skipped.add(ttl)
 
     for (
-        src_ip,
-        dst_prefix,
-        nodes_active,
-        nodes_active_previous,
-        n_probes_per_node,
-        n_probes_per_node_previous,
-        n_links_per_sources,
-        n_links_per_sources_previous,
-        min_src_port,
-        min_dst_port,
-        max_dst_port,
+            src_ip,
+            dst_prefix,
+            skip_prefix,
+            d_miner_paper_probes_w_star_nodes_star,
+            previous_max_flow_per_ttl,
+            min_src_port,
+            min_dst_port,
+            max_dst_port
     ) in query_next_round(
         database_host,
         table_name,
@@ -121,47 +118,12 @@ def next_round(
         measurement_parameters.round_number,
     ):
 
-        if ipaddress.ip_address(dst_prefix).is_private:
+        if skip_prefix == 1:
             continue
 
-        n_links_per_sources = dict(n_links_per_sources)
-        n_links_per_sources_previous = dict(n_links_per_sources_previous)
-
-        # Fast fail if nothing more has been discovered between round R and R - 1
-        if measurement_parameters.round_number > 1:
-            if n_links_per_sources_previous == n_links_per_sources:
-                continue
-
-        (
-            topology_state,
-            distribution_probes_per_ttl,
-            star_nodes_star_per_ttl,
-            n_load_balancers,
-            max_successors,
-        ) = fill_topology_state(n_probes_per_node, n_links_per_sources)
-        (
-            topology_state_previous,
-            distribution_probes_per_ttl_previous,
-            star_nodes_star_previous_per_ttl,
-            n_load_balancers_previous,
-            max_successors_previous,
-        ) = fill_topology_state(
-            n_probes_per_node_previous, n_links_per_sources_previous
-        )
-
         flush_traceroute(
-            topology_state,
-            distribution_probes_per_ttl,
-            star_nodes_star_per_ttl,
-            n_load_balancers,
-            max_successors,
-            topology_state_previous,
-            distribution_probes_per_ttl_previous,
-            star_nodes_star_previous_per_ttl,
-            n_load_balancers_previous,
-            max_successors_previous,
-            set(nodes_active),
-            set(nodes_active_previous),
+            d_miner_paper_probes_w_star_nodes_star,
+            previous_max_flow_per_ttl,
             dst_prefix,
             min_dst_port,
             max_dst_port,

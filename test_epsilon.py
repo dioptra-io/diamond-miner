@@ -123,8 +123,8 @@ def test_paper_data():
     for r in range(1, 4):
         mp = MeasurementParameters()
         mp.round_number = r
-        # if r < 2:
-        #     continue
+        if r < 1:
+            continue
         with open("try.csv", "w") as fd:
             writer = fd
             next_round(

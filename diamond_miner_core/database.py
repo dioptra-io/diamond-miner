@@ -215,7 +215,7 @@ def build_next_round_query(
         
         
         ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################
-        f"arrayMap(t->(t, if(D_prev[t-1] == 0 and D_prev[t] > 0 and D_prev[t+1] == 0, nks_previous[nodes_per_ttl_previous[t]], th[t].2)), ttls) as previous_max_flow_per_ttl, "
+        f"arrayMap(t->(t, toInt32(if(D_prev[t-1] == 0 and D_prev[t] > 0 and D_prev[t+1] == 0, nks_previous[nodes_per_ttl_previous[t]], th[t].2))), ttls) as previous_max_flow_per_ttl, "
         
         ########################## If the topology is the same as previous round, just return 0 for all TTLs #################
         f"if(equals(arraySort(x->x.1, n_links_per_sources_previous), arraySort (x->x.1, n_links_per_sources)), 1, 0)  as skip_prefix "         
