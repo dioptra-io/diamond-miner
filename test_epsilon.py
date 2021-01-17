@@ -123,7 +123,7 @@ def test_paper_data():
     for r in range(1, 4):
         mp = MeasurementParameters()
         mp.round_number = r
-        if r < 1:
+        if r < 3:
             continue
         with open("try.csv", "w") as fd:
             writer = fd
@@ -165,7 +165,7 @@ def test_iris_data():
 if __name__ == "__main__":
     import time
     start = time.time()
-    test_paper_data()
+    test_iris_data()
     elapsed = time.time() - start
     print(f"{elapsed} seconds.")
 

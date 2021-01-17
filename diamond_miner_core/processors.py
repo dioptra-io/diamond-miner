@@ -121,6 +121,9 @@ def next_round(
         if skip_prefix == 1:
             continue
 
+        if ipaddress.ip_address(dst_prefix).is_private:
+            continue
+
         flush_traceroute(
             d_miner_paper_probes_w_star_nodes_star,
             previous_max_flow_per_ttl,
