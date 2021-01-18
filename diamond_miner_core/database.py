@@ -250,19 +250,32 @@ def build_next_round_query(
 
         ########################## * nodes * ############################
         f" arrayMap(t->(t, if(nodes_per_ttl[t] == 0, 0, d_miner_lite_probes[t].2)),  ttls) as d_miner_lite_probes_no_probe_star, "
-        f" arrayMap(t->(t, if(nodes_per_ttl[t-1] == 0 and nodes_per_ttl[t] > 0 and nodes_per_ttl[t+1] == 0, nks[nodes_per_ttl[t]] - nks_previous[nodes_per_ttl_previous[t]], d_miner_lite_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "
+        f" arraySlice(ttls, 2) as sliced_ttls, "
+        
+        f"arrayMap(t -> (t, if(((nodes_per_ttl[ttls[t - 1]]) = 0) AND ((nodes_per_ttl[ttls[t]]) > 0) AND ((nodes_per_ttl[ttls[t + 1]]) = 0), nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], 0)), sliced_ttls) AS d_miner_paper_probes_w_star_nodes_star,"
+        f"arrayPushFront(d_miner_paper_probes_w_star_nodes_star, (1, 0)) AS d_miner_paper_probes_w_star_nodes_star_new,"
+        f"arrayMap(t->(t, arrayReduce('max', array(d_miner_paper_probes_w_star_nodes_star_new[t].2, d_miner_lite_probes_no_probe_star[t].2))), ttls) as final_probes,"
+        
+        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], d_miner_lite_probes_no_probe_star[ttls[t]].2)), sliced_ttls) as d_miner_paper_probes_w_star_nodes_star,"
+        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, 1, d_miner_lite_probes_no_probe_star[ttls[t]].2)), sliced_ttls) as d_miner_paper_probes_w_star_nodes_star "
+        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], d_miner_lite_probes_no_probe_star[ttls[t]].2)), arraySlice(ttls, 2)) as d_miner_paper_probes_w_star_nodes_star, "
+        # f" arrayMap(t->(t, if(1 == 1, 0, d_miner_lite_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "
+        # f" arrayMap(t->(t, d_miner_lite_probes_no_probe_star[t].2), ttls) as d_miner_paper_probes_w_star_nodes_star, "
         #
         #
         # ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################
-        f" arrayMap(t->(t, toInt32(if(nodes_per_ttl[t-1] == 0 and nodes_per_ttl[t] > 0 and nodes_per_ttl[t+1] == 0, nks_previous[nodes_per_ttl_previous[t]], max_nkv_Dhv_previous[t].2))), ttls) as previous_max_flow_per_ttl "
-        
-        
+        f" arrayMap(t->(t, toInt32(if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], max_nkv_Dhv_previous[ttls[t]].2))), sliced_ttls) as previous_max_flow_per_ttl, "
+        f" arrayPushFront(previous_max_flow_per_ttl, max_nkv_Dhv_previous[ttls[1]]) as previous_max_flow_per_ttl_final "        
         # "max(round) as max_round "
         " SELECT src_ip, dst_prefix, skip_prefix, "
         # " max_nkv_Dhv,"
         # " d_miner_paper_probes, max_nodes, "
+        # " nodes_per_ttl, "
+        # " epsilon, epsilon_previous, "
         # "links_per_ttl, links_per_ttl_previous, "
-        " d_miner_lite_probes_no_probe_star, previous_max_flow_per_ttl, "
+        " final_probes, "
+        " previous_max_flow_per_ttl_final, "
+        # " previous_max_flow_per_ttl, "
         # " d_miner_paper_probes, th, "
         # " epsilon, epsilon_previous, nodes_per_ttl, nodes_per_ttl_previous, links_per_ttl, links_per_ttl_previous, "
         # " nodes_active, nodes_active_previous, n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "  # noqa
@@ -326,7 +339,7 @@ def build_next_round_query(
         # ") "
         # # f" WHERE dst_prefix=31024640 "
         # "GROUP BY  src_ip, dst_prefix "
-        # "ORDER BY dst_prefix ASC"
+        "ORDER BY dst_prefix ASC"
     )
     print(query)
     return query
@@ -435,7 +448,8 @@ def query_next_round(database_host, table_name, source_ip, round_number):
         sup_born = int((j + 1) * ((2 ** 32 - 1) / ipv4_split))
 
         # TODO Excluded prefixes ?
-
+        # if j != 3:
+        #     continue
         if sup_born > 3758096384:
             # exclude prefixes >= 224.0.0.0 (multicast)
             break
