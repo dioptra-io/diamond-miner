@@ -120,70 +120,70 @@ def build_next_round_query(
         #
         #
         # f" arrayMap(r->(r.1, r.2), replies) as replies_no_round, "
-        # f" arrayMap(r->(r.1, r.2), arrayFilter(x->x.3 < {round_number}, replies)) as replies_no_round_previous, "
+        # f" arrayMap(r->(r.1, r.2), arrayFilter(x->x.3 < {round_number}, replies)) as replies_no_round_previous, "  # noqa
         # ########################## Links per TTL ######################
         # f" range(1, 31) as ttls, "
         # f" arrayFlatten(groupArray(links_no_round)) as links_flat, "
         # f" arrayFlatten(groupArray(links_no_round_previous)) as links_flat_previous, "
         #
         # # Compute links between TTL t and t + 1
-        # f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_flat))), ttls) as links_per_ttl, "
+        # f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_flat))), ttls) as links_per_ttl, "  # noqa
         # f" arrayMax(t->t.2, links_per_ttl).2 as max_links, "
-        # f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_flat_previous))), ttls) as links_per_ttl_previous, "
+        # f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_flat_previous))), ttls) as links_per_ttl_previous, "  # noqa
         # f" arrayMax(t->t.2, links_per_ttl_previous).2 as max_links_previous, "
         #
         # # f" arrayReduce('max', n_links_per_ttl_no_ttl) as max_links, "
-        # # f" arrayReduce('max', n_links_per_ttl_no_ttl_previous) as max_links_previous, "
+        # # f" arrayReduce('max', n_links_per_ttl_no_ttl_previous) as max_links_previous, "  # noqa
         #
         #
         # ########################## Nodes per TTL ######################
         #
-        # f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round)), ttls) as nodes_per_ttl, "
-        # f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round_previous)), ttls) as nodes_per_ttl_previous, "
+        # f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round)), ttls) as nodes_per_ttl, "  # noqa
+        # f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round_previous)), ttls) as nodes_per_ttl_previous, "  # noqa
         # f" arrayReduce('max', nodes_per_ttl) as max_nodes, "
         #
         # # Fast fail
         # f"if(equals(links_per_ttl, links_per_ttl_previous), 1, 0)  as skip_prefix, "
-        # ########################## Epsilon is based on number of links ####################
+        # ########################## Epsilon is based on number of links ####################  # noqa
         # f" 0.05 as target_epsilon, "
         # # f" 0.05 as epsilon, "
         # # f" 0.05 as epsilon_previous, "
-        # f" if(max_links == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links)) as epsilon, "
-        # f" if(max_links_previous == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links_previous)) as epsilon_previous, "
+        # f" if(max_links == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links)) as epsilon, "  # noqa
+        # f" if(max_links_previous == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links_previous)) as epsilon_previous, "  # noqa
         #
         #
         # ###################### Nks ####################
-        # f" range(1, arrayReduce('max', array(max_links + 2, max_nodes + 2))) as nks_index, "
-        # f" arrayMap(k-> toUInt32(ceil(ln(epsilon / k) / ln((k - 1) / k))), nks_index) as nks, "
-        # f" arrayMap(k-> toUInt32(ceil(ln(epsilon_previous / k) / ln((k - 1) / k))), nks_index) as nks_previous, "
+        # f" range(1, arrayReduce('max', array(max_links + 2, max_nodes + 2))) as nks_index, "  # noqa
+        # f" arrayMap(k-> toUInt32(ceil(ln(epsilon / k) / ln((k - 1) / k))), nks_index) as nks, "  # noqa
+        # f" arrayMap(k-> toUInt32(ceil(ln(epsilon_previous / k) / ln((k - 1) / k))), nks_index) as nks_previous, "  # noqa
         #
         # ###################### The D-Miner lite formula ####################
         #
         # f" arrayMap(t->(t.1, nks[t.2 + 1]), links_per_ttl) as nkv_Dhv, "
-        # f" arrayMap(t->(t.1, nks_previous[t.2 + 1]), links_per_ttl_previous) as nkv_Dhv_previous, "
+        # f" arrayMap(t->(t.1, nks_previous[t.2 + 1]), links_per_ttl_previous) as nkv_Dhv_previous, "  # noqa
         # # Compute the probes sent at previous round
-        # f" arrayMap(t->(t, if(t == 1, nkv_Dhv_previous[t].2, arrayReduce('max', array(nkv_Dhv_previous[t].2, nkv_Dhv_previous[t+1].2)))), ttls) as max_nkv_Dhv_previous, "
-        # f" arrayMap(t->(t, if({round_number}==1, 6, if(t == 1, nkv_Dhv[t].2, arrayReduce('max', array(nkv_Dhv[t].2, nkv_Dhv[t+1].2))))), ttls) as max_nkv_Dhv, "
+        # f" arrayMap(t->(t, if(t == 1, nkv_Dhv_previous[t].2, arrayReduce('max', array(nkv_Dhv_previous[t].2, nkv_Dhv_previous[t+1].2)))), ttls) as max_nkv_Dhv_previous, "  # noqa
+        # f" arrayMap(t->(t, if({round_number}==1, 6, if(t == 1, nkv_Dhv[t].2, arrayReduce('max', array(nkv_Dhv[t].2, nkv_Dhv[t+1].2))))), ttls) as max_nkv_Dhv, "  # noqa
         # # Take the max of each between TTL and TTL + 1
-        # f" arrayMap(t->(t, toInt32(if(t == 1, max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,  "
-        # f"                         arrayReduce('max', array(max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,"
-        # f"                         max_nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2))))), ttls) as d_miner_lite_probes, "
+        # f" arrayMap(t->(t, toInt32(if(t == 1, max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,  "  # noqa
+        # f"                         arrayReduce('max', array(max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,"  # noqa
+        # f"                         max_nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2))))), ttls) as d_miner_lite_probes, "  # noqa
         #
         #
         # ########################## * nodes * ############################
-        # f" arrayMap(t->(t, if(nodes_per_ttl[t] == 0, 0, d_miner_lite_probes[t].2)),  ttls) as d_miner_lite_probes_no_probe_star, "
-        # f" arrayMap(t->(t, if(nodes_per_ttl[t-1] == 0 and nodes_per_ttl[t] > 0 and nodes_per_ttl[t+1] == 0, nks[nodes_per_ttl[t]] - nks_previous[nodes_per_ttl_previous[t]], d_miner_lite_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "
+        # f" arrayMap(t->(t, if(nodes_per_ttl[t] == 0, 0, d_miner_lite_probes[t].2)),  ttls) as d_miner_lite_probes_no_probe_star, "  # noqa
+        # f" arrayMap(t->(t, if(nodes_per_ttl[t-1] == 0 and nodes_per_ttl[t] > 0 and nodes_per_ttl[t+1] == 0, nks[nodes_per_ttl[t]] - nks_previous[nodes_per_ttl_previous[t]], d_miner_lite_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "  # noqa
         #
         #
-        # ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################
-        # f" arrayMap(t->(t, toInt32(if(nodes_per_ttl[t-1] == 0 and nodes_per_ttl[t] > 0 and nodes_per_ttl[t+1] == 0, nks_previous[nodes_per_ttl_previous[t]], max_nkv_Dhv_previous[t].2))), ttls) as previous_max_flow_per_ttl "
+        # ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################  # noqa
+        # f" arrayMap(t->(t, toInt32(if(nodes_per_ttl[t-1] == 0 and nodes_per_ttl[t] > 0 and nodes_per_ttl[t+1] == 0, nks_previous[nodes_per_ttl_previous[t]], max_nkv_Dhv_previous[t].2))), ttls) as previous_max_flow_per_ttl "  # noqa
         #
         # " SELECT src_ip, dst_prefix, skip_prefix, "
         # # " max_nkv_Dhv,"
         # # " d_miner_paper_probes, max_nodes, "
         # " d_miner_lite_probes_no_probe_star, previous_max_flow_per_ttl, "
         # # " d_miner_paper_probes, th, "
-        # # " epsilon, epsilon_previous, nodes_per_ttl, nodes_per_ttl_previous, links_per_ttl, links_per_ttl_previous, "
+        # # " epsilon, epsilon_previous, nodes_per_ttl, nodes_per_ttl_previous, links_per_ttl, links_per_ttl_previous, "  # noqa
         # # " nodes_active, nodes_active_previous, n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "  # noqa
         # " min_src_port, min_dst_port, max_dst_port "
         # "FROM "
@@ -191,81 +191,72 @@ def build_next_round_query(
         "WITH "
         # "groupUniqArray(src_port, ttl)) as src_port_ttl,"
         # "groupUniqArray((dst_port, ttl)) as dst_port_ttl,"
-        "groupUniqArray((dst_ip, src_port, dst_port, reply_ip, ttl, round)) as replies_s, "
+        "groupUniqArray((dst_ip, src_port, dst_port, reply_ip, ttl, round)) as replies_s, "  # noqa
         "arraySort(x->(x.1, x.2, x.3, x.5), replies_s) as sorted_replies_s, "
         "arrayPopFront(sorted_replies_s) as replies_d, "
         " arrayConcat(replies_d, [(0,0,0,0,0,0)]) as replies_d_sized, "
-        
         f" arrayMap(r->(r.4, r.5), replies_s) as replies_no_round, "
-        f" arrayMap(r->(r.4, r.5), arrayFilter(x->x.3 < {round_number}, replies_s)) as replies_no_round_previous, "
-        
+        f" arrayMap(r->(r.4, r.5), arrayFilter(x->x.3 < {round_number}, replies_s)) as replies_no_round_previous, "  # noqa
         " arrayZip(sorted_replies_s, replies_d_sized) as potential_links, "
         " arrayFilter(x->x.1.5 + 1 == x.2.5, potential_links) as links, "
-        f"arrayFilter(x->x.1.6 < {round_number} and x.2.6 < {round_number}, links) as links_previous, "
-        " arrayDistinct(arrayMap(x->((x.1.4, x.1.5), (x.2.4, x.2.5)), links)) as links_no_round, "
-        " arrayDistinct(arrayMap(x->((x.1.4, x.1.5), (x.2.4, x.2.5)), links_previous)) as links_no_round_previous, "
+        f"arrayFilter(x->x.1.6 < {round_number} and x.2.6 < {round_number}, links) as links_previous, "  # noqa
+        " arrayDistinct(arrayMap(x->((x.1.4, x.1.5), (x.2.4, x.2.5)), links)) as links_no_round, "  # noqa
+        " arrayDistinct(arrayMap(x->((x.1.4, x.1.5), (x.2.4, x.2.5)), links_previous)) as links_no_round_previous, "  # noqa
         # Gives n_links_per_ttl
         f" range(1, 31) as ttls, "
-
         # Compute links between TTL t and t + 1
-        f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_no_round))), ttls) as links_per_ttl, "
+        f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_no_round))), ttls) as links_per_ttl, "  # noqa
         f" arrayReduce('max', arrayMap(t->t.2, links_per_ttl)) as max_links, "
-        f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_no_round_previous))), ttls) as links_per_ttl_previous, "
-        f" arrayReduce('max', arrayMap(t->t.2, links_per_ttl_previous)) as max_links_previous, "
-        
-        
+        f" arrayMap(t->(t, arrayUniq(arrayFilter(x->x.1.2==t, links_no_round_previous))), ttls) as links_per_ttl_previous, "  # noqa
+        f" arrayReduce('max', arrayMap(t->t.2, links_per_ttl_previous)) as max_links_previous, "  # noqa
         # ########################## Nodes per TTL ######################
         #
-        f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round)), ttls) as nodes_per_ttl, "
-        f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round_previous)), ttls) as nodes_per_ttl_previous, "
+        f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round)), ttls) as nodes_per_ttl, "  # noqa
+        f" arrayMap(t->arrayUniq(arrayFilter(x->x.2 == t, replies_no_round_previous)), ttls) as nodes_per_ttl_previous, "  # noqa
         f" arrayReduce('max', nodes_per_ttl) as max_nodes, "
         #
         # # Fast fail
         f"if(equals(links_per_ttl, links_per_ttl_previous), 1, 0)  as skip_prefix, "
-        # ########################## Epsilon is based on number of links ####################
+        # ########################## Epsilon is based on number of links ####################  # noqa
         f" 0.05 as target_epsilon, "
         # # f" 0.05 as epsilon, "
         # # f" 0.05 as epsilon_previous, "
-        f" if(max_links == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links)) as epsilon, "
-        f" if(max_links_previous == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links_previous)) as epsilon_previous, "
+        f" if(max_links == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links)) as epsilon, "  # noqa
+        f" if(max_links_previous == 0, 0.05, 1 - exp(log(1 - target_epsilon) / max_links_previous)) as epsilon_previous, "  # noqa
         #
         #
         # ###################### Nks ####################
-        f" range(1, arrayReduce('max', array(max_links + 2, max_nodes + 2))) as nks_index, "
-        f" arrayMap(k-> toUInt32(ceil(ln(epsilon / k) / ln((k - 1) / k))), nks_index) as nks, "
-        f" arrayMap(k-> toUInt32(ceil(ln(epsilon_previous / k) / ln((k - 1) / k))), nks_index) as nks_previous, "
+        f" range(1, arrayReduce('max', array(max_links + 2, max_nodes + 2))) as nks_index, "  # noqa
+        f" arrayMap(k-> toUInt32(ceil(ln(epsilon / k) / ln((k - 1) / k))), nks_index) as nks, "  # noqa
+        f" arrayMap(k-> toUInt32(ceil(ln(epsilon_previous / k) / ln((k - 1) / k))), nks_index) as nks_previous, "  # noqa
         #
         # ###################### The D-Miner lite formula ####################
         # Number of probes to send, the two followinng lines are correct
         f" arrayMap(t->(t.1, nks[t.2 + 1]), links_per_ttl) as nkv_Dhv, "
-        f" arrayMap(t->(t.1, nks_previous[t.2 + 1]), links_per_ttl_previous) as nkv_Dhv_previous, "
+        f" arrayMap(t->(t.1, nks_previous[t.2 + 1]), links_per_ttl_previous) as nkv_Dhv_previous, "  # noqa
         # # Compute the probes sent at previous round
-        f" arrayMap(t->(t, if({round_number} == 1, 6, if(t == 1, nkv_Dhv_previous[t].2, arrayReduce('max', array(nkv_Dhv_previous[t].2, nkv_Dhv_previous[t-1].2))))), ttls) as max_nkv_Dhv_previous, "
-        f" arrayMap(t->(t, toInt32(if(t == 1, nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2, arrayReduce('max', array(nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2, nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2))))), ttls) as d_miner_lite_probes, "
+        f" arrayMap(t->(t, if({round_number} == 1, 6, if(t == 1, nkv_Dhv_previous[t].2, arrayReduce('max', array(nkv_Dhv_previous[t].2, nkv_Dhv_previous[t-1].2))))), ttls) as max_nkv_Dhv_previous, "  # noqa
+        f" arrayMap(t->(t, toInt32(if(t == 1, nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2, arrayReduce('max', array(nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2, nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2))))), ttls) as d_miner_lite_probes, "  # noqa
         # Take the max of each between TTL and TTL - 1
-        # f" arrayMap(t->(t, toInt32(if(t == 1, max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,  "
-        # f"                         arrayReduce('max', array(max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,"
-        # f"                         max_nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2))))), ttls) as d_miner_lite_probes, "
-
-
-        ########################## * nodes * ############################
-        f" arrayMap(t->(t, if(nodes_per_ttl[t] == 0, 0, d_miner_lite_probes[t].2)),  ttls) as d_miner_lite_probes_no_probe_star, "
+        # f" arrayMap(t->(t, toInt32(if(t == 1, max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,  "  # noqa
+        # f"                         arrayReduce('max', array(max_nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2,"  # noqa
+        # f"                         max_nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2))))), ttls) as d_miner_lite_probes, "  # noqa
+        # ########################## * nodes * ############################
+        f" arrayMap(t->(t, if(nodes_per_ttl[t] == 0, 0, d_miner_lite_probes[t].2)),  ttls) as d_miner_lite_probes_no_probe_star, "  # noqa
         f" arraySlice(ttls, 2) as sliced_ttls, "
-        
-        f"arrayMap(t -> (t, if(((nodes_per_ttl[ttls[t - 1]]) = 0) AND ((nodes_per_ttl[ttls[t]]) > 0) AND ((nodes_per_ttl[ttls[t + 1]]) = 0), nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], 0)), sliced_ttls) AS d_miner_paper_probes_w_star_nodes_star,"
-        f"arrayPushFront(d_miner_paper_probes_w_star_nodes_star, (1, 0)) AS d_miner_paper_probes_w_star_nodes_star_new,"
-        f"arrayMap(t->(t, arrayReduce('max', array(d_miner_paper_probes_w_star_nodes_star_new[t].2, d_miner_lite_probes_no_probe_star[t].2))), ttls) as final_probes, "
-        
-        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], d_miner_lite_probes_no_probe_star[ttls[t]].2)), sliced_ttls) as d_miner_paper_probes_w_star_nodes_star,"
-        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, 1, d_miner_lite_probes_no_probe_star[ttls[t]].2)), sliced_ttls) as d_miner_paper_probes_w_star_nodes_star "
-        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], d_miner_lite_probes_no_probe_star[ttls[t]].2)), arraySlice(ttls, 2)) as d_miner_paper_probes_w_star_nodes_star, "
-        # f" arrayMap(t->(t, if(1 == 1, 0, d_miner_lite_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "
-        # f" arrayMap(t->(t, d_miner_lite_probes_no_probe_star[t].2), ttls) as d_miner_paper_probes_w_star_nodes_star, "
+        f"arrayMap(t -> (t, if(((nodes_per_ttl[ttls[t - 1]]) = 0) AND ((nodes_per_ttl[ttls[t]]) > 0) AND ((nodes_per_ttl[ttls[t + 1]]) = 0), nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], 0)), sliced_ttls) AS d_miner_paper_probes_w_star_nodes_star,"  # noqa
+        f"arrayPushFront(d_miner_paper_probes_w_star_nodes_star, (1, 0)) AS d_miner_paper_probes_w_star_nodes_star_new,"  # noqa
+        f"arrayMap(t->(t, arrayReduce('max', array(d_miner_paper_probes_w_star_nodes_star_new[t].2, d_miner_lite_probes_no_probe_star[t].2))), ttls) as final_probes, "  # noqa
+        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], d_miner_lite_probes_no_probe_star[ttls[t]].2)), sliced_ttls) as d_miner_paper_probes_w_star_nodes_star,"  # noqa
+        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, 1, d_miner_lite_probes_no_probe_star[ttls[t]].2)), sliced_ttls) as d_miner_paper_probes_w_star_nodes_star "  # noqa
+        # f" arrayMap(t->(t, if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], d_miner_lite_probes_no_probe_star[ttls[t]].2)), arraySlice(ttls, 2)) as d_miner_paper_probes_w_star_nodes_star, "  # noqa
+        # f" arrayMap(t->(t, if(1 == 1, 0, d_miner_lite_probes_no_probe_star[t].2)), ttls) as d_miner_paper_probes_w_star_nodes_star, "  # noqa
+        # f" arrayMap(t->(t, d_miner_lite_probes_no_probe_star[t].2), ttls) as d_miner_paper_probes_w_star_nodes_star, "  # noqa
         #
         #
-        # ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################
-        f" arrayMap(t->(t, toInt32(if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], max_nkv_Dhv_previous[ttls[t]].2))), sliced_ttls) as previous_max_flow_per_ttl, "
-        f" arrayPushFront(previous_max_flow_per_ttl, max_nkv_Dhv_previous[ttls[1]]) as previous_max_flow_per_ttl_final "        
+        # ######################### Compute max flow for previous round, it's th w/ the * nodes * heuristic ####################  # noqa
+        f" arrayMap(t->(t, toInt32(if(nodes_per_ttl[ttls[t-1]] == 0 and nodes_per_ttl[ttls[t]] > 0 and nodes_per_ttl[ttls[t+1]] == 0, nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], max_nkv_Dhv_previous[ttls[t]].2))), sliced_ttls) as previous_max_flow_per_ttl, "  # noqa
+        f" arrayPushFront(previous_max_flow_per_ttl, max_nkv_Dhv_previous[ttls[1]]) as previous_max_flow_per_ttl_final "  # noqa
         # "max(round) as max_round "
         " SELECT src_ip, dst_prefix, skip_prefix, "
         # " max_nkv_Dhv,"
@@ -278,7 +269,7 @@ def build_next_round_query(
         " previous_max_flow_per_ttl_final, "
         # " previous_max_flow_per_ttl, "
         # " d_miner_paper_probes, th, "
-        # " epsilon, epsilon_previous, nodes_per_ttl, nodes_per_ttl_previous, links_per_ttl, links_per_ttl_previous, "
+        # " epsilon, epsilon_previous, nodes_per_ttl, nodes_per_ttl_previous, links_per_ttl, links_per_ttl_previous, "  # noqa
         # " nodes_active, nodes_active_previous, n_probes_per_node, n_probes_per_node_previous, n_links_per_sources, n_links_per_sources_previous, "  # noqa
         " min(src_port), min(dst_port), max(dst_port) "
         # "SELECT  "
@@ -343,7 +334,7 @@ def build_next_round_query(
         # "GROUP BY  src_ip, dst_prefix "
         # " ORDER BY dst_prefix ASC"
     )
-    print(query)
+    # print(query)
     return query
 
 
@@ -377,8 +368,9 @@ def query_next_round_recurse(
     sup_born_division = 1
     temporary_sup_born = sup_born
     split_lines = batch_limit + 1
-    import time
-    start = time.time()
+    # import time
+
+    # start = time.time()
     while split_lines > batch_limit:
         split_lines = n_split_lines(
             client, table_name, source_ip, round_number, inf_born, temporary_sup_born
@@ -433,9 +425,9 @@ def query_next_round_recurse(
             ):
                 yield row
 
+    # elapsed = time.time() - start
+    # print(f"Split between {inf_born} and {sup_born} took {elapsed} seconds.")
 
-    elapsed = time.time() - start
-    print(f"Split between {inf_born} and {sup_born} took {elapsed} seconds.")
 
 def query_next_round(database_host, table_name, source_ip, round_number):
     """Generator of next round database query."""
@@ -443,7 +435,7 @@ def query_next_round(database_host, table_name, source_ip, round_number):
     snapshot = 1  # NOTE Not currently used
     ipv4_split = 16
     ttl_column_name = "ttl_from_udp_length"
-    batch_limit = 25_000_000
+    batch_limit = 50_000_000
 
     for j in range(0, ipv4_split):
         inf_born = int(j * ((2 ** 32 - 1) / ipv4_split))

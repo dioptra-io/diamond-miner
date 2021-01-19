@@ -1,7 +1,5 @@
-import math
-
-from diamond_miner_core.mda import stopping_point
-
+# import math
+# from diamond_miner_core.mda import stopping_point
 # from bisect import bisect_left
 
 # NOTE: max_ttl = 30 in probing_options_t.cpp !?
@@ -148,19 +146,18 @@ def flush_format(dst_ip, src_port, dst_port, ttl):
     return [f"{dst_ip:010}", f"{src_port:05}", f"{dst_port:05}", f"{ttl:03}"]
 
 
-
 def flush_traceroute(
-            d_miner_paper_probes_w_star_nodes_star,
-            previous_max_flow_per_ttl,
-            dst_prefix,
-            min_dst_port,
-            max_dst_port,
-            min_src_port,
-            measurement_parameters,
-            mapper,
-            writer,
-            ttl_skipped,
-        ):
+    d_miner_paper_probes_w_star_nodes_star,
+    previous_max_flow_per_ttl,
+    dst_prefix,
+    min_dst_port,
+    max_dst_port,
+    min_src_port,
+    measurement_parameters,
+    mapper,
+    writer,
+    ttl_skipped,
+):
 
     probes_per_ttl = dict(d_miner_paper_probes_w_star_nodes_star)
     previous_max_flow_per_ttl = dict(previous_max_flow_per_ttl)
