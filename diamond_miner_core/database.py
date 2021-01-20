@@ -442,8 +442,7 @@ def query_next_round(database_host, table_name, source_ip, round_number):
         sup_born = int((j + 1) * ((2 ** 32 - 1) / ipv4_split))
 
         # TODO Excluded prefixes ?
-        if j != 3:
-            continue
+
         if sup_born > 3758096384:
             # exclude prefixes >= 224.0.0.0 (multicast)
             break
