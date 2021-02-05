@@ -25,6 +25,8 @@ def rib_url(date):
 if __name__ == "__main__":
     # Download last hour's RIB.
     date = datetime.now(utc) - timedelta(hours=1)
+    if date.hour % 2 == 1:
+        date -= timedelta(hours=1)
     rib = Path(date.strftime("rib-%Y%m%d-%H00")).with_suffix(".bz2")
     if not rib.exists():
         download(rib_url(date), rib)
