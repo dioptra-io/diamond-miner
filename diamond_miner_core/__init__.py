@@ -5,7 +5,7 @@ from diamond_miner_core.flow import (
     RandomFlowMapper,
     ReverseByteOrderFlowMapper,
     SequentialFlowMapper,
-    HeidemannFlowMapper,
+    CIDRFlowMapper,
 )
 from diamond_miner_core.processors import next_max_ttl, next_round
 
@@ -27,7 +27,7 @@ def compute_next_round(
     table_name: str,
     measurement_parameters: MeasurementParameters,
     output_file_path: str,
-    mapper=HeidemannFlowMapper(),
+    mapper=CIDRFlowMapper(),
     use_max_ttl_feature=False,
     skip_unpopulated_ttl=False,
 ):
@@ -51,6 +51,6 @@ __all__ = [
     "SequentialFlowMapper",
     "ReverseByteOrderFlowMapper",
     "RandomFlowMapper",
-    "HeidemannFlowMapper",
+    "CIDRFlowMapper",
 ]
 __version__ = "0.1.0"

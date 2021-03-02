@@ -1,6 +1,6 @@
 import csv
 import ipaddress
-from diamond_miner_core.flow import HeidemannFlowMapper, SequentialFlowMapper
+from diamond_miner_core.flow import CIDRFlowMapper, SequentialFlowMapper
 from diamond_miner_core.processors import next_round
 from clickhouse_driver import Client
 
@@ -160,7 +160,7 @@ def test_iris_data():
             # "iris.results__51aec6e6_030e_4a7d_b52f_54c58c3ef6f6__2d339af6_6e30_4393_8436_78a2080bc151",  # noqa
             f"{db}.{table}",
             mp,
-            HeidemannFlowMapper(),
+            CIDRFlowMapper(),
             writer,
             skip_unpopulated_ttl=False
         )

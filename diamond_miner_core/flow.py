@@ -62,7 +62,7 @@ class ReverseByteOrderFlowMapper(AbstractFlowMapper):
         return (254, flow_id - n + 1)
 
 
-class HeidemannFlowMapper(object):
+class CIDRFlowMapper(object):
     """Host distribution from Heidemann paper."""
 
     def __init__(self, step=32):
