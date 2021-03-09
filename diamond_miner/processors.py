@@ -1,9 +1,9 @@
 import ipaddress
 
 from diamond_miner.database import (
+    query_discoveries_per_ttl,
     query_max_ttl,
     query_next_round,
-    query_discoveries_per_ttl,
 )
 from diamond_miner.flush import flush_traceroute
 
@@ -103,14 +103,14 @@ def next_round(
                 ttl_skipped.add(ttl)
 
     for (
-            src_ip,
-            dst_prefix,
-            skip_prefix,
-            d_miner_paper_probes_w_star_nodes_star,
-            previous_max_flow_per_ttl,
-            min_src_port,
-            min_dst_port,
-            max_dst_port
+        src_ip,
+        dst_prefix,
+        skip_prefix,
+        d_miner_paper_probes_w_star_nodes_star,
+        previous_max_flow_per_ttl,
+        min_src_port,
+        min_dst_port,
+        max_dst_port,
     ) in query_next_round(
         database_host,
         table_name,

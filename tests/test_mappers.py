@@ -20,7 +20,8 @@ def _test_mapper(mapper, prefix_len, **kwargs):
         offsets.append((addr_offset, port_offset))
 
     # We currently do not use the port number (due to NAT, etc.) to compute the flow ID,
-    # so we can't test mapper.flow_id(...) when the flow ID is larger than the number of addresses.
+    # so we can't test mapper.flow_id(...) when the flow ID is larger
+    # than the number of addresses.
     for flow_id in range(n_addrs, n_addrs + 100):
         addr_offset, port_offset = mapper.offset(
             flow_id, prefix_len=prefix_len, **kwargs
