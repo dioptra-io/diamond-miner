@@ -25,4 +25,6 @@ jobs:
           poetry run flake8 diamond_miner --max-line-length=88
       - name: Tests
         run: |
-          poetry run pytest tests
+          poetry run pytest --cov-report xml --cov=diamond_miner tests
+      - name: Upload coverage
+        run: bash <(curl -s https://codecov.io/bash)
