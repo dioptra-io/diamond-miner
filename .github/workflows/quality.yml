@@ -1,4 +1,4 @@
-name: Python Code Quality
+name: Quality
 
 on: [push]
 
