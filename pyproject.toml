@@ -20,6 +20,9 @@ pytest = "^6.2"
 pytest-asyncio = "^0.14.0"
 pytest-cov = "^2.11.1"
 
+[tool.pytest.ini_options]
+addopts = "--cov=diamond_miner --cov-report term --doctest-ignore-import-errors --doctest-modules"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

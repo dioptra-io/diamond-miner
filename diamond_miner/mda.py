@@ -13,6 +13,19 @@ def stopping_point(k, eps=0.05):
 
     [2] "Collecter un nombre inconnu de coupons"
     https://hal.inria.fr/hal-01787252/document
+
+    >>> stopping_point(1, 0.05)
+    0
+    >>> stopping_point(2, 0.05)
+    6
+    >>> stopping_point(3, 0.05)
+    11
+    >>> stopping_point(11, 0.05)
+    57
+    >>> stopping_point(101, 0.05)
+    765
+
+    NOTE: There is a typo in the D-Miner paper: n(101) = 765, not 757.
     """
     assert (k >= 1) and (0 <= eps <= 1)
     if k == 1:

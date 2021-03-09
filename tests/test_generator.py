@@ -2,8 +2,8 @@ from ipaddress import ip_address
 
 import pytest
 
-from diamond_miner.flow import SequentialFlowMapper
 from diamond_miner.generator import probe_generator
+from diamond_miner.mappers import SequentialFlowMapper
 
 
 @pytest.mark.asyncio
