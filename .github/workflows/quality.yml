@@ -22,7 +22,7 @@ jobs:
           poetry install
       - name: Lint
         run: |
-          poetry run flake8 diamond_miner_core --max-line-length=88
+          poetry run flake8 diamond_miner --max-line-length=88
       - name: Tests
         run: |
           poetry run pytest tests

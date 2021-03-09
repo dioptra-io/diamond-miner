@@ -1,11 +1,11 @@
 import ipaddress
 
-from diamond_miner_core.database import (
+from diamond_miner.database import (
     query_max_ttl,
     query_next_round,
     query_discoveries_per_ttl,
 )
-from diamond_miner_core.flush import flush_traceroute
+from diamond_miner.flush import flush_traceroute
 
 
 def next_max_ttl(database_host: str, table_name: str, measurement_parameters, writer):

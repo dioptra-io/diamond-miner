@@ -1,5 +1,5 @@
 # import math
-# from diamond_miner_core.mda import stopping_point
+# from diamond_miner.mda import stopping_point
 # from bisect import bisect_left
 
 # NOTE: max_ttl = 30 in probing_options_t.cpp !?

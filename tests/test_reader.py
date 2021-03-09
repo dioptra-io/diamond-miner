@@ -1,4 +1,4 @@
-from diamond_miner_core import __version__
+from diamond_miner import __version__
 
 
 def test_version():

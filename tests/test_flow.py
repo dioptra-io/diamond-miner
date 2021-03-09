@@ -1,4 +1,4 @@
-from diamond_miner_core.flow import (
+from diamond_miner.flow import (
     CIDRFlowMapper,
     RandomFlowMapper,
     ReverseByteOrderFlowMapper,

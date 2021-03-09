@@ -4,7 +4,7 @@ import csv
 import sys
 from ipaddress import ip_address
 
-from diamond_miner_core.database import query_next_round
+from diamond_miner.database import query_next_round
 
 
 def sanitize(uuid):

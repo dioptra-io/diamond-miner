@@ -2,8 +2,8 @@ from ipaddress import ip_address
 
 import pytest
 
-from diamond_miner_core.flow import SequentialFlowMapper
-from diamond_miner_core.rounds import (
+from diamond_miner.flow import SequentialFlowMapper
+from diamond_miner.rounds import (
     exhaustive_round,
     original_exhaustive_round,
     probe_to_csv,

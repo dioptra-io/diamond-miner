@@ -1,4 +1,4 @@
-from diamond_miner_core.flush import flush_format
+from diamond_miner.flush import flush_format
 
 
 def test_flush_format():
