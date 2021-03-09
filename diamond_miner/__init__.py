@@ -1,11 +1,10 @@
-# import csv
 from collections import namedtuple
 
 from diamond_miner.flow import (
+    IntervalFlowMapper,
     RandomFlowMapper,
-    ReverseByteOrderFlowMapper,
+    ReverseByteFlowMapper,
     SequentialFlowMapper,
-    CIDRFlowMapper,
 )
 from diamond_miner.processors import next_max_ttl, next_round
 
@@ -27,7 +26,7 @@ def compute_next_round(
     table_name: str,
     measurement_parameters: MeasurementParameters,
     output_file_path: str,
-    mapper=CIDRFlowMapper(),
+    mapper=IntervalFlowMapper(),
     use_max_ttl_feature=False,
     skip_unpopulated_ttl=False,
 ):
@@ -48,9 +47,10 @@ def compute_next_round(
 __all__ = [
     "compute_next_round",
     "MeasurementParameters",
-    "SequentialFlowMapper",
-    "ReverseByteOrderFlowMapper",
+    "IntervalFlowMapper",
     "RandomFlowMapper",
-    "CIDRFlowMapper",
+    "ReverseByteFlowMapper",
+    "SequentialFlowMapper",
 ]
+
 __version__ = "0.1.0"

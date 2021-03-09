@@ -1,100 +1,116 @@
-"""Flow mapper operations."""
-
+"""
+Functions for mapping flow IDs to addresses and ports.
+We currently map IPs to (0, 254) and by convention we make the flow ID start at 0.
+"""
 import random
-from abc import ABC, abstractmethod
-
-# NOTE: Currently we map IPs to (0, 254).
-# NOTE: By convention we make the flow ID starts at 0.
 
 
-class AbstractFlowMapper(ABC):
-    def flow_id(self, addr_offset, *args, **kwargs):
-        """
-        Retrieve the flow_id from the tuple (addr_offset, port_offset).
-        """
-        assert addr_offset >= 0
-        return self._flow_id(addr_offset, *args, **kwargs)
+class SequentialFlowMapper:
+    """
+    Maps flow 0 to address 0, flow 1 to address 1, and so on until we have done
+    the whole prefix. It then increases the port number in the same manner.
+    >>> mapper = SequentialFlowMapper()
+    >>> mapper.offset(10, prefix_len=24)
+    (10, 0)
+    >>> mapper.offset(256, prefix_len=24)
+    (255, 1)
+    """
 
-    def offset(self, flow_id, prefix_size, *args, **kwargs):
-        """
-        Given a `flow_id` and a `prefix_size`,
-        returns a tuple (addr_offset, port_offset).
-        """
-        assert flow_id >= 0
-        assert prefix_size >= 0
-        return self._offset(flow_id, prefix_size, *args, **kwargs)
-
-    @abstractmethod
-    def _flow_id(self, addr_offset, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def _offset(self, flow_id, prefix_size, *args, **kwargs):
-        pass
-
-
-class SequentialFlowMapper(AbstractFlowMapper):
-    """Sequential flow mapper (legacy)."""
-
-    def _flow_id(self, addr_offset, *args, **kwargs):
+    @staticmethod
+    def flow_id(addr_offset, *args, **kwargs):
         return addr_offset
 
-    def _offset(self, flow_id, prefix_size, *args, **kwargs):
-        n = 2 ** (32 - prefix_size)
+    @staticmethod
+    def offset(flow_id, prefix_len, *args, **kwargs):
+        n = 2 ** (32 - prefix_len)
         if flow_id < n:
-            return (flow_id, 0)
-        return (254, flow_id - n + 1)
+            return flow_id, 0
+        return n - 1, flow_id - n + 1
 
 
-class ReverseByteOrderFlowMapper(AbstractFlowMapper):
-    """Reverse byte order flow mapper."""
-
-    def _reverse_bytes(self, i):
-        return int("{:08b}".format(i)[::-1], 2)
-
-    def _flow_id(self, addr_offset, *args, **kwargs):
-        return self._reverse_bytes(addr_offset)
-
-    def _offset(self, flow_id, prefix_size, *args, **kwargs):
-        n = 2 ** (32 - prefix_size)
-        if flow_id < n:
-            return (self._reverse_bytes(flow_id), 0)
-        return (254, flow_id - n + 1)
-
-
-class CIDRFlowMapper(object):
-    """Host distribution from Heidemann paper."""
+class IntervalFlowMapper:
+    """
+    Similar to the `SequentialFlowMapper` but with an increment >= 1.
+    This allows to target addresses .1, .33, .65, ... in priority,
+    which according to a paper by J. Heidemann are more likely to respond to probes.
+    >>> mapper = IntervalFlowMapper(step=32)
+    >>> mapper.offset(0, prefix_len=24)
+    (1, 0)
+    >>> mapper.offset(1, prefix_len=24)
+    (33, 0)
+    >>> mapper.offset(8, prefix_len=24)
+    (2, 0)
+    """
 
     def __init__(self, step=32):
-        assert step % 2 == 0, "`step` must be pair"
-        # Flow 0: 0 * step + 1 [255] => 0 + 1   [255] => 1
-        # Flow 1: 1 * step + 1 [255] => 32 + 1  [255] => 33
-        # ...
-        # Flow 8: 8 * step + 1 [255] => 256 + 1 [255] => 2
-        self.flow_to_offset = [(i * step + 1) % 255 for i in range(255)]
+        self.flow_to_offset = [1]
+        i = 1
+        for flow_id in range(254):
+            offset = self.flow_to_offset[-1] + step
+            if offset >= 256:
+                i += 1
+                offset = i
+            self.flow_to_offset.append(offset)
+        self.flow_to_offset.append(0)
         self.offset_to_flow = {
             offset: flow for flow, offset in enumerate(self.flow_to_offset)
         }
 
     def flow_id(self, addr_offset, *args, **kwargs):
-        # flow_to_offset maps [0,254] to [0,254], however we could theoretically
-        # receive an (erroneous) reply from .255, in this case we return an
-        # aribtraty flow id.
-        if addr_offset <= 254:
-            return self.offset_to_flow[addr_offset]
-        return 255
+        return self.offset_to_flow[addr_offset]
 
-    def offset(self, flow_id, prefix_size, *args, **kwargs):
-        # assert prefix_size == 24, "`prefix_size` != 24 are not supported"
-        if flow_id <= 254:
-            return (self.flow_to_offset[flow_id], 0)
-        return (254, flow_id - 254)
+    def offset(self, flow_id, prefix_len, *args, **kwargs):
+        assert prefix_len == 24, "`prefix_len` != 24 are not supported"
+        if flow_id < 256:
+            return self.flow_to_offset[flow_id], 0
+        return 255, flow_id - 255
 
 
-class RandomFlowMapper(AbstractFlowMapper):
-    """Random flow mapper."""
+class ReverseByteFlowMapper:
+    """
+    Maps flow n to address reverse(n) until we have done the whole prefix.
+    It then increases the port number sequentially.
+    >>> mapper = ReverseByteFlowMapper()
+    >>> mapper.offset(0, prefix_len=24)
+    (0, 0)
+    >>> mapper.offset(1, prefix_len=24)
+    (128, 0)
+    >>> mapper.offset(2, prefix_len=24)
+    (64, 0)
+    >>> mapper.offset(3, prefix_len=24)
+    (192, 0)
+    """
 
-    def __init__(self, master_seed, n_array=1000):
+    @classmethod
+    def flow_id(cls, addr_offset, *args, **kwargs):
+        return cls.reverse_byte(addr_offset)
+
+    @classmethod
+    def offset(cls, flow_id, prefix_len, *args, **kwargs):
+        assert prefix_len == 24, "`prefix_len` != 24 are not supported"
+        n = 2 ** (32 - prefix_len)
+        if flow_id < n:
+            return cls.reverse_byte(flow_id), 0
+        return n - 1, flow_id - n + 1
+
+    @staticmethod
+    def reverse_byte(i):
+        return int("{:08b}".format(i)[::-1], 2)
+
+
+class RandomFlowMapper:
+    """
+    Similar to the `SequentialFlowMapper` but with a random mapping
+    between flow IDs and addresses.
+    The mapping is randomized by prefix.
+    >>> mapper = RandomFlowMapper(master_seed=42)
+    >>> mapper.offset(0, prefix_len=24, prefix=100)
+    (1, 0)
+    >>> mapper.offset(0, prefix_len=24, prefix=200)
+    (133, 0)
+    """
+
+    def __init__(self, master_seed):
         self.master_seed = master_seed
         self.flow_arrays = []
         random.seed(master_seed)
@@ -103,15 +119,15 @@ class RandomFlowMapper(AbstractFlowMapper):
             random.shuffle(flow_array)
             self.flow_arrays.append(flow_array)
 
-    def _flow_id(self, addr_offset, prefix):
+    def flow_id(self, addr_offset, prefix, *args, **kwargs):
         flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
         return flow_array.index(addr_offset)
 
-    def _offset(self, flow_id, prefix_size, prefix):
-        assert prefix_size == 24, "TODO: Handle other sizes"
-        n = 2 ** (32 - prefix_size)
+    def offset(self, flow_id, prefix_len, prefix, *args, **kwargs):
+        assert prefix_len == 24, "`prefix_len` != 24 are not supported"
+        n = 2 ** (32 - prefix_len)
         if flow_id < n:
             flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
-            return (flow_array[flow_id], 0)
+            return flow_array[flow_id], 0
         else:
-            return (254, flow_id - n + 1)
+            return 255, flow_id - n + 1
