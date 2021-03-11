@@ -16,3 +16,13 @@
   publisher = {{USENIX} Association},
   month = feb,
 }
+```
+
+## Dependencies
+
+This software is released under the MIT license, in accordance with the license of its dependencies.
+
+Name                                             | License                                                               | Usage
+-------------------------------------------------|-----------------------------------------------------------------------|------
+[clickhouse-driver](https://github.com/mymarilyn/clickhouse-driver) | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
+[pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT) | Generating random permutations
