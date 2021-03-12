@@ -1,8 +1,27 @@
-from ipaddress import ip_network
+from ipaddress import IPv4Network, ip_network
 from typing import Iterable, Optional
 
 from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.utils import permutation, subnets
+
+
+def count_prefixes(prefixes: Iterable[str], prefix_len: int = 24) -> int:
+    """
+    >>> count_prefixes(["8.8.4.0/24", "8.8.8.0/24"])
+    2
+    >>> count_prefixes(["0.0.0.0/22"])
+    4
+    >>> count_prefixes(["0.0.0.0/0"])
+    16777216
+    """
+    count = 0
+    for prefix in prefixes:
+        network = ip_network(prefix)
+        assert isinstance(network, IPv4Network)
+        if network.prefixlen > prefix_len:
+            raise ValueError(f"prefix length must be <= {prefix_len}")
+        count += 2 ** (prefix_len - network.prefixlen)
+    return count
 
 
 async def probe_generator(
