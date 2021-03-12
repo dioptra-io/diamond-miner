@@ -1,7 +1,7 @@
 from ipaddress import ip_network
 from typing import Iterable, Optional
 
-from diamond_miner import SequentialFlowMapper
+from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.utils import permutation, subnets
 
 
