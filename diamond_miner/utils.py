@@ -32,7 +32,7 @@ def permutation(
     Iterate over a random permutation of the space defined by `ranges`.
     >>> it = permutation([(2, 4), (21, 23)], seed=42)
     >>> list(it)
-    [[3, 21], [2, 21], [2, 22], [3, 22]]
+    [[3, 22], [2, 22], [3, 21], [2, 21]]
     """
     seed = seed or randint(0, 2 ** 64 - 1)
     dims = [(stop - start) for start, stop in ranges]
