@@ -35,3 +35,7 @@ async def probe_generator(
             flow_id=flow_id, prefix=prefix, prefix_len=prefix_len
         )
         yield prefix + addr_offset, src_port + port_offset, dst_port, ttl
+
+
+def probe_to_csv(dst_addr, src_port, dst_port, ttl):
+    return f"{dst_addr},{src_port},{dst_port},{ttl}"
