@@ -42,7 +42,7 @@ async def probe_generator(
     """
     prefixes_ = []
     for prefix in prefixes:
-        network = ip_network(prefix)
+        network = ip_network(prefix.strip())
         prefixes_.extend(subnets(network, prefix_len))
 
     ranges = [(0, len(prefixes_)), (min_ttl, max_ttl + 1), (min_flow, max_flow + 1)]

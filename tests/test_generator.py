@@ -8,7 +8,7 @@ from diamond_miner.mappers import SequentialFlowMapper
 
 @pytest.mark.asyncio
 async def test_probe_generator_32():
-    prefixes = ["8.8.8.8/32"]
+    prefixes = ["8.8.8.8/32\n"]
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len=32,
