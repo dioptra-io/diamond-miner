@@ -1,4 +1,15 @@
 [[package]]
+name = "aioch"
+version = "0.0.2"
+description = "Library for accessing a ClickHouse database over native interface from the asyncio"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+clickhouse-driver = ">=0.1.2"
+
+[[package]]
 name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -305,9 +316,12 @@ pytz = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "afca5059d7790953e68f306c84a3261f1fca95a8bbe3d924ae7e0bdda30e8446"
+content-hash = "7194a972d9e0bdc3e1847ee0dbb59dd93997cde4225ee971f735cff3e2e1a1a3"
 
 [metadata.files]
+aioch = [
+    {file = "aioch-0.0.2.tar.gz", hash = "sha256:1e36c042d54c2386b5a36bf9a0c8a8e68da10ce51209a3c0854eb79fd36e0c03"},
+]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},

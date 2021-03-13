@@ -10,6 +10,8 @@ authors = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
+aioch = "^0.0.2"
+# TODO: Replace with aioch
 clickhouse-driver = "^0.2.0"
 pygfc = "^0.1.1"
 

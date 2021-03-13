@@ -15,6 +15,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Start ClickHouse
+        run: |
+          docker run -d -p 8123:8213 -p 9000:9000 yandex/clickhouse-server
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
