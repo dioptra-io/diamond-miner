@@ -17,7 +17,7 @@ def execute(q, table):
             for statement in test_data.read_text().split(";")[:-1]:
                 await client.execute(statement)
             test_data_inserted = True
-        gen = await q.execute(client, table)
+        gen = q.execute_iter(client, table)
         return [x async for x in gen]
 
     return asyncio.run(do())
