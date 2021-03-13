@@ -12,10 +12,8 @@ async def test_probe_generator_32():
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len=32,
-        min_flow=10,
-        max_flow=12,
-        min_ttl=41,
-        max_ttl=42,
+        flow_ids=[10, 11, 12],
+        ttls=[41, 42],
         mapper=SequentialFlowMapper(),
     )
     probes = [x async for x in generator]
@@ -33,10 +31,8 @@ async def test_probe_generator_23():
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len=24,
-        min_flow=10,
-        max_flow=10,
-        min_ttl=41,
-        max_ttl=41,
+        flow_ids=[10],
+        ttls=[41],
         mapper=SequentialFlowMapper(),
     )
     probes = [x async for x in generator]
