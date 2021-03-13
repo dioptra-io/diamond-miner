@@ -138,7 +138,7 @@ class GetResolvedPrefixes(Query):
     >>> execute(GetResolvedPrefixes('100.0.0.1', 1), 'test_nsdi_example')
     []
     >>> execute(GetResolvedPrefixes('100.0.0.1', 5), 'test_nsdi_example')
-    ['::ffff:200.0.0.0']
+    ['200.0.0.0']
     """
 
     source: str
@@ -156,7 +156,7 @@ class GetResolvedPrefixes(Query):
         """
 
     def format(self, row):
-        return row[0]
+        return addr_to_string(row[0])
 
 
 @dataclass(frozen=True)
@@ -167,7 +167,7 @@ class GetInvalidPrefixes(Query):
     >>> execute(GetInvalidPrefixes('100.0.0.1'), 'test_nsdi_example')
     []
     >>> execute(GetInvalidPrefixes('100.0.0.1'), 'test_invalid_prefixes')
-    ['::ffff:201.0.0.0', '::ffff:202.0.0.0']
+    ['201.0.0.0', '202.0.0.0']
     """
 
     source: str
@@ -192,7 +192,7 @@ class GetInvalidPrefixes(Query):
         """
 
     def format(self, row):
-        return row[0]
+        return addr_to_string(row[0])
 
 
 @dataclass(frozen=True)
