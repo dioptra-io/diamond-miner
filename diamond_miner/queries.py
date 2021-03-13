@@ -1,3 +1,4 @@
+# flake8: noqa
 from dataclasses import dataclass
 from ipaddress import IPv4Network, IPv6Network, ip_network
 from typing import Union
@@ -78,7 +79,7 @@ class GetNodes(Query):
     >>> from diamond_miner.test import execute
     >>> nodes = execute(GetNodes(), 'test_nsdi_figure2')
     >>> sorted(nodes)
-    ['150.0.1.1', '150.0.2.1', '150.0.3.1', '150.0.4.1', '150.0.5.1', '150.0.6.1', '150.0.7.1'] # noqa
+    ['150.0.1.1', '150.0.2.1', '150.0.3.1', '150.0.4.1', '150.0.5.1', '150.0.6.1', '150.0.7.1']
     """
 
     filter_private: bool = True
