@@ -229,10 +229,25 @@ class GetMaxTTL(Query):
 
 @dataclass(frozen=True)
 class GetNextRound(Query):
+    """
+    >>> from diamond_miner.test import execute
+    >>> row = execute(GetNextRound(1, adaptive_eps=False), 'test_nsdi_example')[0]
+    >>> src_addr, dst_prefix, skip_prefix, probes, prev_max_flow, min_src_port, min_dst_port, max_dst_port = row
+    >>> src_addr, dst_prefix, min_src_port, min_dst_port, max_dst_port
+    ('100.0.0.1', '200.0.0.0', 24000, 33434, 33434)
+    >>> skip_prefix
+    0
+    >>> prev_max_flow
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
+    >>> probes
+    [5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    """
 
     round: int
     adaptive_eps: bool = True
+    dminer_lite: bool = True
     excluded_prefixes: List[str] = field(default_factory=list)
+    target_epsilon: float = 0.05
 
     def query(self, table: str, subset: IPNetwork):
         # CH wants at-least one element in `NOT IN (...)`
@@ -242,117 +257,105 @@ class GetNextRound(Query):
             eps_fragment = """
             if(max_links == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links))
                 AS epsilon,
-            if(max_links_previous == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_previous))
-                AS epsilon_previous,
+            if(max_links_previous == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_prev))
+                AS epsilon_prev,
             """
         else:
             eps_fragment = """
             target_epsilon AS epsilon,
-            target_epsilon AS epsilon_previous,
+            target_epsilon AS epsilon_prev,
+            """
+
+        if self.dminer_lite:
+            dm_fragment = """
+            arrayMap(t -> nks[t.2 + 1], links_per_ttl) AS nkv_Dhv,
+            arrayMap(t -> nks_prev[t.2 + 1], links_per_ttl_prev) AS nkv_Dhv_prev,
+            """
+        else:
+            dm_fragment = """
+            TODO: Implement by computing Dh(v)
             """
 
         return f"""
         WITH
+            range(1, 32) AS TTLs, -- TTLs used to group nodes and links
+            range(1, 256) AS ks,  -- Values of `k` used to compute MDA stopping points `n_k`.
             toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix,
-            -- replies_s
-            --  x.1             x.2             x.3             x.4             x.5           x.6
-            -- (probe_dst_addr, probe_src_port, probe_dst_port, reply_src_addr, probe_ttl_l3, round)
-            groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, reply_src_addr, probe_ttl_l3, round)) AS replies_s,
-            -- sorted_replies_s
-            -- replies_s sorted by (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3)
-            arraySort(x -> (x.1, x.2, x.3, x.5), replies_s) AS sorted_replies_s,
-            -- replies_d
-            -- sorted_replies_s with the first element removed
-            arrayPopFront(sorted_replies_s) AS replies_d,
-            -- replies_d_sized
-            -- replies_d with (0, 0, 0, 0, 0, 0) appended
-            -- (Essentially, sorted_replies_s shifted by 1 item)
-            arrayConcat(replies_d, [(toIPv6('::'), 0, 0, toIPv6('::'), 0, 0)]) AS replies_d_sized,
-            -- replies_no_round
-            -- (reply_src_addr, probe_ttl_l3) over all rounds
-            -- TODO: Is this necessary (can't we do with replies_s directly)?
-            arrayMap(r -> (r.4, r.5), replies_s) AS replies_no_round,
-            -- replies_no_round_previous
-            -- (reply_src_addr, probe_ttl_l3) for round < current round
-            -- TODO: x.6 instead?
-            arrayMap(r -> (r.4, r.5), arrayFilter(x -> x.6 < {self.round}, replies_s)) AS replies_no_round_previous,
-            -- potential_links
-            arrayZip(sorted_replies_s, replies_d_sized) AS potential_links,
-            -- links
-            -- remove non-consecutive TTLs
-            arrayFilter(x -> x.1.5 + 1 == x.2.5, potential_links) AS links,
-            -- links_previous
+            -- 1) Compute the links
+            --  x.1             x.2             x.3             x.4           x.5             x.6
+            -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)
+            groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)) AS replies_unsorted,
+            -- sort by (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3)
+            arraySort(x -> (x.1, x.2, x.3, x.4), replies_unsorted) AS replies,
+            -- shift by 1: remove the element and append a NULL row
+            arrayConcat(arrayPopFront(replies), [(toIPv6('::'), 0, 0, 0, toIPv6('::'), 0)]) AS replies_shifted,
+            -- compute the links by zipping the two arrays
+            arrayFilter(x -> x.1.4 + 1 == x.2.4, arrayZip(replies, replies_shifted)) AS links,
             -- links for round < current round
-            arrayFilter(x -> x.1.6 < {self.round} AND x.2.6 < {self.round}, links) AS links_previous,
-            -- links_no_round
-            -- ((reply_src_addr, probe_ttl_l3), (reply_src_addr, probe_ttl_l3))
-            arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links)) AS links_no_round,
-            -- links_no_round_previous
-            -- links_no_round for round < current round
-            arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links_previous)) AS links_no_round_previous,
-            -- ttls
-            -- (1, 2, ... 31)
-            range(1, 32) AS ttls,
-            -- links_per_ttl
-            -- Number of distinct links between TTL t AND t+1
-            -- [(1, x), (2, y), ...]
-            -- TODO: Can we instead group by links by TTL earlier on?
-            arrayMap(t -> (t, arrayUniq(arrayFilter(x -> x.1.2 == t, links_no_round))), ttls) AS links_per_ttl,
-            -- links_per_ttl_previous
-            -- links_per_ttl for round < current round
-            arrayMap(t -> (t, arrayUniq(arrayFilter(x -> x.1.2 == t, links_no_round_previous))), ttls) AS links_per_ttl_previous,
-            -- max_links
-            -- The maximum number of links over all TTLs
+            arrayFilter(x -> x.1.6 < {self.round} AND x.2.6 < {self.round}, links) AS links_prev,
+            -- 2) Count the number of nodes per TTL
+            -- (probe_ttl_l3, reply_src_addr)
+            arrayMap(r -> (r.4, r.5), replies) AS ttl_node,
+            arrayMap(r -> (r.4, r.5), arrayFilter(x -> x.6 < {self.round}, replies)) AS ttl_node_prev,
+            -- count distinct nodes per TTL
+            arrayMap(t -> arrayUniq(arrayFilter(x -> x.1 == t, ttl_node)), TTLs) AS nodes_per_ttl,
+            arrayMap(t -> arrayUniq(arrayFilter(x -> x.1 == t, ttl_node_prev)), TTLs) AS nodes_per_ttl_prev,
+            -- find the maximum number of nodes over all TTLs
+            arrayReduce('max', arrayMap(t -> t.2, nodes_per_ttl)) AS max_nodes,
+            -- 3) Count the number of links per TTL
+            -- ((probe_ttl_l3, reply_src_addr), (probe_ttl_l3, reply_src_addr))
+            arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links)) AS ttl_link,
+            arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links_prev)) AS ttl_link_prev,
+            -- count distinct links per TTL
+            arrayMap(t -> (t, arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link))), TTLs) AS links_per_ttl,
+            arrayMap(t -> (t, arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link_prev))), TTLs) AS links_per_ttl_prev,
+            -- find the maximum number of links over all TTLs
             arrayReduce('max', arrayMap(t -> t.2, links_per_ttl)) AS max_links,
-            -- max_links_previous
-            -- max_links for round < current_round
-            arrayReduce('max', arrayMap(t -> t.2, links_per_ttl_previous)) AS max_links_previous,
-            -- nodes_per_ttl
-            -- Number of distinct nodes for each TTL
-            -- [(1, x), (2, y), ...]
-            arrayMap(t -> arrayUniq(arrayFilter(x -> x.2 == t, replies_no_round)), ttls) AS nodes_per_ttl,
-            -- nodes_per_ttl_previous
-            -- nodes_per_ttl for round < current_round
-            arrayMap(t -> arrayUniq(arrayFilter(x -> x.2 == t, replies_no_round_previous)), ttls) AS nodes_per_ttl_previous,
-            -- max_nodes
-            -- The maximum number of nodes over all TTLs
-            arrayReduce('max', nodes_per_ttl) AS max_nodes,
-            -- skip_prefix
+            arrayReduce('max', arrayMap(t -> t.2, links_per_ttl_previous)) AS max_links_prev,
+            -- 4) Determine if the prefix can be skipped at the next round
             -- 1 if no new links have been discovered in the current round
-            if(equals(links_per_ttl, links_per_ttl_previous), 1, 0) AS skip_prefix,
+            if(equals(links_per_ttl, links_per_ttl_prev), 1, 0) AS skip_prefix,
+            -- 5) Compute MDA stopping points
             -- epsilon (MDA probability of missing links)
-            -- Here we make epsilon decrease (exponentially fast) AS the number of links increases.
-            0.05 AS target_epsilon,
+            {self.target_epsilon} AS target_epsilon,
             {eps_fragment}
-            -- nks (MDA stopping points)
-            -- Compute the values of `k`
-            range(1, arrayReduce('max', [max_links + 2, max_nodes + 2])) AS nks_index,
             -- Compute `n_k` for each `k`
-            arrayMap(k -> toUInt32(ceil(ln(epsilon / k) / ln((k - 1) / k))), nks_index) AS nks,
-            arrayMap(k -> toUInt32(ceil(ln(epsilon_previous / k) / ln((k - 1) / k))), nks_index) AS nks_previous,
-            -- D-Miner Lite Formula
-            -- Number of probes to send at each TTLs
-            arrayMap(t -> (t.1, nks[t.2 + 1]), links_per_ttl) AS nkv_Dhv,
-            arrayMap(t -> (t.1, nks_previous[t.2 + 1]), links_per_ttl_previous) AS nkv_Dhv_previous,
+            arrayMap(k -> toUInt32(ceil(ln(epsilon / k) / ln((k - 1) / k))), ks) AS nks,
+            arrayMap(k -> toUInt32(ceil(ln(epsilon_prev / k) / ln((k - 1) / k))), ks) AS nks_prev,
+            -- 6) Compute the number of probes to send during the next round
+            {dm_fragment}
+            -- compute the number of probes sent at previous round
+            -- if round = 1: we known that we sent 6 probes
+            -- if round > 1 and TTL = 1: we use the DMiner formula with
+            -- the number of links discovered during the previous rounds
+            -- if round > 1 and TTL > 1: we take the max of the DMiner formula
+            -- over the links discovered during the previous rounds at TTL t and t-1
+            arrayMap(t -> if({self.round} == 1, 6, if(t == 1, nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv_prev[t], nkv_Dhv_prev[t-1]]))), TTLs) AS max_nkv_Dhv_prev,
+            -- compute the number of probes to send during the next round
+            -- if TTL = 1: we use the DMiner formula and we substract the
+            -- number of probes sent during the previous rounds.
+            -- if TTL > 1: we take the max of probes to send over TTL t and t-1
+            arrayMap(t -> toInt32(if(t == 1, nkv_Dhv[t] - max_nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv[t] - max_nkv_Dhv_prev[t], nkv_Dhv[t-1] - max_nkv_Dhv_prev[t-1]]))), TTLs) AS dminer_probes_nostar,
+            -- 7) Compute the number of probes to send for the *-node-* pattern
             -- TODO: Document/verify/reformat the code below
-            -- Compute the probes sent at previous round
-            arrayMap(t -> (t, if({self.round} == 1, 6, if(t == 1, nkv_Dhv_previous[t].2, arrayReduce('max', [nkv_Dhv_previous[t].2, nkv_Dhv_previous[t-1].2])))), ttls) AS max_nkv_Dhv_previous,
-            arrayMap(t -> (t, toInt32(if(t == 1, nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2, arrayReduce('max', [nkv_Dhv[t].2 - max_nkv_Dhv_previous[t].2, nkv_Dhv[t-1].2 - max_nkv_Dhv_previous[t-1].2])))), ttls) AS d_miner_lite_probes,
-            -- *-node-*
-            arrayMap(t -> (t, if(nodes_per_ttl[t] == 0, 0, d_miner_lite_probes[t].2)), ttls) AS d_miner_lite_probes_no_probe_star,
-            arraySlice(ttls, 2) AS sliced_ttls,
-            arrayMap(t -> (t, if(((nodes_per_ttl[ttls[t - 1]]) = 0) AND ((nodes_per_ttl[ttls[t]]) > 0) AND ((nodes_per_ttl[ttls[t + 1]]) = 0), nks[nodes_per_ttl[ttls[t]] + 1] - nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], 0)), sliced_ttls) AS d_miner_paper_probes_w_star_nodes_star,
-            arrayPushFront(d_miner_paper_probes_w_star_nodes_star, (1, 0)) AS d_miner_paper_probes_w_star_nodes_star_new,
-            arrayMap(t -> (t, arrayReduce('max', [d_miner_paper_probes_w_star_nodes_star_new[t].2, d_miner_lite_probes_no_probe_star[t].2])), ttls) AS final_probes,
+            -- TODO: Test the *-node-* pattern
+            arrayPopFront(TTLs) as TTLs_shifted,
+            arrayMap(t -> if((nodes_per_ttl[t - 1] = 0) AND (nodes_per_ttl[t] > 0) AND (nodes_per_ttl[t + 1] = 0), nks[nodes_per_ttl[t] + 1] - nks_prev[nodes_per_ttl_prev[t] + 1], 0), TTLs_shifted) AS dminer_probes_star_shifted,
+            arrayPushFront(dminer_probes_star_shifted, 0) AS dminer_probes_star,
+            -- 8) Compute the final number of probes to send
+            arrayMap(t -> arrayReduce('max', [dminer_probes_nostar[t], dminer_probes_star[t]]), TTLs) AS dminer_probes,
+            -- 9) TODO: Document/verify/reformat
             -- Compute max flow for previous round, it's th w/ the * nodes * heuristic
-            arrayMap(t->(t, toInt32(if(nodes_per_ttl[ttls[t-1]] == 0 AND nodes_per_ttl[ttls[t]] > 0 AND nodes_per_ttl[ttls[t+1]] == 0, nks_previous[nodes_per_ttl_previous[ttls[t]] + 1], max_nkv_Dhv_previous[ttls[t]].2))), sliced_ttls) AS previous_max_flow_per_ttl,
-            arrayPushFront(previous_max_flow_per_ttl, max_nkv_Dhv_previous[ttls[1]]) AS previous_max_flow_per_ttl_final
+            arrayMap(t -> toInt32(if(nodes_per_ttl[t-1] = 0 AND nodes_per_ttl[t] > 0 AND nodes_per_ttl[t] = 0, nks_prev[nodes_per_ttl_prev[t] + 1], max_nkv_Dhv_prev[t])), TTLs_shifted) AS prev_max_flow_per_ttl_shifted,
+            arrayPushFront(prev_max_flow_per_ttl_shifted, max_nkv_Dhv_prev[1]) AS prev_max_flow_per_ttl
             SELECT probe_src_addr,
                    probe_dst_prefix,
---                    skip_prefix,
-                   final_probes
---                    previous_max_flow_per_ttl_final,
---                    min(probe_src_port), min(probe_dst_port), max(probe_dst_port)
+                   skip_prefix,
+                   dminer_probes,
+                   prev_max_flow_per_ttl,
+                   min(probe_src_port),
+                   min(probe_dst_port),
+                   max(probe_dst_port)
             FROM {table}
             WHERE {ip_in('probe_dst_prefix', subset)}
             AND probe_dst_prefix NOT IN ({','.join(excluded_prefixes)})
@@ -360,5 +363,8 @@ class GetNextRound(Query):
             AND probe_dst_addr != reply_src_addr
             AND reply_icmp_type = 11
             GROUP BY (probe_src_addr, probe_dst_prefix)
-            HAVING length(links) >= 1 OR length(replies_s) >= 1
+            HAVING length(links) >= 1 OR length(replies) >= 1
         """
+
+    def format(self, row):
+        return addr_to_string(row[0]), addr_to_string(row[1]), *row[2:]
