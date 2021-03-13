@@ -24,7 +24,6 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
         if max_ttl > 20:
             for ttl in range(measurement_parameters.max_ttl + 1, absolute_max_ttl + 1):
                 writer.write(
-                    # flush_format(
                     ",".join(
                         [
                             str(dst_ip),
@@ -33,7 +32,6 @@ def next_max_ttl(database_host: str, table_name: str, measurement_parameters, wr
                             str(ttl),
                         ]
                     )
-                    # )
                 )
 
 
