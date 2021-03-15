@@ -1,6 +1,8 @@
 """
 Functions for mapping flow IDs to addresses and ports.
 We currently map IPs to (0, 254) and by convention we make the flow ID start at 0.
+`prefix_size` is the number of addresses in the prefix:
+    2**(32-24) for a /24 in IPv4
 """
 import random
 
@@ -10,9 +12,9 @@ class SequentialFlowMapper:
     Maps flow 0 to address 0, flow 1 to address 1, and so on until we have done
     the whole prefix. It then increases the port number in the same manner.
     >>> mapper = SequentialFlowMapper()
-    >>> mapper.offset(10, prefix_len=24)
+    >>> mapper.offset(10, prefix_size=256)
     (10, 0)
-    >>> mapper.offset(256, prefix_len=24)
+    >>> mapper.offset(256, prefix_size=256)
     (255, 1)
     """
 
@@ -21,11 +23,10 @@ class SequentialFlowMapper:
         return addr_offset
 
     @staticmethod
-    def offset(flow_id, prefix_len, *args, **kwargs):
-        n = 2 ** (32 - prefix_len)
-        if flow_id < n:
+    def offset(flow_id, prefix_size, *args, **kwargs):
+        if flow_id < prefix_size:
             return flow_id, 0
-        return n - 1, flow_id - n + 1
+        return prefix_size - 1, flow_id - prefix_size + 1
 
 
 class IntervalFlowMapper:
@@ -34,11 +35,11 @@ class IntervalFlowMapper:
     This allows to target addresses .1, .33, .65, ... in priority,
     which according to a paper by J. Heidemann are more likely to respond to probes.
     >>> mapper = IntervalFlowMapper(step=32)
-    >>> mapper.offset(0, prefix_len=24)
+    >>> mapper.offset(0, prefix_size=256)
     (1, 0)
-    >>> mapper.offset(1, prefix_len=24)
+    >>> mapper.offset(1, prefix_size=256)
     (33, 0)
-    >>> mapper.offset(8, prefix_len=24)
+    >>> mapper.offset(8, prefix_size=256)
     (2, 0)
     """
 
@@ -59,8 +60,8 @@ class IntervalFlowMapper:
     def flow_id(self, addr_offset, *args, **kwargs):
         return self.offset_to_flow[addr_offset]
 
-    def offset(self, flow_id, prefix_len, *args, **kwargs):
-        assert prefix_len == 24, "`prefix_len` != 24 are not supported"
+    def offset(self, flow_id, prefix_size, *args, **kwargs):
+        assert prefix_size == 256, "prefixes != /24 are not supported"
         if flow_id < 256:
             return self.flow_to_offset[flow_id], 0
         return 255, flow_id - 255
@@ -71,13 +72,13 @@ class ReverseByteFlowMapper:
     Maps flow n to address reverse(n) until we have done the whole prefix.
     It then increases the port number sequentially.
     >>> mapper = ReverseByteFlowMapper()
-    >>> mapper.offset(0, prefix_len=24)
+    >>> mapper.offset(0, prefix_size=256)
     (0, 0)
-    >>> mapper.offset(1, prefix_len=24)
+    >>> mapper.offset(1, prefix_size=256)
     (128, 0)
-    >>> mapper.offset(2, prefix_len=24)
+    >>> mapper.offset(2, prefix_size=256)
     (64, 0)
-    >>> mapper.offset(3, prefix_len=24)
+    >>> mapper.offset(3, prefix_size=256)
     (192, 0)
     """
 
@@ -86,12 +87,11 @@ class ReverseByteFlowMapper:
         return cls.reverse_byte(addr_offset)
 
     @classmethod
-    def offset(cls, flow_id, prefix_len, *args, **kwargs):
-        assert prefix_len == 24, "`prefix_len` != 24 are not supported"
-        n = 2 ** (32 - prefix_len)
-        if flow_id < n:
+    def offset(cls, flow_id, prefix_size, *args, **kwargs):
+        assert prefix_size == 256, "prefixes != /24 are not supported"
+        if flow_id < 256:
             return cls.reverse_byte(flow_id), 0
-        return n - 1, flow_id - n + 1
+        return 255, flow_id - 255
 
     @staticmethod
     def reverse_byte(i):
@@ -104,9 +104,9 @@ class RandomFlowMapper:
     between flow IDs and addresses.
     The mapping is randomized by prefix.
     >>> mapper = RandomFlowMapper(master_seed=42)
-    >>> mapper.offset(0, prefix_len=24, prefix=100)
+    >>> mapper.offset(0, prefix_size=256, prefix=100)
     (1, 0)
-    >>> mapper.offset(0, prefix_len=24, prefix=200)
+    >>> mapper.offset(0, prefix_size=256, prefix=200)
     (133, 0)
     """
 
@@ -123,11 +123,10 @@ class RandomFlowMapper:
         flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
         return flow_array.index(addr_offset)
 
-    def offset(self, flow_id, prefix_len, prefix, *args, **kwargs):
-        assert prefix_len == 24, "`prefix_len` != 24 are not supported"
-        n = 2 ** (32 - prefix_len)
-        if flow_id < n:
+    def offset(self, flow_id, prefix_size, prefix, *args, **kwargs):
+        assert prefix_size == 256, "prefixes != /24 are not supported"
+        if flow_id < 256:
             flow_array = self.flow_arrays[prefix % len(self.flow_arrays)]
             return flow_array[flow_id], 0
         else:
-            return 255, flow_id - n + 1
+            return 255, flow_id - 255

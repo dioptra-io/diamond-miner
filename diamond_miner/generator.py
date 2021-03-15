@@ -33,12 +33,12 @@ def count_prefixes(
     return count
 
 
-# noinspection PyDefaultArgument
 async def probe_generator(
     prefixes: Iterable[str],  # /32 or / 128 if nothing specified
-    prefix_len: int = 24,
-    flow_ids: List[int] = list(range(6)),
-    ttls: List[int] = list(range(1, 33)),
+    prefix_len_v4: int = 24,
+    prefix_len_v6: int = 64,
+    flow_ids: List[int] = range(6),
+    ttls: List[int] = range(1, 33),
     src_port: int = 24000,
     dst_port: int = 33434,
     mapper=SequentialFlowMapper(),
@@ -51,13 +51,20 @@ async def probe_generator(
     prefixes_ = []
     for prefix in prefixes:
         network = ip_network(prefix.strip())
-        prefixes_.extend(subnets(network, prefix_len))
+        if isinstance(network, IPv4Network):
+            prefixes_.extend(
+                (2 ** (32 - prefix_len_v4), x) for x in subnets(network, prefix_len_v4)
+            )
+        else:
+            prefixes_.extend(
+                (2 ** (128 - prefix_len_v6), x) for x in subnets(network, prefix_len_v6)
+            )
 
     grid = ParameterGrid(prefixes_, ttls, flow_ids)
     grid = grid.shuffled(seed=seed)
 
-    for prefix, ttl, flow_id in grid:
+    for (prefix_size, prefix), ttl, flow_id in grid:
         addr_offset, port_offset = mapper.offset(
-            flow_id=flow_id, prefix=prefix, prefix_len=prefix_len
+            flow_id=flow_id, prefix=prefix, prefix_size=prefix_size
         )
         yield prefix + addr_offset, src_port + port_offset, dst_port, ttl
