@@ -353,7 +353,7 @@ class GetNextRound(Query):
             arrayReduce('max', links_per_ttl_previous) AS max_links_prev,
             -- 4) Determine if the prefix can be skipped at the next round
             -- 1 if no new links and nodes have been discovered in the current round
-            if(equals(links_per_ttl, links_per_ttl_prev) AND equals(nodes_per_ttl, nodes_per_ttl_prev), 1, 0) AS skip_prefix,
+            equals(links_per_ttl, links_per_ttl_prev) AND equals(nodes_per_ttl, nodes_per_ttl_prev) AS skip_prefix,
             -- 5) Compute MDA stopping points
             -- epsilon (MDA probability of missing links)
             {self.target_epsilon} AS target_epsilon,
@@ -374,16 +374,15 @@ class GetNextRound(Query):
             -- if TTL = 1: we use the DMiner formula and we substract the
             -- number of probes sent during the previous rounds.
             -- if TTL > 1: we take the max of probes to send over TTL t and t-1
-            arrayMap(t -> toInt32(if(t == 1, nkv_Dhv[t] - max_nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv[t] - max_nkv_Dhv_prev[t], nkv_Dhv[t-1] - max_nkv_Dhv_prev[t-1]]))), TTLs) AS dminer_probes_nostar,
-            -- 7) Compute the number of probes to send for the *-node-* pattern
+            arrayMap(t -> if(t == 1, nkv_Dhv[t] - max_nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv[t] - max_nkv_Dhv_prev[t], nkv_Dhv[t-1] - max_nkv_Dhv_prev[t-1]])), TTLs) AS dminer_probes_nostar,
+            -- 7) Compute the number of probes to send for the * node * pattern
             -- TODO: Document/verify/reformat the code below
-            arrayPopFront(TTLs) AS TTLs_shifted,
+            -- star_node_star[t] = 1 if we match the * node * pattern with a node at TTL `t`
+            arrayPushFront(arrayMap(t -> (nodes_per_ttl[t - 1] = 0) AND (nodes_per_ttl[t] > 0) AND (nodes_per_ttl[t + 1] = 0), arrayPopFront(TTLs)), 0) AS star_node_star,
             -- Compute the number of probes sent during the previous round, including the * nodes * heuristic
-            arrayMap(t -> if({self.round} == 1, 6, toInt32(if(nodes_per_ttl[t-1] = 0 AND nodes_per_ttl[t] > 0 AND nodes_per_ttl[t+1] = 0, nks_prev[nodes_per_ttl_prev[t] + 1], max_nkv_Dhv_prev[t]))), TTLs_shifted) AS prev_max_flow_per_ttl_shifted,
-            arrayPushFront(prev_max_flow_per_ttl_shifted, max_nkv_Dhv_prev[1]) AS prev_max_flow_per_ttl,
-            -- Compute the probes to send for the * - * pattern
-            arrayMap(t -> if((nodes_per_ttl[t - 1] = 0) AND (nodes_per_ttl[t] > 0) AND (nodes_per_ttl[t + 1] = 0), nks[nodes_per_ttl[t] + 1] - prev_max_flow_per_ttl[t], 0), TTLs_shifted) AS dminer_probes_star_shifted,
-            arrayPushFront(dminer_probes_star_shifted, 0) AS dminer_probes_star,
+            arrayMap(t -> if({self.round} == 1, 6, if(star_node_star[t], nks_prev[nodes_per_ttl_prev[t] + 1], max_nkv_Dhv_prev[t])), TTLs) AS prev_max_flow_per_ttl,
+            -- Compute the probes to send for the * node * pattern
+            arrayMap(t -> if(star_node_star[t], nks[nodes_per_ttl[t] + 1] - prev_max_flow_per_ttl[t], 0), TTLs) AS dminer_probes_star,
             -- 8) Compute the final number of probes to send
             arrayMap(t -> arrayReduce('max', [dminer_probes_nostar[t], dminer_probes_star[t]]), TTLs) AS dminer_probes
             SELECT probe_dst_prefix,
