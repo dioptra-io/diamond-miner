@@ -1,4 +1,5 @@
 # flake8: noqa
+from collections import namedtuple
 from dataclasses import dataclass, field
 from ipaddress import IPv4Network, IPv6Address, IPv6Network, ip_network
 from typing import List, Union
@@ -231,23 +232,61 @@ class GetMaxTTL(Query):
 class GetNextRound(Query):
     """
     >>> from diamond_miner.test import execute
-    >>> row = execute(GetNextRound(1, adaptive_eps=False), 'test_nsdi_example')[0]
-    >>> src_addr, dst_prefix, skip_prefix, probes, prev_max_flow, min_src_port, min_dst_port, max_dst_port = row
-    >>> src_addr, dst_prefix, min_src_port, min_dst_port, max_dst_port
-    ('100.0.0.1', '200.0.0.0', 24000, 33434, 33434)
-    >>> skip_prefix
-    0
-    >>> prev_max_flow
+    >>> row = execute(GetNextRound('100.0.0.1', 1, adaptive_eps=False), 'test_nsdi_example')[0]
+    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
+    ('200.0.0.0', 24000, 33434, 33434, 0)
+    >>> row.prev_max_flow
     [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
-    >>> probes
+    >>> row.probes
     [5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row = execute(GetNextRound('100.0.0.1', 2, adaptive_eps=False), 'test_nsdi_example')[0]
+    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
+    ('200.0.0.0', 24000, 33434, 33434, 0)
+    >>> row.prev_max_flow
+    [11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row.probes
+    [0, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row = execute(GetNextRound('100.0.0.1', 3, adaptive_eps=False), 'test_nsdi_example')[0]
+    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
+    ('200.0.0.0', 24000, 33434, 33434, 1)
+    >>> row.prev_max_flow
+    [11, 16, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row.probes
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row = execute(GetNextRound('100.0.0.1', 1, adaptive_eps=False), 'test_star_node_star')[0]
+    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
+    ('200.0.0.0', 24000, 33434, 33434, 0)
+    >>> row.prev_max_flow
+    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
+    >>> row.probes
+    [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row = execute(GetNextRound('100.0.0.1', 2, adaptive_eps=False), 'test_star_node_star')[0]
+    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
+    ('200.0.0.0', 24000, 33434, 33434, 0)
+    >>> row.prev_max_flow
+    [0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row.probes
+    [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row = execute(GetNextRound('100.0.0.1', 3, adaptive_eps=False), 'test_star_node_star')[0]
+    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
+    ('200.0.0.0', 24000, 33434, 33434, 1)
+    >>> row.prev_max_flow
+    [0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    >>> row.probes
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     """
 
+    source: str
     round: int
     adaptive_eps: bool = True
     dminer_lite: bool = True
     excluded_prefixes: List[str] = field(default_factory=list)
     target_epsilon: float = 0.05
+
+    Row = namedtuple(
+        "GetNextRoundRow",
+        "dst_prefix,skip_prefix,probes,prev_max_flow,min_src_port,min_dst_port,max_dst_port",
+    )
 
     def query(self, table: str, subset: IPNetwork):
         # CH wants at-least one element in `NOT IN (...)`
@@ -268,8 +307,8 @@ class GetNextRound(Query):
 
         if self.dminer_lite:
             dm_fragment = """
-            arrayMap(t -> nks[t.2 + 1], links_per_ttl) AS nkv_Dhv,
-            arrayMap(t -> nks_prev[t.2 + 1], links_per_ttl_prev) AS nkv_Dhv_prev,
+            arrayMap(n -> nks[n + 1], links_per_ttl) AS nkv_Dhv,
+            arrayMap(n -> nks_prev[n + 1], links_per_ttl_prev) AS nkv_Dhv_prev,
             """
         else:
             dm_fragment = """
@@ -301,20 +340,20 @@ class GetNextRound(Query):
             arrayMap(t -> arrayUniq(arrayFilter(x -> x.1 == t, ttl_node)), TTLs) AS nodes_per_ttl,
             arrayMap(t -> arrayUniq(arrayFilter(x -> x.1 == t, ttl_node_prev)), TTLs) AS nodes_per_ttl_prev,
             -- find the maximum number of nodes over all TTLs
-            arrayReduce('max', arrayMap(t -> t.2, nodes_per_ttl)) AS max_nodes,
+            arrayReduce('max', nodes_per_ttl) AS max_nodes,
             -- 3) Count the number of links per TTL
             -- ((probe_ttl_l3, reply_src_addr), (probe_ttl_l3, reply_src_addr))
             arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links)) AS ttl_link,
             arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links_prev)) AS ttl_link_prev,
             -- count distinct links per TTL
-            arrayMap(t -> (t, arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link))), TTLs) AS links_per_ttl,
-            arrayMap(t -> (t, arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link_prev))), TTLs) AS links_per_ttl_prev,
+            arrayMap(t -> arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link)), TTLs) AS links_per_ttl,
+            arrayMap(t -> arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link_prev)), TTLs) AS links_per_ttl_prev,
             -- find the maximum number of links over all TTLs
-            arrayReduce('max', arrayMap(t -> t.2, links_per_ttl)) AS max_links,
-            arrayReduce('max', arrayMap(t -> t.2, links_per_ttl_previous)) AS max_links_prev,
+            arrayReduce('max', links_per_ttl) AS max_links,
+            arrayReduce('max', links_per_ttl_previous) AS max_links_prev,
             -- 4) Determine if the prefix can be skipped at the next round
-            -- 1 if no new links have been discovered in the current round
-            if(equals(links_per_ttl, links_per_ttl_prev), 1, 0) AS skip_prefix,
+            -- 1 if no new links and nodes have been discovered in the current round
+            if(equals(links_per_ttl, links_per_ttl_prev) AND equals(nodes_per_ttl, nodes_per_ttl_prev), 1, 0) AS skip_prefix,
             -- 5) Compute MDA stopping points
             -- epsilon (MDA probability of missing links)
             {self.target_epsilon} AS target_epsilon,
@@ -338,18 +377,16 @@ class GetNextRound(Query):
             arrayMap(t -> toInt32(if(t == 1, nkv_Dhv[t] - max_nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv[t] - max_nkv_Dhv_prev[t], nkv_Dhv[t-1] - max_nkv_Dhv_prev[t-1]]))), TTLs) AS dminer_probes_nostar,
             -- 7) Compute the number of probes to send for the *-node-* pattern
             -- TODO: Document/verify/reformat the code below
-            -- TODO: Test the *-node-* pattern
-            arrayPopFront(TTLs) as TTLs_shifted,
-            arrayMap(t -> if((nodes_per_ttl[t - 1] = 0) AND (nodes_per_ttl[t] > 0) AND (nodes_per_ttl[t + 1] = 0), nks[nodes_per_ttl[t] + 1] - nks_prev[nodes_per_ttl_prev[t] + 1], 0), TTLs_shifted) AS dminer_probes_star_shifted,
+            arrayPopFront(TTLs) AS TTLs_shifted,
+            -- Compute the number of probes sent during the previous round, including the * nodes * heuristic
+            arrayMap(t -> if({self.round} == 1, 6, toInt32(if(nodes_per_ttl[t-1] = 0 AND nodes_per_ttl[t] > 0 AND nodes_per_ttl[t+1] = 0, nks_prev[nodes_per_ttl_prev[t] + 1], max_nkv_Dhv_prev[t]))), TTLs_shifted) AS prev_max_flow_per_ttl_shifted,
+            arrayPushFront(prev_max_flow_per_ttl_shifted, max_nkv_Dhv_prev[1]) AS prev_max_flow_per_ttl,
+            -- Compute the probes to send for the * - * pattern
+            arrayMap(t -> if((nodes_per_ttl[t - 1] = 0) AND (nodes_per_ttl[t] > 0) AND (nodes_per_ttl[t + 1] = 0), nks[nodes_per_ttl[t] + 1] - prev_max_flow_per_ttl[t], 0), TTLs_shifted) AS dminer_probes_star_shifted,
             arrayPushFront(dminer_probes_star_shifted, 0) AS dminer_probes_star,
             -- 8) Compute the final number of probes to send
-            arrayMap(t -> arrayReduce('max', [dminer_probes_nostar[t], dminer_probes_star[t]]), TTLs) AS dminer_probes,
-            -- 9) TODO: Document/verify/reformat
-            -- Compute max flow for previous round, it's th w/ the * nodes * heuristic
-            arrayMap(t -> toInt32(if(nodes_per_ttl[t-1] = 0 AND nodes_per_ttl[t] > 0 AND nodes_per_ttl[t] = 0, nks_prev[nodes_per_ttl_prev[t] + 1], max_nkv_Dhv_prev[t])), TTLs_shifted) AS prev_max_flow_per_ttl_shifted,
-            arrayPushFront(prev_max_flow_per_ttl_shifted, max_nkv_Dhv_prev[1]) AS prev_max_flow_per_ttl
-            SELECT probe_src_addr,
-                   probe_dst_prefix,
+            arrayMap(t -> arrayReduce('max', [dminer_probes_nostar[t], dminer_probes_star[t]]), TTLs) AS dminer_probes
+            SELECT probe_dst_prefix,
                    skip_prefix,
                    dminer_probes,
                    prev_max_flow_per_ttl,
@@ -359,12 +396,13 @@ class GetNextRound(Query):
             FROM {table}
             WHERE {ip_in('probe_dst_prefix', subset)}
             AND probe_dst_prefix NOT IN ({','.join(excluded_prefixes)})
-            AND round <= {self.round}
+            AND probe_src_addr = {ipv6(self.source)}
             AND probe_dst_addr != reply_src_addr
             AND reply_icmp_type = 11
-            GROUP BY (probe_src_addr, probe_dst_prefix)
+            AND round <= {self.round}
+            GROUP BY probe_dst_prefix
             HAVING length(links) >= 1 OR length(replies) >= 1
         """
 
     def format(self, row):
-        return addr_to_string(row[0]), addr_to_string(row[1]), *row[2:]
+        return self.Row(addr_to_string(row[0]), *row[1:])

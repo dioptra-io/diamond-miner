@@ -176,3 +176,10 @@ VALUES ('::ffff:100.0.0.1', '::ffff:200.0.0.1', 24000, 33434, 1, 1, '::ffff:150.
        ('::ffff:100.0.0.1', '::ffff:200.0.0.1', 24000, 33434, 3, 3, '::ffff:150.0.2.1', 1, 11, 0, 250, 0, 0.0, 1),
        ('::ffff:100.0.0.1', '::ffff:201.0.0.1', 24000, 33434, 1, 1, '::ffff:150.0.3.1', 1, 11, 0, 250, 0, 0.0, 1),
        ('::ffff:100.0.0.1', '::ffff:201.0.0.1', 24000, 33434, 2, 2, '::ffff:150.0.4.1', 1, 11, 0, 250, 0, 0.0, 1);
+
+-- We reuse the NSDI example, but with no replies from at TTL 2 and at TTL 4
+DROP TABLE IF EXISTS test_star_node_star;
+CREATE TABLE test_star_node_star AS test_schema;
+
+INSERT INTO test_star_node_star SELECT * FROM test_nsdi_example;
+ALTER TABLE test_star_node_star DELETE WHERE probe_ttl_l3 IN (2,4) SETTINGS mutations_sync=2;
