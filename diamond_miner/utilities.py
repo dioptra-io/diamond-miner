@@ -74,6 +74,13 @@ def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int):
     """
     Faster version of ipaddress.IPv4Network.subnets(...).
     Returns only the network address as an integer.
+    >>> from ipaddress import ip_network
+    >>> list(subnets(ip_network("0.0.0.0/0"), new_prefix=2))
+    [0, 1073741824, 2147483648, 3221225472]
+    >>> subnets(ip_network("0.0.0.0/32"), new_prefix=24)
+    Traceback (most recent call last):
+        ...
+    ValueError: new prefix must be longer
     """
     if new_prefix < network.prefixlen:
         raise ValueError("new prefix must be longer")
@@ -84,4 +91,8 @@ def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int):
 
 
 def probe_to_csv(dst_addr: int, src_port: int, dst_port: int, ttl: int) -> str:
+    """
+    >>> probe_to_csv(42, 24000, 33434, 10)
+    '42,24000,33434,10'
+    """
     return f"{dst_addr},{src_port},{dst_port},{ttl}"

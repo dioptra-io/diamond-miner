@@ -134,3 +134,31 @@ async def test_next_round_probes_lite(client):
 
     # Round 3 -> 4, 0 probes
     assert await probes_for_round(3) == []
+
+
+@pytest.mark.asyncio
+async def test_next_round_probes_lite_adaptive(client):
+    table = "test_nsdi_lite"
+    src_addr = "100.0.0.1"
+    src_port = 24000
+    dst_port = 33434
+    mapper = SequentialFlowMapper()
+
+    async def probes_for_round(round_):
+        return await collect(
+            next_round_probes(
+                client,
+                table,
+                round_,
+                src_addr,
+                src_port,
+                dst_port,
+                mapper,
+                set(),
+                adaptive_eps=True,
+            )
+        )
+
+    # Simple test to make sure the query works.
+    # TODO: Better adaptive eps test in the future.
+    assert len(await probes_for_round(1)) >= 5

@@ -19,6 +19,10 @@ def count_prefixes(
     16777216
     >>> count_prefixes(["2001::/48"])
     65536
+    >>> count_prefixes(["0.0.0.0/32"], prefix_len_v4=24)
+    Traceback (most recent call last):
+        ...
+    ValueError: prefix length must be <= 24
     """
     count = 0
     for prefix in prefixes:
