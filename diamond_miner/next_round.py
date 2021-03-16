@@ -1,5 +1,4 @@
 from ipaddress import ip_address, ip_network
-from typing import TextIO
 
 from aioch import Client
 
@@ -14,7 +13,6 @@ async def compute_next_round(
     src_port: int,
     dst_port: int,
     mapper,
-    out: TextIO,
     adaptive_eps: bool = False,
     probe_far_ttls: bool = False,
     skip_unpopulated_ttls: bool = False,
@@ -48,7 +46,7 @@ async def compute_next_round(
             far_ttl_max=ttl_limit,
             subsets=subsets,
         ):
-            out.write("".join(("\n".join(",".join(spec) for spec in specs), "\n")))
+            yield specs
 
     async for specs in next_round_probes(
         client,
@@ -62,7 +60,7 @@ async def compute_next_round(
         adaptive_eps=adaptive_eps,
         subsets=subsets,
     ):
-        out.write("".join(("\n".join(",".join(spec) for spec in specs), "\n")))
+        yield specs
 
 
 async def far_ttls_probes(

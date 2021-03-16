@@ -1,4 +1,3 @@
-from io import StringIO
 from ipaddress import ip_address
 
 import pytest
@@ -29,26 +28,28 @@ async def test_compute_next_round():
     mapper = SequentialFlowMapper()
 
     # Round 1 -> 2, 5 probes at TTL 1-4
-    out = StringIO()
-    await compute_next_round(
-        host,
-        table,
-        1,
-        src_addr,
-        src_port,
-        dst_port,
-        mapper,
-        out,
-        adaptive_eps=False,
-        subset_prefix_len=0,
+    probes = await collect(
+        compute_next_round(
+            host,
+            table,
+            1,
+            src_addr,
+            src_port,
+            dst_port,
+            mapper,
+            adaptive_eps=False,
+            subset_prefix_len=0,
+        )
     )
 
-    target = ""
+    target_specs = []
     for ttl in range(1, 5):
         for flow_id in range(6, 6 + 5):
-            target += f"{dst_prefix + flow_id},{src_port},{dst_port},{ttl}\n"
+            target_specs.append(
+                (str(dst_prefix + flow_id), str(src_port), str(dst_port), str(ttl))
+            )
 
-    assert out.getvalue() == target
+    assert sorted(probes) == sorted(target_specs)
 
 
 @pytest.mark.asyncio
