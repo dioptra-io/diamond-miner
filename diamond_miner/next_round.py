@@ -6,7 +6,7 @@ from aioch import Client
 from diamond_miner.queries import CountNodesPerTTL, GetMaxTTL, GetNextRound
 
 
-async def compute_next_round2(
+async def compute_next_round(
     host: str,
     table: str,
     round_: int,
@@ -15,14 +15,16 @@ async def compute_next_round2(
     dst_port: int,
     mapper,
     out: TextIO,
-    ttl_limit: int = 40,
+    adaptive_eps: bool = False,
     probe_far_ttls: bool = False,
     skip_unpopulated_ttls: bool = False,
+    subset_prefix_len=6,
+    ttl_limit: int = 40,
 ):
     client = Client(host=host)
 
     # TODO: IPv6
-    subsets = ip_network("0.0.0.0/0").subnets(new_prefix=5)
+    subsets = ip_network("0.0.0.0/0").subnets(new_prefix=subset_prefix_len)
 
     # Skip the TTLs where few nodes are discovered, in order to avoid
     # re-probing them extensively (e.g. low TTLs).
@@ -42,7 +44,8 @@ async def compute_next_round2(
             src_addr,
             src_port,
             dst_port,
-            ttl_limit,
+            far_ttl_min=20,
+            far_ttl_max=ttl_limit,
             subsets=subsets,
         ):
             out.write("".join(("\n".join(",".join(spec) for spec in specs), "\n")))
@@ -56,6 +59,7 @@ async def compute_next_round2(
         dst_port,
         mapper,
         skipped_ttls,
+        adaptive_eps=adaptive_eps,
         subsets=subsets,
     ):
         out.write("".join(("\n".join(",".join(spec) for spec in specs), "\n")))
@@ -68,21 +72,22 @@ async def far_ttls_probes(
     src_addr: str,
     src_port: int,
     dst_port: int,
-    ttl_limit: int,
+    far_ttl_min: int,
+    far_ttl_max: int,
     subsets=(ip_network("::0/0"),),
 ):
     query = GetMaxTTL(src_addr, round_)
     rows = query.execute_iter(client, table, subsets)
 
     async for dst_addr, max_ttl in rows:
-        if max_ttl > ttl_limit or max_ttl < 20:
-            continue
-
-        probe_specs = []
-        for ttl in range(max_ttl + 1, ttl_limit + 1):
-            probe_specs.append((str(dst_addr), str(src_port), str(dst_port), str(ttl)))
-
-        yield probe_specs
+        if far_ttl_min <= max_ttl <= far_ttl_max:
+            probe_specs = []
+            dst_addr = int(ip_address(dst_addr))
+            for ttl in range(max_ttl + 1, far_ttl_max + 1):
+                probe_specs.append(
+                    (str(dst_addr), str(src_port), str(dst_port), str(ttl))
+                )
+            yield probe_specs
 
 
 async def next_round_probes(

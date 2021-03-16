@@ -1,9 +1,14 @@
+from io import StringIO
 from ipaddress import ip_address
 
 import pytest
 
 from diamond_miner.mappers import SequentialFlowMapper
-from diamond_miner.next_round import next_round_probes
+from diamond_miner.next_round import (
+    compute_next_round,
+    far_ttls_probes,
+    next_round_probes,
+)
 
 
 async def collect(f):
@@ -14,7 +19,76 @@ async def collect(f):
 
 
 @pytest.mark.asyncio
-async def test_next_round_probes_nsdi_lite(client):
+async def test_compute_next_round():
+    host = "127.0.0.1"
+    table = "test_nsdi_lite"
+    src_addr = "100.0.0.1"
+    dst_prefix = int(ip_address("200.0.0.0"))
+    src_port = 24000
+    dst_port = 33434
+    mapper = SequentialFlowMapper()
+
+    # Round 1 -> 2, 5 probes at TTL 1-4
+    out = StringIO()
+    await compute_next_round(
+        host,
+        table,
+        1,
+        src_addr,
+        src_port,
+        dst_port,
+        mapper,
+        out,
+        adaptive_eps=False,
+        subset_prefix_len=0,
+    )
+
+    target = ""
+    for ttl in range(1, 5):
+        for flow_id in range(6, 6 + 5):
+            target += f"{dst_prefix + flow_id},{src_port},{dst_port},{ttl}\n"
+
+    assert out.getvalue() == target
+
+
+@pytest.mark.asyncio
+async def test_far_ttls_probes(client):
+    table = "test_nsdi_lite"
+    src_addr = "100.0.0.1"
+    dst_prefix = int(ip_address("200.0.0.0"))
+    src_port = 24000
+    dst_port = 33434
+    far_ttl_min = 1
+    far_ttl_max = 10
+    round_ = 1
+
+    probes = await collect(
+        far_ttls_probes(
+            client,
+            table,
+            round_,
+            src_addr,
+            src_port,
+            dst_port,
+            far_ttl_min=far_ttl_min,
+            far_ttl_max=far_ttl_max,
+        )
+    )
+
+    # This should generate probes beyond TTL 4, up to 10 (far_ttl_max),
+    # for each flow ID previously used.
+    target_specs = []
+    for ttl in range(5, 11):
+        for flow_id in range(0, 6):
+            target_specs.append(
+                (str(dst_prefix + flow_id), str(src_port), str(dst_port), str(ttl))
+            )
+
+    assert sorted(probes) == sorted(target_specs)
+
+
+@pytest.mark.asyncio
+async def test_next_round_probes_lite(client):
     table = "test_nsdi_lite"
     src_addr = "100.0.0.1"
     dst_prefix = int(ip_address("200.0.0.0"))

@@ -14,7 +14,10 @@ def event_loop():
 
 
 @pytest.fixture(scope="session")
-async def client():
-    client = Client("127.0.0.1")
+def client():
+    return Client("127.0.0.1")
+
+
+@pytest.fixture(autouse=True, scope="session")
+async def prepare_database(client):
     await insert_test_data(client)
-    return client
