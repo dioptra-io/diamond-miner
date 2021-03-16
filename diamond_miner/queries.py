@@ -1,4 +1,3 @@
-# flake8: noqa
 from collections import namedtuple
 from dataclasses import dataclass, field
 from ipaddress import IPv4Network, IPv6Address, IPv6Network, ip_network
@@ -230,51 +229,7 @@ class GetMaxTTL(Query):
 
 @dataclass(frozen=True)
 class GetNextRound(Query):
-    """
-    >>> from diamond_miner.test import execute
-    >>> row = execute(GetNextRound('100.0.0.1', 1, adaptive_eps=False), 'test_nsdi_example')[0]
-    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
-    ('200.0.0.0', 24000, 33434, 33434, 0)
-    >>> row.prev_max_flow
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
-    >>> row.probes
-    [5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row = execute(GetNextRound('100.0.0.1', 2, adaptive_eps=False), 'test_nsdi_example')[0]
-    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
-    ('200.0.0.0', 24000, 33434, 33434, 0)
-    >>> row.prev_max_flow
-    [11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row.probes
-    [0, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row = execute(GetNextRound('100.0.0.1', 3, adaptive_eps=False), 'test_nsdi_example')[0]
-    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
-    ('200.0.0.0', 24000, 33434, 33434, 1)
-    >>> row.prev_max_flow
-    [11, 16, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row.probes
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row = execute(GetNextRound('100.0.0.1', 1, adaptive_eps=False), 'test_star_node_star')[0]
-    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
-    ('200.0.0.0', 24000, 33434, 33434, 0)
-    >>> row.prev_max_flow
-    [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]
-    >>> row.probes
-    [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row = execute(GetNextRound('100.0.0.1', 2, adaptive_eps=False), 'test_star_node_star')[0]
-    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
-    ('200.0.0.0', 24000, 33434, 33434, 0)
-    >>> row.prev_max_flow
-    [0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row.probes
-    [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row = execute(GetNextRound('100.0.0.1', 3, adaptive_eps=False), 'test_star_node_star')[0]
-    >>> row.dst_prefix, row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
-    ('200.0.0.0', 24000, 33434, 33434, 1)
-    >>> row.prev_max_flow
-    [0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> row.probes
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    """
+    # This query is tested in test_queries.py due to its complexity.
 
     source: str
     round: int
@@ -376,7 +331,6 @@ class GetNextRound(Query):
             -- if TTL > 1: we take the max of probes to send over TTL t and t-1
             arrayMap(t -> if(t == 1, nkv_Dhv[t] - max_nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv[t] - max_nkv_Dhv_prev[t], nkv_Dhv[t-1] - max_nkv_Dhv_prev[t-1]])), TTLs) AS dminer_probes_nostar,
             -- 7) Compute the number of probes to send for the * node * pattern
-            -- TODO: Document/verify/reformat the code below
             -- star_node_star[t] = 1 if we match the * node * pattern with a node at TTL `t`
             arrayPushFront(arrayMap(t -> (nodes_per_ttl[t - 1] = 0) AND (nodes_per_ttl[t] > 0) AND (nodes_per_ttl[t + 1] = 0), arrayPopFront(TTLs)), 0) AS star_node_star,
             -- Compute the number of probes sent during the previous round, including the * nodes * heuristic
