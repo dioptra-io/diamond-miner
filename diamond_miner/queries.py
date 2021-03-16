@@ -1,7 +1,7 @@
 from collections import namedtuple
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from ipaddress import IPv4Network, IPv6Address, IPv6Network, ip_network
-from typing import List, Union
+from typing import Union
 
 from aioch import Client
 
@@ -42,6 +42,15 @@ def ip_in(column: str, subset: IPNetwork):
 def ip_not_in(column: str, subset: IPNetwork):
     return f"""
     ({column} < {ipv6(subset[0])} OR {column} > {ipv6(subset[-1])})
+    """
+
+
+def ip_not_private(column: str):
+    return f"""
+    {ip_not_in('reply_src_addr', ip_network('10.0.0.0/8'))}
+    AND {ip_not_in('reply_src_addr', ip_network('172.16.0.0/12'))}
+    AND {ip_not_in('reply_src_addr', ip_network('192.168.0.0/16'))}
+    AND {ip_not_in('reply_src_addr', ip_network('fd00::/8'))}
     """
 
 
@@ -116,12 +125,7 @@ class GetNodes(Query):
         AND reply_icmp_type = 11
         """
         if self.filter_private:
-            q += f"""
-            AND {ip_not_in('reply_src_addr', ip_network('10.0.0.0/8'))}
-            AND {ip_not_in('reply_src_addr', ip_network('172.16.0.0/12'))}
-            AND {ip_not_in('reply_src_addr', ip_network('192.168.0.0/16'))}
-            AND {ip_not_in('reply_src_addr', ip_network('fd00::/8'))}
-            """
+            q += f"AND {ip_not_private('reply_src_addr')}"
         return q
 
     def format(self, row):
@@ -166,7 +170,7 @@ class GetInvalidPrefixes(Query):
     >>> from diamond_miner.test import execute
     >>> execute(GetInvalidPrefixes('100.0.0.1'), 'test_nsdi_example')
     []
-    >>> execute(GetInvalidPrefixes('100.0.0.1'), 'test_invalid_prefixes')
+    >>> sorted(execute(GetInvalidPrefixes('100.0.0.1'), 'test_invalid_prefixes'))
     ['201.0.0.0', '202.0.0.0']
     """
 
@@ -198,33 +202,39 @@ class GetInvalidPrefixes(Query):
 @dataclass(frozen=True)
 class GetMaxTTL(Query):
     """
-    Return the maximum TTL for each (src_addr, dst_addr) pair.
+    Return the maximum TTL for each dst_addr.
 
     >>> from diamond_miner.test import execute
-    >>> sorted(execute(GetMaxTTL(), 'test_max_ttl'))
-    [('100.0.0.1', '200.0.0.1', 3), ('100.0.0.1', '201.0.0.1', 2)]
+    >>> sorted(execute(GetMaxTTL('100.0.0.1', 1), 'test_max_ttl'))
+    [('200.0.0.0', 3), ('201.0.0.0', 2)]
     """
 
-    excluded_prefixes: List[str] = field(default_factory=list)
+    source: str
+    round: int
 
     def query(self, table: str, subset: IPNetwork):
-        # CH wants at-least one element in `NOT IN (...)`
-        excluded_prefixes = [f"'{x}'" for x in self.excluded_prefixes + [""]]
+        invalid_prefixes_query = GetInvalidPrefixes(self.source).query(table, subset)
+        resolved_prefixes_query = GetResolvedPrefixes(self.source, self.round).query(
+            table, subset
+        )
         return f"""
         WITH toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix
-        SELECT probe_src_addr,
-               probe_dst_addr,
+        SELECT probe_dst_addr,
                max(probe_ttl_l4) AS max_ttl
         FROM {table}
         WHERE {ip_in('probe_dst_prefix', subset)}
-        AND probe_dst_prefix NOT IN ({','.join(excluded_prefixes)})
+        AND probe_dst_prefix NOT IN ({invalid_prefixes_query})
+        AND probe_dst_prefix NOT IN ({resolved_prefixes_query})
+        AND {ip_not_private('reply_src_addr')}
+        AND probe_src_addr = {ipv6(self.source)}
         AND probe_dst_addr != reply_src_addr
         AND reply_icmp_type = 11
-        GROUP BY (probe_src_addr, probe_dst_addr)
+        AND round <= {self.round}
+        GROUP BY probe_dst_addr
         """
 
     def format(self, row):
-        return addr_to_string(row[0]), addr_to_string(row[1]), row[2]
+        return addr_to_string(row[0]), row[1]
 
 
 @dataclass(frozen=True)
@@ -235,7 +245,6 @@ class GetNextRound(Query):
     round: int
     adaptive_eps: bool = True
     dminer_lite: bool = True
-    excluded_prefixes: List[str] = field(default_factory=list)
     target_epsilon: float = 0.05
 
     Row = namedtuple(
@@ -244,14 +253,16 @@ class GetNextRound(Query):
     )
 
     def query(self, table: str, subset: IPNetwork):
-        # CH wants at-least one element in `NOT IN (...)`
-        excluded_prefixes = [f"'{x}'" for x in self.excluded_prefixes + [""]]
+        invalid_prefixes_query = GetInvalidPrefixes(self.source).query(table, subset)
+        resolved_prefixes_query = GetResolvedPrefixes(self.source, self.round).query(
+            table, subset
+        )
 
         if self.adaptive_eps:
             eps_fragment = """
             if(max_links == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links))
                 AS epsilon,
-            if(max_links_previous == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_prev))
+            if(max_links_prev == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_prev))
                 AS epsilon_prev,
             """
         else:
@@ -305,7 +316,7 @@ class GetNextRound(Query):
             arrayMap(t -> arrayUniq(arrayFilter(x -> x.1.1 == t, ttl_link_prev)), TTLs) AS links_per_ttl_prev,
             -- find the maximum number of links over all TTLs
             arrayReduce('max', links_per_ttl) AS max_links,
-            arrayReduce('max', links_per_ttl_previous) AS max_links_prev,
+            arrayReduce('max', links_per_ttl_prev) AS max_links_prev,
             -- 4) Determine if the prefix can be skipped at the next round
             -- 1 if no new links and nodes have been discovered in the current round
             equals(links_per_ttl, links_per_ttl_prev) AND equals(nodes_per_ttl, nodes_per_ttl_prev) AS skip_prefix,
@@ -348,7 +359,9 @@ class GetNextRound(Query):
                    max(probe_dst_port)
             FROM {table}
             WHERE {ip_in('probe_dst_prefix', subset)}
-            AND probe_dst_prefix NOT IN ({','.join(excluded_prefixes)})
+            AND probe_dst_prefix NOT IN ({invalid_prefixes_query})
+            AND probe_dst_prefix NOT IN ({resolved_prefixes_query})
+            AND {ip_not_private('reply_src_addr')}
             AND probe_src_addr = {ipv6(self.source)}
             AND probe_dst_addr != reply_src_addr
             AND reply_icmp_type = 11
