@@ -2,7 +2,9 @@ from ipaddress import ip_address, ip_network
 
 from aioch import Client
 
-from diamond_miner.queries import CountNodesPerTTL, GetMaxTTL, GetNextRound
+from diamond_miner.queries.count_nodes_per_ttl import CountNodesPerTTL
+from diamond_miner.queries.get_max_ttl import GetMaxTTL
+from diamond_miner.queries.get_next_round import GetNextRound
 
 
 async def compute_next_round(

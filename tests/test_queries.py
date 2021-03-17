@@ -1,4 +1,4 @@
-from diamond_miner.queries import GetNextRound  # noqa
+from diamond_miner.queries.get_next_round import GetNextRound  # noqa
 from diamond_miner.test import execute  # noqa
 
 
