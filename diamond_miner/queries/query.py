@@ -1,4 +1,6 @@
+import logging
 from dataclasses import dataclass
+from datetime import datetime
 from ipaddress import IPv4Network, IPv6Address, IPv6Network, ip_network
 from typing import Union
 
@@ -13,6 +15,8 @@ CH_QUERY_SETTINGS = {
     # https://github.com/ClickHouse/ClickHouse/issues/18406
     "read_backoff_min_latency_ms": 100000,
 }
+
+DEFAULT_SUBSET = ip_network("::/0")
 
 IPNetwork = Union[IPv4Network, IPv6Network]
 
@@ -58,17 +62,27 @@ class Query:
     async def execute(self, *args, **kwargs):
         return [row async for row in self.execute_iter(*args, **kwargs)]
 
-    async def execute_iter(
-        self, client: Client, table: str, subsets=(ip_network("::/0"),)
-    ):
+    async def execute_iter(self, client: Client, table: str, subsets=(DEFAULT_SUBSET,)):
         for subset in subsets:
             query = self.query(table, subset)
+            query_start = datetime.now()
+            logging.info(
+                "query=%s table=%s subset=%s", self.__class__.__name__, table, subset
+            )
             rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
             async for row in rows:
-                yield self.format(row)
+                yield row
+            query_time = datetime.now() - query_start
+            logging.info(
+                "query=%s table=%s subset=%s time=%s",
+                self.__class__.__name__,
+                table,
+                subset,
+                query_time,
+            )
 
-    def format(self, row):
-        return row
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET):
+        return self._query(table, subset)
 
-    def query(self, table: str, subset: IPNetwork):
+    def _query(self, table: str, subset: IPNetwork):
         raise NotImplementedError

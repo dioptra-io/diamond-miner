@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import IPNetwork, Query, addr_to_string, ip_in, ipv6
+from diamond_miner.queries.query import (  # noqa
+    IPNetwork,
+    Query,
+    addr_to_string,
+    ip_in,
+    ipv6,
+)
 
 
 @dataclass(frozen=True)
@@ -10,13 +16,14 @@ class GetInvalidPrefixes(Query):
     >>> from diamond_miner.test import execute
     >>> execute(GetInvalidPrefixes('100.0.0.1'), 'test_nsdi_example')
     []
-    >>> sorted(execute(GetInvalidPrefixes('100.0.0.1'), 'test_invalid_prefixes'))
+    >>> prefixes = execute(GetInvalidPrefixes('100.0.0.1'), 'test_invalid_prefixes')
+    >>> sorted(addr_to_string(pfx[0]) for pfx in prefixes)
     ['201.0.0.0', '202.0.0.0']
     """
 
     source: str
 
-    def query(self, table: str, subset: IPNetwork):
+    def _query(self, table: str, subset: IPNetwork):
         return f"""
         WITH toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix,
              count(reply_src_addr)         AS n_replies,
@@ -34,6 +41,3 @@ class GetInvalidPrefixes(Query):
         )
         HAVING (n_replies > 2) OR (n_distinct_replies > 1)
         """
-
-    def format(self, row):
-        return addr_to_string(row[0])

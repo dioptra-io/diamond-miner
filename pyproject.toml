@@ -23,7 +23,7 @@ pytest-asyncio = "^0.14.0"
 pytest-cov = "^2.11.1"
 
 [tool.pytest.ini_options]
-addopts = "--cov=diamond_miner --cov-report term --doctest-ignore-import-errors --doctest-modules"
+addopts = "--cov=diamond_miner --cov-report term --doctest-ignore-import-errors --doctest-modules -o log_cli=true --log-cli-level info"
 
 [build-system]
 requires = ["poetry>=0.12"]

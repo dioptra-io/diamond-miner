@@ -3,14 +3,7 @@ from dataclasses import dataclass
 
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
-from diamond_miner.queries.query import (
-    IPNetwork,
-    Query,
-    addr_to_string,
-    ip_in,
-    ip_not_private,
-    ipv6,
-)
+from diamond_miner.queries.query import IPNetwork, Query, ip_in, ip_not_private, ipv6
 
 
 @dataclass(frozen=True)
@@ -28,9 +21,9 @@ class GetNextRound(Query):
         "dst_prefix,skip_prefix,probes,prev_max_flow,min_src_port,min_dst_port,max_dst_port",
     )
 
-    def query(self, table: str, subset: IPNetwork):
-        invalid_prefixes_query = GetInvalidPrefixes(self.source).query(table, subset)
-        resolved_prefixes_query = GetResolvedPrefixes(self.source, self.round).query(
+    def _query(self, table: str, subset: IPNetwork):
+        invalid_prefixes_query = GetInvalidPrefixes(self.source)._query(table, subset)
+        resolved_prefixes_query = GetResolvedPrefixes(self.source, self.round)._query(
             table, subset
         )
 
@@ -74,7 +67,6 @@ class GetNextRound(Query):
             arrayFilter(x -> x.1.4 + 1 == x.2.4, arrayZip(replies, replies_shifted)) AS links,
             -- links for round < current round
             arrayFilter(x -> x.1.6 < {self.round} AND x.2.6 < {self.round}, links) AS links_prev,
-            -- TODO: arrayDistinct(links) at this point?
             -- 2) Count the number of nodes per TTL
             -- (probe_ttl_l3, reply_src_addr)
             arrayMap(r -> (r.4, r.5), replies) AS ttl_node,
@@ -146,6 +138,3 @@ class GetNextRound(Query):
             GROUP BY probe_dst_prefix
             HAVING length(links) >= 1 OR length(replies) >= 1
         """
-
-    def format(self, row):
-        return self.Row(addr_to_string(row[0]), *row[1:])

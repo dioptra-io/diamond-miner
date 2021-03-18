@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
-from diamond_miner.queries.query import (
+from diamond_miner.queries.query import (  # noqa
     IPNetwork,
     Query,
     addr_to_string,
@@ -18,16 +18,17 @@ class GetMaxTTL(Query):
     Return the maximum TTL for each dst_addr.
 
     >>> from diamond_miner.test import execute
-    >>> sorted(execute(GetMaxTTL('100.0.0.1', 1), 'test_max_ttl'))
+    >>> rows = execute(GetMaxTTL('100.0.0.1', 1), 'test_max_ttl')
+    >>> sorted((addr_to_string(a), b) for a, b in rows)
     [('200.0.0.0', 3), ('201.0.0.0', 2)]
     """
 
     source: str
     round: int
 
-    def query(self, table: str, subset: IPNetwork):
-        invalid_prefixes_query = GetInvalidPrefixes(self.source).query(table, subset)
-        resolved_prefixes_query = GetResolvedPrefixes(self.source, self.round).query(
+    def _query(self, table: str, subset: IPNetwork):
+        invalid_prefixes_query = GetInvalidPrefixes(self.source)._query(table, subset)
+        resolved_prefixes_query = GetResolvedPrefixes(self.source, self.round)._query(
             table, subset
         )
         return f"""
@@ -45,6 +46,3 @@ class GetMaxTTL(Query):
         AND round <= {self.round}
         GROUP BY probe_dst_addr
         """
-
-    def format(self, row):
-        return addr_to_string(row[0]), row[1]

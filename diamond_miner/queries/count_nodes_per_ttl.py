@@ -16,7 +16,7 @@ class CountNodesPerTTL(Query):
     source: str
     max_ttl: int = 255
 
-    def query(self, table: str, subset: IPNetwork):
+    def _query(self, table: str, subset: IPNetwork):
         return f"""
         WITH toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix
         SELECT probe_ttl_l4, uniqExact(reply_src_addr)

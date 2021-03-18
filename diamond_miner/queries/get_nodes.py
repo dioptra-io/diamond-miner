@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import (
+from diamond_miner.queries.query import (  # noqa
     IPNetwork,
     Query,
     addr_to_string,
@@ -16,13 +16,13 @@ class GetNodes(Query):
 
     >>> from diamond_miner.test import execute
     >>> nodes = execute(GetNodes(), 'test_nsdi_example')
-    >>> sorted(nodes)
+    >>> sorted(addr_to_string(node[0]) for node in nodes)
     ['150.0.1.1', '150.0.2.1', '150.0.3.1', '150.0.4.1', '150.0.5.1', '150.0.6.1', '150.0.7.1']
     """
 
     filter_private: bool = True
 
-    def query(self, table: str, subset: IPNetwork):
+    def _query(self, table: str, subset: IPNetwork):
         q = f"""
         WITH toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix
         SELECT DISTINCT reply_src_addr
@@ -34,6 +34,3 @@ class GetNodes(Query):
         if self.filter_private:
             q += f"AND {ip_not_private('reply_src_addr')}"
         return q
-
-    def format(self, row):
-        return addr_to_string(row[0])

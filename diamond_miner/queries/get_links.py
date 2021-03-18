@@ -1,36 +1,15 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import (
-    IPNetwork,
-    Query,
-    addr_to_string,
-    ip_in,
-    ip_not_private,
-)
+from diamond_miner.queries.query import IPNetwork, Query, ip_in, ip_not_private
 
 
 @dataclass(frozen=True)
 class GetLinks(Query):
-    """
-    Return all the discovered links.
-
-    >>> from diamond_miner.test import execute
-    >>> nodes = execute(GetLinks(), 'test_nsdi_example')[0]
-    >>> nodes[0]
-    '100.0.0.1'
-    >>> nodes[1]
-    '200.0.0.0'
-    >>> sorted(nodes[2])[:3]
-    [('150.0.1.1', '150.0.2.1'), ('150.0.1.1', '150.0.3.1'), ('150.0.2.1', '150.0.4.1')]
-    >>> sorted(nodes[2])[3:6]
-    [('150.0.3.1', '150.0.5.1'), ('150.0.3.1', '150.0.7.1'), ('150.0.4.1', '150.0.6.1')]
-    >>> sorted(nodes[2])[6:]
-    [('150.0.5.1', '150.0.6.1'), ('150.0.7.1', '150.0.6.1')]
-    """
+    # This query is tested in test_queries.py due to its complexity.
 
     filter_private: bool = True
 
-    def query(self, table: str, subset: IPNetwork):
+    def _query(self, table: str, subset: IPNetwork):
         return f"""
         WITH
             range(1, 32) AS TTLs, -- TTLs used to group nodes and links
@@ -56,10 +35,3 @@ class GetLinks(Query):
             AND reply_icmp_type = 11
             GROUP BY (probe_src_addr, probe_dst_prefix)
         """
-
-    def format(self, row):
-        return (
-            addr_to_string(row[0]),
-            addr_to_string(row[1]),
-            [(addr_to_string(a), addr_to_string(b)) for a, b in row[2]],
-        )

@@ -1,4 +1,4 @@
-from ipaddress import ip_address, ip_network
+from ipaddress import ip_network
 
 from aioch import Client
 
@@ -82,12 +82,13 @@ async def far_ttls_probes(
     async for dst_addr, max_ttl in rows:
         if far_ttl_min <= max_ttl <= far_ttl_max:
             probe_specs = []
-            dst_addr = int(ip_address(dst_addr))
+            dst_addr = int(dst_addr.ipv4_mapped)
             for ttl in range(max_ttl + 1, far_ttl_max + 1):
                 probe_specs.append(
                     (str(dst_addr), str(src_port), str(dst_port), str(ttl))
                 )
-            yield probe_specs
+            if probe_specs:
+                yield probe_specs
 
 
 async def next_round_probes(
@@ -109,7 +110,8 @@ async def next_round_probes(
     rows = query.execute_iter(client, table, subsets)
 
     async for row in rows:
-        dst_prefix = int(ip_address(row.dst_prefix))
+        row = GetNextRound.Row(*row)
+        dst_prefix = int(row.dst_prefix.ipv4_mapped)
 
         if row.skip_prefix:
             continue
@@ -144,5 +146,5 @@ async def next_round_probes(
                         str(ttl + 1),
                     )
                 )
-
-        yield probe_specs
+        if probe_specs:
+            yield probe_specs
