@@ -21,7 +21,6 @@ def execute(q, table):
         if not test_data_inserted:
             await insert_test_data(client)
             test_data_inserted = True
-        gen = q.execute_iter(client, table)
-        return [x async for x in gen]
+        return await q.execute(client, table)
 
     return asyncio.run(do())
