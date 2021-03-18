@@ -38,7 +38,6 @@ async def test_compute_next_round():
             dst_port,
             mapper,
             adaptive_eps=False,
-            subset_prefix_len=0,
         )
     )
 

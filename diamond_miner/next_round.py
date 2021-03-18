@@ -3,8 +3,50 @@ from ipaddress import ip_network
 from aioch import Client
 
 from diamond_miner.queries.count_nodes_per_ttl import CountNodesPerTTL
+from diamond_miner.queries.count_replies import CountReplies
 from diamond_miner.queries.get_max_ttl import GetMaxTTL
 from diamond_miner.queries.get_next_round import GetNextRound
+
+
+def get_subsets(counts, max_replies_per_subset):
+    """
+    >>> get_subsets({} ,10)
+    []
+    >>> counts = {ip_network("::ffff:8.8.4.0/120"): 10, ip_network("::ffff:8.8.8.0/120"): 5}
+    >>> get_subsets(counts, 15)
+    [IPv6Network('::/0')]
+    >>> get_subsets(counts, 10)
+    [IPv6Network('::ffff:808:800/117'), IPv6Network('::ffff:808:0/117')]
+    """
+
+    def count_replies(subset):
+        total = 0
+        for network, count in counts.items():
+            if network.subnet_of(subset):
+                total += count
+        return total
+
+    candidates = [(ip_network("::/0"), count_replies(ip_network("::/0")))]
+    subsets = []
+
+    while candidates:
+        candidate, n_replies = candidates.pop()
+        if n_replies == 0:
+            continue
+        elif n_replies <= max_replies_per_subset:
+            subsets.append(candidate)
+        else:
+            # Can we split?
+            a, b = tuple(candidate.subnets(prefixlen_diff=1))
+            n_replies_a = count_replies(a)
+            n_replies_b = count_replies(b)
+            if n_replies_a + n_replies_b == 0:
+                subsets.append(candidate)
+            else:
+                candidates.append((a, n_replies_a))
+                candidates.append((b, n_replies_b))
+
+    return subsets
 
 
 async def compute_next_round(
@@ -16,15 +58,26 @@ async def compute_next_round(
     dst_port: int,
     mapper,
     adaptive_eps: bool = False,
+    max_replies_per_subset=64_000_000,
     probe_far_ttls: bool = False,
     skip_unpopulated_ttls: bool = False,
-    subset_prefix_len=6,
     ttl_limit: int = 40,
 ):
     client = Client(host=host)
 
-    # TODO: IPv6
-    subsets = ip_network("0.0.0.0/0").subnets(new_prefix=subset_prefix_len)
+    # Compute the subsets such that each queries runs on at-most X rows.
+    preflen_v4, preflen_v6 = 8, 8
+    query = CountReplies(src_addr, preflen_v4, preflen_v6)
+
+    counts = {}
+    for chunk, count in await query.execute(client, table):
+        if chunk.ipv4_mapped:
+            net = ip_network(str(chunk) + f"/{96+preflen_v4}")
+        else:
+            net = ip_network(str(chunk) + f"/{preflen_v6}")
+        counts[net] = count
+
+    subsets = get_subsets(counts, max_replies_per_subset)
 
     # Skip the TTLs where few nodes are discovered, in order to avoid
     # re-probing them extensively (e.g. low TTLs).
