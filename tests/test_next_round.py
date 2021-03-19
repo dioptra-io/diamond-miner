@@ -2,7 +2,12 @@ from ipaddress import ip_address
 
 import pytest
 
-from diamond_miner.mappers import SequentialFlowMapper
+from diamond_miner.mappers import (
+    IntervalFlowMapper,
+    RandomFlowMapper,
+    ReverseByteFlowMapper,
+    SequentialFlowMapper,
+)
 from diamond_miner.next_round import (
     compute_next_round,
     far_ttls_probes,
@@ -49,6 +54,45 @@ async def test_compute_next_round():
             )
 
     assert sorted(probes) == sorted(target_specs)
+
+
+@pytest.mark.asyncio
+async def test_compute_next_round_mappers():
+    host = "127.0.0.1"
+    table = "test_nsdi_lite"
+    src_addr = "100.0.0.1"
+    src_port = 24000
+    dst_port = 33434
+
+    # In this test, we simplify verify that the next round works with
+    # all the different flow mappers. We do not check the probes themselves.
+    mappers = [
+        IntervalFlowMapper(),
+        RandomFlowMapper(master_seed=2021),
+        ReverseByteFlowMapper(),
+        SequentialFlowMapper,
+    ]
+
+    all_probes = []
+
+    for mapper in mappers:
+        all_probes.append(
+            await collect(
+                compute_next_round(
+                    host,
+                    table,
+                    1,
+                    src_addr,
+                    src_port,
+                    dst_port,
+                    mapper,
+                    adaptive_eps=False,
+                )
+            )
+        )
+
+    # Ensure that we get the same number of probes for every mapper.
+    assert len(set(len(probes) for probes in all_probes)) == 1
 
 
 @pytest.mark.asyncio

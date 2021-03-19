@@ -164,7 +164,7 @@ async def next_round_probes(
 
     async for row in rows:
         row = GetNextRound.Row(*row)
-        dst_prefix = int(row.dst_prefix.ipv4_mapped)
+        dst_prefix = int(row.dst_prefix.ipv4_mapped)  # TODO: IPv6
 
         if row.skip_prefix:
             continue
@@ -177,7 +177,9 @@ async def next_round_probes(
             flow_ids = range(row.prev_max_flow[ttl], row.prev_max_flow[ttl] + n_to_send)
             for flow_id in flow_ids:
                 addr_offset, port_offset = mapper.offset(
-                    flow_id, 2 ** (32 - prefix_len), row.dst_prefix
+                    flow_id=flow_id,
+                    prefix_size=2 ** (32 - prefix_len),
+                    prefix=dst_prefix,
                 )
 
                 if port_offset > 0 and (
