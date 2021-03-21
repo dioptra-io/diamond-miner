@@ -4,8 +4,14 @@ from diamond_miner.queries.query import IPNetwork, Query, ip_in, ip_not_private
 
 
 @dataclass(frozen=True)
-class GetLinks(Query):
-    # This query is tested in test_queries.py due to its complexity.
+class CountLinks(Query):
+    """
+    Count all the discovered links.
+
+    >>> from diamond_miner.test import execute
+    >>> execute(CountLinks(), 'test_nsdi_example')[0][0]
+    8
+    """
 
     filter_private: bool = True
 
@@ -24,13 +30,10 @@ class GetLinks(Query):
             -- compute the links by zipping the two arrays
             arrayFilter(x -> x.1.4 + 1 == x.2.4, arrayZip(replies, replies_shifted)) AS links,
             arrayDistinct(arrayMap(x -> (x.1.5, x.2.5), links)) AS links_minimal
-            SELECT probe_src_addr,
-                   probe_dst_prefix,
-                   links_minimal
+            SELECT length(links_minimal)
             FROM {table}
             WHERE {ip_in('probe_dst_prefix', subset)}
             AND {ip_not_private('reply_src_addr')}
             AND probe_dst_addr != reply_src_addr
             AND reply_icmp_type = 11
-            GROUP BY (probe_src_addr, probe_dst_prefix)
         """
