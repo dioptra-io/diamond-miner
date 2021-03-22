@@ -23,8 +23,7 @@ async def collect(f):
 
 
 @pytest.mark.asyncio
-async def test_compute_next_round():
-    host = "127.0.0.1"
+async def test_compute_next_round(client):
     table = "test_nsdi_lite"
     src_addr = "100.0.0.1"
     dst_prefix = int(ip_address("200.0.0.0"))
@@ -35,7 +34,7 @@ async def test_compute_next_round():
     # Round 1 -> 2, 5 probes at TTL 1-4
     probes = await collect(
         compute_next_round(
-            host,
+            client,
             table,
             1,
             src_addr,
@@ -57,8 +56,7 @@ async def test_compute_next_round():
 
 
 @pytest.mark.asyncio
-async def test_compute_next_round_mappers():
-    host = "127.0.0.1"
+async def test_compute_next_round_mappers(client):
     table = "test_nsdi_lite"
     src_addr = "100.0.0.1"
     src_port = 24000
@@ -79,7 +77,7 @@ async def test_compute_next_round_mappers():
         all_probes.append(
             await collect(
                 compute_next_round(
-                    host,
+                    client,
                     table,
                     1,
                     src_addr,

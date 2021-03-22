@@ -51,7 +51,7 @@ def get_subsets(counts, max_replies_per_subset):
 
 
 async def compute_next_round(
-    host: str,
+    client: Client,
     table: str,
     round_: int,
     src_addr: str,
@@ -64,8 +64,6 @@ async def compute_next_round(
     skip_unpopulated_ttls: bool = False,
     ttl_limit: int = 40,
 ):
-    client = Client(host=host)
-
     # Compute the subsets such that each queries runs on at-most X rows.
     preflen_v4, preflen_v6 = 8, 8
     query = CountReplies(src_addr, preflen_v4, preflen_v6)
