@@ -90,6 +90,25 @@ def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int):
     return range(start, end, step)
 
 
+def format_ipv6(i):
+    """
+    Convert IPv6 uint128 to string.
+    Faster than building an ip_address object and calling str().
+    >>> from ipaddress import ip_address
+    >>> format_ipv6(int(ip_address("2001:4860:4860::8888")))
+    '2001:4860:4860:0:0:0:0:8888'
+    """
+    a = (i & 0xFFFF0000000000000000000000000000) >> 112
+    b = (i & 0x0000FFFF000000000000000000000000) >> 96
+    c = (i & 0x00000000FFFF00000000000000000000) >> 80
+    d = (i & 0x000000000000FFFF0000000000000000) >> 64
+    e = (i & 0x0000000000000000FFFF000000000000) >> 48
+    f = (i & 0x00000000000000000000FFFF00000000) >> 32
+    g = (i & 0x000000000000000000000000FFFF0000) >> 16
+    h = i & 0x0000000000000000000000000000FFFF
+    return f"{a:X}:{b:X}:{c:X}:{d:X}:{e:X}:{f:X}:{g:X}:{h:X}"
+
+
 def probe_to_csv(dst_addr: int, src_port: int, dst_port: int, ttl: int) -> str:
     """
     >>> probe_to_csv(42, 24000, 33434, 10)
