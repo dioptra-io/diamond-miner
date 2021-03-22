@@ -2,7 +2,7 @@ from ipaddress import IPv4Network, ip_network
 from typing import AsyncIterator, Iterable, List, Optional, Tuple
 
 from diamond_miner.mappers import SequentialFlowMapper
-from diamond_miner.utilities import ParameterGrid, format_ipv6, subnets
+from diamond_miner.utilities import ParameterGrid, subnets
 
 ProbeType = Tuple[int, int, int, int]
 
@@ -74,4 +74,4 @@ async def probe_generator(
         addr_offset, port_offset = mapper.offset(
             flow_id=flow_id, prefix=prefix, prefix_size=prefix_size
         )
-        yield format_ipv6(prefix + addr_offset), src_port + port_offset, dst_port, ttl
+        yield prefix + addr_offset, src_port + port_offset, dst_port, ttl

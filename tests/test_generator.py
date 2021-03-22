@@ -2,6 +2,7 @@ import pytest
 
 from diamond_miner.generator import probe_generator
 from diamond_miner.mappers import SequentialFlowMapper
+from diamond_miner.utilities import format_ipv6
 
 
 @pytest.mark.asyncio
@@ -17,7 +18,7 @@ async def test_probe_generator_128():
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl in probes:
-        assert addr == "2001:4860:4860:0:0:0:0:8888"
+        assert format_ipv6(addr) == "2001:4860:4860:0:0:0:0:8888"
         assert src_port in range(24010, 24013)
         assert dst_port == 33434
         assert ttl in range(41, 43)
@@ -36,7 +37,7 @@ async def test_probe_generator_63():
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl in probes:
-        assert addr in [
+        assert format_ipv6(addr) in [
             "2001:4860:4860:0:0:0:0:A",
             "2001:4860:4860:1:0:0:0:A",
         ]
@@ -58,7 +59,7 @@ async def test_probe_generator_32():
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl in probes:
-        assert addr == "0:0:0:0:0:FFFF:808:808"
+        assert format_ipv6(addr) == "0:0:0:0:0:FFFF:808:808"
         assert src_port in range(24010, 24013)
         assert dst_port == 33434
         assert ttl in range(41, 43)
@@ -77,7 +78,7 @@ async def test_probe_generator_23():
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl in probes:
-        assert addr in [
+        assert format_ipv6(addr) in [
             "0:0:0:0:0:FFFF:0:A",
             "0:0:0:0:0:FFFF:0:10A",
         ]
