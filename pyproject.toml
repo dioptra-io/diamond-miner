@@ -26,5 +26,5 @@ pytest-cov = "^2.11.1"
 addopts = "--cov=diamond_miner --cov-report term --doctest-ignore-import-errors --doctest-modules -o log_cli=true --log-cli-level info"
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=0.12", "setuptools>=40.6.0", "Cython>=0.29.0"]
 build-backend = "poetry.masonry.api"
