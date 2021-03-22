@@ -2,6 +2,7 @@ from ipaddress import ip_network
 
 from aioch import Client
 
+from diamond_miner.mappers import FlowMapper
 from diamond_miner.queries.count_nodes_per_ttl import CountNodesPerTTL
 from diamond_miner.queries.count_replies import CountReplies
 from diamond_miner.queries.get_max_ttl import GetMaxTTL
@@ -151,7 +152,7 @@ async def next_round_probes(
     src_addr: str,
     src_port: int,
     dst_port: int,
-    mapper,
+    mapper: FlowMapper,
     skipped_ttls,
     adaptive_eps=True,
     subsets=(ip_network("::0/0"),),
