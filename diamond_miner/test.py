@@ -4,7 +4,6 @@ from pathlib import Path
 from aioch import Client
 
 test_data = Path(__file__).parent / ".." / "data" / "test_data.sql"
-test_data_inserted = False
 
 
 async def insert_test_data(client):
@@ -15,12 +14,14 @@ async def insert_test_data(client):
 
 
 def execute(q, table):
+    if not hasattr(execute, "test_data_inserted"):
+        execute.test_data_inserted = False
+
     async def do():
-        global test_data_inserted
         client = Client(host="127.0.0.1")
-        if not test_data_inserted:
+        if not execute.test_data_inserted:
             await insert_test_data(client)
-            test_data_inserted = True
+            execute.test_data_inserted = True
         return await q.execute(client, table)
 
     return asyncio.run(do())
