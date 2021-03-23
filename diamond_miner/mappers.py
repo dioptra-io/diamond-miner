@@ -45,7 +45,7 @@ class IntervalFlowMapper:
     Similar to the `SequentialFlowMapper` but with an increment >= 1.
     This allows to target addresses .1, .33, .65, ... in priority,
     which according to a paper by J. Heidemann are more likely to respond to probes.
-    >>> mapper = IntervalFlowMapper(prefix_size=256, step=32)
+    >>> mapper = IntervalFlowMapper(step=32)
     >>> mapper.offset(0, prefix=100, prefix_size=256)
     (1, 0)
     >>> mapper.offset(1, prefix=100, prefix_size=256)
@@ -57,7 +57,7 @@ class IntervalFlowMapper:
     flow_to_offset: List[int]
     prefix_size: int
 
-    def __init__(self, prefix_size: int, step: int = 32):
+    def __init__(self, prefix_size: int = 256, step: int = 32):
         self.prefix_size = prefix_size
         self.flow_to_offset = [1]
         i = 1
@@ -118,7 +118,7 @@ class RandomFlowMapper:
     Similar to the `SequentialFlowMapper` but with a random mapping
     between flow IDs and addresses.
     The mapping is randomized by prefix.
-    >>> mapper = RandomFlowMapper(prefix_size=256, master_seed=42)
+    >>> mapper = RandomFlowMapper(master_seed=42)
     >>> mapper.offset(0, prefix=100, prefix_size=256)
     (1, 0)
     >>> mapper.offset(0, prefix=200, prefix_size=256)
@@ -128,7 +128,7 @@ class RandomFlowMapper:
     flow_arrays: List[List[int]]
     prefix_size: int
 
-    def __init__(self, prefix_size: int, master_seed: int):
+    def __init__(self, master_seed: int, prefix_size: int = 256):
         self.flow_arrays = []
         self.prefix_size = prefix_size
         random.seed(master_seed)
