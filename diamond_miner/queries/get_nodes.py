@@ -1,12 +1,7 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import (  # noqa
-    IPNetwork,
-    Query,
-    addr_to_string,
-    ip_in,
-    ip_not_private,
-)
+from diamond_miner.queries.fragments import IPNetwork
+from diamond_miner.queries.query import DEFAULT_SUBSET, Query, addr_to_string  # noqa
 
 
 @dataclass(frozen=True)
@@ -20,17 +15,10 @@ class GetNodes(Query):
     ['150.0.1.1', '150.0.2.1', '150.0.3.1', '150.0.4.1', '150.0.5.1', '150.0.6.1', '150.0.7.1']
     """
 
-    filter_private: bool = True
-
-    def _query(self, table: str, subset: IPNetwork):
-        q = f"""
-        WITH toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        return f"""
+        WITH {self.probe_dst_prefix()} AS probe_dst_prefix
         SELECT DISTINCT reply_src_addr
         FROM {table}
-        WHERE {ip_in('probe_dst_prefix', subset)}
-        AND reply_src_addr != probe_dst_addr
-        AND reply_icmp_type = 11
+        WHERE {self.common_filters(subset)}
         """
-        if self.filter_private:
-            q += f"AND {ip_not_private('reply_src_addr')}"
-        return q

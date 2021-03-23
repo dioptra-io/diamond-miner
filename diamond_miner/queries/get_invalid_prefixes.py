@@ -1,12 +1,8 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import (  # noqa
-    IPNetwork,
-    Query,
-    addr_to_string,
-    ip_in,
-    ipv6,
-)
+from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.queries.fragments import IPNetwork
+from diamond_miner.queries.query import Query, addr_to_string  # noqa
 
 
 @dataclass(frozen=True)
@@ -14,24 +10,21 @@ class GetInvalidPrefixes(Query):
     """
     Return the prefixes with per-packet LB or that sends more replies than probes.
     >>> from diamond_miner.test import execute
-    >>> execute(GetInvalidPrefixes('100.0.0.1'), 'test_nsdi_example')
+    >>> execute(GetInvalidPrefixes(), 'test_nsdi_example')
     []
-    >>> prefixes = execute(GetInvalidPrefixes('100.0.0.1'), 'test_invalid_prefixes')
+    >>> prefixes = execute(GetInvalidPrefixes(), 'test_invalid_prefixes')
     >>> sorted(addr_to_string(pfx[0]) for pfx in prefixes)
     ['201.0.0.0', '202.0.0.0']
     """
 
-    source: str
-
-    def _query(self, table: str, subset: IPNetwork):
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        WITH toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix,
-             count(reply_src_addr)         AS n_replies,
-             uniqExact(reply_src_addr)     AS n_distinct_replies
+        WITH {self.probe_dst_prefix()} AS probe_dst_prefix,
+             count(reply_src_addr) AS n_replies,
+             uniqExact(reply_src_addr) AS n_distinct_replies
         SELECT DISTINCT probe_dst_prefix
         FROM {table}
-        WHERE {ip_in('probe_dst_prefix', subset)}
-        AND probe_src_addr = {ipv6(self.source)}
+        WHERE {self.common_filters(subset)}
         GROUP BY (
             probe_src_addr,
             probe_dst_addr,

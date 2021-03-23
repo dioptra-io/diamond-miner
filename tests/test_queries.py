@@ -23,7 +23,7 @@ def test_get_links_nsdi():
 
 def test_get_next_round_nsdi():
     """
-    >>> rows = execute(GetNextRound('100.0.0.1', 1, adaptive_eps=False), 'test_nsdi_lite')
+    >>> rows = execute(GetNextRound(round_leq=1, adaptive_eps=False), 'test_nsdi_lite')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix), row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
     ('200.0.0.0', 24000, 33434, 33434, 0)
@@ -32,7 +32,7 @@ def test_get_next_round_nsdi():
     >>> row.probes
     [5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    >>> rows = execute(GetNextRound('100.0.0.1', 2, adaptive_eps=False), 'test_nsdi_lite')
+    >>> rows = execute(GetNextRound(round_leq=2, adaptive_eps=False), 'test_nsdi_lite')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix), row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
     ('200.0.0.0', 24000, 33434, 33434, 0)
@@ -41,7 +41,7 @@ def test_get_next_round_nsdi():
     >>> row.probes
     [0, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    >>> rows = execute(GetNextRound('100.0.0.1', 3, adaptive_eps=False), 'test_nsdi_lite')
+    >>> rows = execute(GetNextRound(round_leq=3, adaptive_eps=False), 'test_nsdi_lite')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix), row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
     ('200.0.0.0', 24000, 33434, 33434, 1)
@@ -54,7 +54,7 @@ def test_get_next_round_nsdi():
 
 def test_get_next_round_star():
     """
-    >>> rows = execute(GetNextRound('100.0.0.1', 1, adaptive_eps=False), 'test_star_node_star')
+    >>> rows = execute(GetNextRound(round_leq=1, adaptive_eps=False), 'test_star_node_star')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix), row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
     ('200.0.0.0', 24000, 33434, 33434, 0)
@@ -63,7 +63,7 @@ def test_get_next_round_star():
     >>> row.probes
     [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    >>> rows = execute(GetNextRound('100.0.0.1', 2, adaptive_eps=False), 'test_star_node_star')
+    >>> rows = execute(GetNextRound(round_leq=2, adaptive_eps=False), 'test_star_node_star')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix), row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
     ('200.0.0.0', 24000, 33434, 33434, 0)
@@ -72,7 +72,7 @@ def test_get_next_round_star():
     >>> row.probes
     [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    >>> rows = execute(GetNextRound('100.0.0.1', 3, adaptive_eps=False), 'test_star_node_star')
+    >>> rows = execute(GetNextRound(round_leq=3, adaptive_eps=False), 'test_star_node_star')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix), row.min_src_port, row.min_dst_port, row.max_dst_port, row.skip_prefix
     ('200.0.0.0', 24000, 33434, 33434, 1)

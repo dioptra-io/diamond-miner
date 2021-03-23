@@ -1,4 +1,5 @@
 from diamond_miner.mappers import (
+    FlowMapper,
     IntervalFlowMapper,
     RandomFlowMapper,
     ReverseByteFlowMapper,
@@ -6,15 +7,15 @@ from diamond_miner.mappers import (
 )
 
 
-def _test_mapper(mapper, prefix_size, **kwargs):
+def _test_mapper(mapper: FlowMapper, prefix: int, prefix_size: int):
     offsets = []
 
     # Ensure that there is a unique flow ID <-> address mapping
     for flow_id in range(prefix_size):
         addr_offset, port_offset = mapper.offset(
-            flow_id, prefix_size=prefix_size, **kwargs
+            flow_id, prefix=prefix, prefix_size=prefix_size
         )
-        assert mapper.flow_id(addr_offset, **kwargs) == flow_id
+        assert mapper.flow_id(addr_offset, prefix) == flow_id
         assert port_offset == 0
         offsets.append((addr_offset, port_offset))
 
@@ -23,7 +24,7 @@ def _test_mapper(mapper, prefix_size, **kwargs):
     # than the number of addresses.
     for flow_id in range(prefix_size, prefix_size + 100):
         addr_offset, port_offset = mapper.offset(
-            flow_id, prefix_size=prefix_size, **kwargs
+            flow_id, prefix=prefix, prefix_size=prefix_size
         )
         assert addr_offset == prefix_size - 1
         assert port_offset == flow_id - prefix_size + 1
@@ -36,24 +37,24 @@ def _test_mapper(mapper, prefix_size, **kwargs):
 def test_sequential_flow_mapper():
     for prefix_len in [23, 24, 28, 32]:
         mapper = SequentialFlowMapper()
-        _test_mapper(mapper, 2 ** (32 - prefix_len))
+        _test_mapper(mapper, 100, 2 ** (32 - prefix_len))
 
 
 def test_interval_flow_mapper():
     for step in [1, 2, 15, 32]:
-        mapper = IntervalFlowMapper(step=step)
-        _test_mapper(mapper, 2 ** (32 - 24))
+        mapper = IntervalFlowMapper(prefix_size=2 ** (32 - 24), step=step)
+        _test_mapper(mapper, 100, 2 ** (32 - 24))
 
 
 def test_reverse_byte_flow_mapper():
     mapper = ReverseByteFlowMapper()
-    _test_mapper(mapper, 2 ** (32 - 24))
+    _test_mapper(mapper, 100, 2 ** (32 - 24))
 
 
 def test_random_flow_mapper():
-    mapper = RandomFlowMapper(master_seed=42)
-    _test_mapper(mapper, prefix_size=2 ** (32 - 24), prefix=100)
-    a1 = mapper.offset(42, prefix_size=2 ** (32 - 24), prefix=100)
-    a2 = mapper.offset(42, prefix_size=2 ** (32 - 24), prefix=100)
-    b1 = mapper.offset(42, prefix_size=2 ** (32 - 24), prefix=200)
+    mapper = RandomFlowMapper(prefix_size=2 ** (32 - 24), master_seed=42)
+    _test_mapper(mapper, prefix=100, prefix_size=2 ** (32 - 24))
+    a1 = mapper.offset(42, prefix=100, prefix_size=2 ** (32 - 24))
+    a2 = mapper.offset(42, prefix=100, prefix_size=2 ** (32 - 24))
+    b1 = mapper.offset(42, prefix=200, prefix_size=2 ** (32 - 24))
     assert a1 == a2 != b1

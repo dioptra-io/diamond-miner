@@ -1,6 +1,12 @@
 from ipaddress import IPv4Network, ip_network
 from typing import AsyncIterator, Iterable, List, Optional, Tuple
 
+from diamond_miner.defaults import (
+    DEFAULT_PREFIX_LEN_V4,
+    DEFAULT_PREFIX_LEN_V6,
+    DEFAULT_PROBE_DST_PORT,
+    DEFAULT_PROBE_SRC_PORT,
+)
 from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.utilities import ParameterGrid, subnets
 
@@ -39,12 +45,12 @@ def count_prefixes(
 
 async def probe_generator(
     prefixes: Iterable[str],  # /32 or / 128 if nothing specified
-    prefix_len_v4: int = 24,
-    prefix_len_v6: int = 64,
-    flow_ids: List[int] = range(6),
-    ttls: List[int] = range(1, 33),
-    src_port: int = 24000,
-    dst_port: int = 33434,
+    flow_ids: Iterable[int] = range(6),
+    ttls: Iterable[int] = range(1, 33),
+    prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
+    prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
+    probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
+    probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     mapper=SequentialFlowMapper(),
     seed: Optional[int] = None,
 ) -> AsyncIterator[ProbeType]:
@@ -52,7 +58,7 @@ async def probe_generator(
     # Returns:
     #     destination address (little endian), source port, destination port, TTL.
     """
-    prefixes_ = []
+    prefixes_: List[Tuple[int, int]] = []
     for prefix in prefixes:
         network = ip_network(prefix.strip())
         if isinstance(network, IPv4Network):
@@ -74,4 +80,4 @@ async def probe_generator(
         addr_offset, port_offset = mapper.offset(
             flow_id=flow_id, prefix=prefix, prefix_size=prefix_size
         )
-        yield prefix + addr_offset, src_port + port_offset, dst_port, ttl
+        yield prefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl

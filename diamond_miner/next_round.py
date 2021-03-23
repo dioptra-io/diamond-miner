@@ -1,8 +1,10 @@
 from ipaddress import ip_network
+from typing import Iterable
 
 from aioch import Client
 
-from diamond_miner.mappers import FlowMapper
+from diamond_miner.config import Config
+from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.queries.count_nodes_per_ttl import CountNodesPerTTL
 from diamond_miner.queries.count_replies import CountReplies
 from diamond_miner.queries.get_max_ttl import GetMaxTTL
@@ -34,7 +36,7 @@ def get_subsets(counts, max_replies_per_subset):
         candidate, n_replies = candidates.pop()
         if n_replies == 0:
             continue
-        elif n_replies <= max_replies_per_subset:
+        if n_replies <= max_replies_per_subset:
             subsets.append(candidate)
         else:
             # Can we split?
@@ -50,120 +52,102 @@ def get_subsets(counts, max_replies_per_subset):
     return subsets
 
 
-async def compute_next_round(
-    client: Client,
-    table: str,
-    round_: int,
-    src_addr: str,
-    src_port: int,
-    dst_port: int,
-    mapper,
-    adaptive_eps: bool = False,
-    max_replies_per_subset=64_000_000,
-    probe_far_ttls: bool = False,
-    skip_unpopulated_ttls: bool = False,
-    ttl_limit: int = 40,
-):
+async def compute_next_round(config: Config, client: Client, table: str, round_: int):
     # Compute the subsets such that each queries runs on at-most X rows.
-    preflen_v4, preflen_v6 = 8, 8
-    query = CountReplies(src_addr, preflen_v4, preflen_v6)
+    count_replies_query = CountReplies(
+        probe_src_addr=config.probe_src_addr, prefix_len_v4=8, prefix_len_v6=8
+    )
 
     counts = {}
-    for chunk, count in await query.execute(client, table):
+    for chunk, count in await count_replies_query.execute(client, table):
         if chunk.ipv4_mapped:
-            net = ip_network(str(chunk) + f"/{96+preflen_v4}")
+            net = ip_network(str(chunk) + f"/{96+8}")
         else:
-            net = ip_network(str(chunk) + f"/{preflen_v6}")
+            net = ip_network(str(chunk) + f"/{8}")
         counts[net] = count
 
-    subsets = get_subsets(counts, max_replies_per_subset)
+    subsets = get_subsets(counts, config.max_replies_per_subset)
 
     # Skip the TTLs where few nodes are discovered, in order to avoid
     # re-probing them extensively (e.g. low TTLs).
-    if skip_unpopulated_ttls:
+    if config.skip_unpopulated_ttls:
         threshold = 100
-        query = CountNodesPerTTL(src_addr, ttl_limit)
-        nodes_per_ttl = await query.execute(client, table)
+        count_nodes_query = CountNodesPerTTL(
+            probe_src_addr=config.probe_src_addr, max_ttl=config.far_ttl_max
+        )
+        nodes_per_ttl = await count_nodes_query.execute(client, table)
         skipped_ttls = {ttl for ttl, n_nodes in nodes_per_ttl if n_nodes < threshold}
     else:
         skipped_ttls = set()
 
-    if probe_far_ttls:
+    if config.probe_far_ttls:
         async for specs in far_ttls_probes(
-            client,
-            table,
-            round_,
-            src_addr,
-            src_port,
-            dst_port,
-            far_ttl_min=20,
-            far_ttl_max=ttl_limit,
-            subsets=subsets,
+            config=config, client=client, table=table, round_=round_, subsets=subsets
         ):
             yield specs
 
     async for specs in next_round_probes(
-        client,
-        table,
-        round_,
-        src_addr,
-        src_port,
-        dst_port,
-        mapper,
-        skipped_ttls,
-        adaptive_eps=adaptive_eps,
+        config=config,
+        client=client,
+        table=table,
+        round_=round_,
+        skipped_ttls=skipped_ttls,
         subsets=subsets,
     ):
         yield specs
 
 
 async def far_ttls_probes(
+    config: Config,
     client: Client,
     table: str,
     round_: int,
-    src_addr: str,
-    src_port: int,
-    dst_port: int,
-    far_ttl_min: int,
-    far_ttl_max: int,
-    subsets=(ip_network("::0/0"),),
+    subsets=(DEFAULT_SUBSET,),
 ):
-    query = GetMaxTTL(src_addr, round_)
+    query = GetMaxTTL(
+        prefix_len_v4=config.prefix_len_v4,
+        prefix_len_v6=config.prefix_len_v6,
+        probe_src_addr=config.probe_src_addr,
+        round_leq=round_,
+    )
     rows = query.execute_iter(client, table, subsets)
 
     async for dst_addr, max_ttl in rows:
-        if far_ttl_min <= max_ttl <= far_ttl_max:
+        if config.far_ttl_min <= max_ttl <= config.far_ttl_max:
             probe_specs = []
-            dst_addr = int(dst_addr.ipv4_mapped)
-            for ttl in range(max_ttl + 1, far_ttl_max + 1):
+            for ttl in range(max_ttl + 1, config.far_ttl_max + 1):
                 probe_specs.append(
-                    (str(dst_addr), str(src_port), str(dst_port), str(ttl))
+                    (int(dst_addr), config.probe_src_port, config.probe_dst_port, ttl)
                 )
             if probe_specs:
                 yield probe_specs
 
 
 async def next_round_probes(
+    config: Config,
     client: Client,
     table: str,
     round_: int,
-    src_addr: str,
-    src_port: int,
-    dst_port: int,
-    mapper: FlowMapper,
-    skipped_ttls,
-    adaptive_eps=True,
-    subsets=(ip_network("::0/0"),),
+    skipped_ttls: Iterable[int],
+    subsets=(DEFAULT_SUBSET,),
 ):
-    # TODO: IPv6
-    prefix_len = 24
-
-    query = GetNextRound(src_addr, round_, adaptive_eps=adaptive_eps)
+    query = GetNextRound(
+        adaptive_eps=config.adaptive_eps,
+        prefix_len_v4=config.prefix_len_v4,
+        prefix_len_v6=config.prefix_len_v6,
+        probe_src_addr=config.probe_src_addr,
+        round_leq=round_,
+    )
     rows = query.execute_iter(client, table, subsets)
 
     async for row in rows:
         row = GetNextRound.Row(*row)
-        dst_prefix = int(row.dst_prefix.ipv4_mapped)  # TODO: IPv6
+        dst_prefix_int = int(row.dst_prefix)
+
+        # prefix_size: number of addresses in the prefix.
+        prefix_size = 2 ** (128 - config.prefix_len_v6)
+        if row.dst_prefix.ipv4_mapped:
+            prefix_size = 2 ** (32 - config.prefix_len_v4)
 
         if row.skip_prefix:
             continue
@@ -175,16 +159,16 @@ async def next_round_probes(
 
             flow_ids = range(row.prev_max_flow[ttl], row.prev_max_flow[ttl] + n_to_send)
             for flow_id in flow_ids:
-                addr_offset, port_offset = mapper.offset(
+                addr_offset, port_offset = config.mapper.offset(
                     flow_id=flow_id,
-                    prefix_size=2 ** (32 - prefix_len),
-                    prefix=dst_prefix,
+                    prefix_size=prefix_size,
+                    prefix=dst_prefix_int,
                 )
 
                 if port_offset > 0 and (
-                    (row.min_dst_port != dst_port)
-                    or (row.max_dst_port != dst_port)  # noqa
-                    or (row.min_src_port < src_port)  # noqa
+                    (row.min_dst_port != config.probe_dst_port)
+                    or (row.max_dst_port != config.probe_dst_port)  # noqa
+                    or (row.min_src_port < config.probe_src_port)  # noqa
                 ):
                     # There is a case where max_src_port > sport,
                     # but real_flow_id < 255 (see dst_prefix == 28093440)
@@ -193,11 +177,11 @@ async def next_round_probes(
 
                 probe_specs.append(
                     (
-                        str(dst_prefix + addr_offset),
-                        str(src_port + port_offset),
-                        str(dst_port),
+                        dst_prefix_int + addr_offset,
+                        config.probe_src_port + port_offset,
+                        config.probe_dst_port,
                         # TTL in enumerate starts at 0 instead of 1
-                        str(ttl + 1),
+                        ttl + 1,
                     )
                 )
         if probe_specs:

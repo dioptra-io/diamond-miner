@@ -1,36 +1,31 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import IPNetwork, Query, ip_in, ip_not_private
+from diamond_miner.queries.fragments import IPNetwork
+from diamond_miner.queries.query import DEFAULT_SUBSET, Query
 
 
 @dataclass(frozen=True)
 class GetLinks(Query):
     # This query is tested in test_queries.py due to its complexity.
 
-    filter_private: bool = True
-
-    def _query(self, table: str, subset: IPNetwork):
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        WITH
-            toIPv6(cutIPv6(probe_dst_addr, 8, 1)) AS probe_dst_prefix,
-            -- 1) Compute the links
-            --  x.1             x.2             x.3             x.4           x.5             x.6
-            -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)
-            groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)) AS replies_unsorted,
-            -- sort by (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3)
-            arraySort(x -> (x.1, x.2, x.3, x.4), replies_unsorted) AS replies,
-            -- shift by 1: remove the element and append a NULL row
-            arrayConcat(arrayPopFront(replies), [(toIPv6('::'), 0, 0, 0, toIPv6('::'), 0)]) AS replies_shifted,
-            -- compute the links by zipping the two arrays
-            arrayFilter(x -> x.1.4 + 1 == x.2.4, arrayZip(replies, replies_shifted)) AS links,
-            arrayDistinct(arrayMap(x -> (x.1.5, x.2.5), links)) AS links_minimal
-            SELECT probe_src_addr,
-                   probe_dst_prefix,
-                   links_minimal
-            FROM {table}
-            WHERE {ip_in('probe_dst_prefix', subset)}
-            AND {ip_not_private('reply_src_addr')}
-            AND probe_dst_addr != reply_src_addr
-            AND reply_icmp_type = 11
-            GROUP BY (probe_src_addr, probe_dst_prefix)
+        WITH {self.probe_dst_prefix()} AS probe_dst_prefix,
+             -- 1) Compute the links
+             --  x.1             x.2             x.3             x.4           x.5             x.6
+             -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)
+             groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)) AS replies_unsorted,
+             -- sort by (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3)
+             arraySort(x -> (x.1, x.2, x.3, x.4), replies_unsorted) AS replies,
+             -- shift by 1: remove the element and append a NULL row
+             arrayConcat(arrayPopFront(replies), [(toIPv6('::'), 0, 0, 0, toIPv6('::'), 0)]) AS replies_shifted,
+             -- compute the links by zipping the two arrays
+             arrayFilter(x -> x.1.4 + 1 == x.2.4, arrayZip(replies, replies_shifted)) AS links,
+             arrayDistinct(arrayMap(x -> (x.1.5, x.2.5), links)) AS links_minimal
+        SELECT probe_src_addr,
+               probe_dst_prefix,
+               links_minimal
+        FROM {table}
+        WHERE {self.common_filters(subset)}
+        GROUP BY (probe_src_addr, probe_dst_prefix)
         """
