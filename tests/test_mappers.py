@@ -51,6 +51,8 @@ def test_random_flow_mapper():
     mapper = RandomFlowMapper(prefix_size=2 ** (32 - 24), seed=42)
     _test_mapper(mapper, prefix=100, prefix_size=2 ** (32 - 24))
     a1 = mapper.offset(42, prefix=100)
+
+    mapper = RandomFlowMapper(prefix_size=2 ** (32 - 24), seed=42)
     a2 = mapper.offset(42, prefix=100)
     b1 = mapper.offset(42, prefix=200)
     assert a1 == a2 != b1

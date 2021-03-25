@@ -5,7 +5,7 @@ We make the flow ID start at 0.
     2**(32-24) for a /24 in IPv4
 """
 import random
-from typing import List, Protocol, Tuple
+from typing import Protocol, Tuple
 from libc.stdint cimport uint8_t, uint16_t
 from pygfc import Permutation
 
@@ -15,13 +15,11 @@ cdef extern from *:
     ctypedef long long int128_t "__int128_t"
     ctypedef unsigned long long uint128_t "__uint128_t"
 
-Offset = Tuple[int, int]
-
 class FlowMapper(Protocol):
     def flow_id(self, addr_offset: int, prefix: int) -> int:
         pass
 
-    def offset(self, flow_id: int, prefix: int) -> Offset:
+    def offset(self, flow_id: int, prefix: int) -> Tuple[int,int]:
         pass
 
 
