@@ -5,6 +5,10 @@ from setuptools import Extension
 
 extensions = [
     Extension(
+        "diamond_miner.mappers",
+        ["diamond_miner/mappers.pyx"],
+    ),
+    Extension(
         "diamond_miner.utilities.format",
         ["diamond_miner/utilities/format.pyx"],
     ),

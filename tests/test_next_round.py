@@ -59,9 +59,9 @@ async def test_compute_next_round_mappers(client):
     # all the different flow mappers. We do not check the probes themselves.
     mappers = [
         IntervalFlowMapper(prefix_size=prefix_size),
-        RandomFlowMapper(prefix_size=prefix_size, master_seed=2021),
+        RandomFlowMapper(prefix_size=prefix_size, seed=2021),
         ReverseByteFlowMapper(),
-        SequentialFlowMapper(),
+        SequentialFlowMapper(prefix_size=prefix_size),
     ]
 
     all_probes = []

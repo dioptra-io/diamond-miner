@@ -77,7 +77,5 @@ async def probe_generator(
     grid = grid.shuffled(seed=seed)
 
     for (prefix_size, prefix), ttl, flow_id in grid:
-        addr_offset, port_offset = mapper.offset(
-            flow_id=flow_id, prefix=prefix, prefix_size=prefix_size
-        )
+        addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=prefix)
         yield prefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl

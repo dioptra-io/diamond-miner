@@ -13,7 +13,7 @@ async def test_probe_generator_128():
         prefix_len_v6=128,
         flow_ids=[10, 11, 12],
         ttls=[41, 42],
-        mapper=SequentialFlowMapper(),
+        mapper=SequentialFlowMapper(prefix_size=1),
     )
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 6
@@ -32,7 +32,7 @@ async def test_probe_generator_63():
         prefix_len_v6=64,
         flow_ids=[10],
         ttls=[41],
-        mapper=SequentialFlowMapper(),
+        mapper=SequentialFlowMapper(prefix_size=2 ** 64),
     )
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 2
@@ -54,7 +54,7 @@ async def test_probe_generator_32():
         prefix_len_v4=32,
         flow_ids=[10, 11, 12],
         ttls=[41, 42],
-        mapper=SequentialFlowMapper(),
+        mapper=SequentialFlowMapper(prefix_size=1),
     )
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 6
@@ -73,7 +73,7 @@ async def test_probe_generator_23():
         prefix_len_v4=24,
         flow_ids=[10],
         ttls=[41],
-        mapper=SequentialFlowMapper(),
+        mapper=SequentialFlowMapper(prefix_size=2 ** 8),
     )
     probes = [x async for x in generator]
     assert len(probes) == len(set(probes)) == 2

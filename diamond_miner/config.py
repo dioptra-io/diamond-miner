@@ -20,6 +20,6 @@ class Config:
     adaptive_eps: bool = False
     far_ttl_min: int = 20
     far_ttl_max: int = 40
-    max_replies_per_subset = 64_000_000
+    max_replies_per_subset: int = 64_000_000
     probe_far_ttls: bool = False
     skip_unpopulated_ttls: bool = False

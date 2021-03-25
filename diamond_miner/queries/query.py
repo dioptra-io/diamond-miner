@@ -1,8 +1,8 @@
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from ipaddress import IPv6Address
-from typing import List, Optional
+from typing import AsyncIterator, Iterable, List, Optional
 
 from aioch import Client
 
@@ -46,40 +46,50 @@ def addr_to_string(addr: IPv6Address):
 
 @dataclass(frozen=True)
 class Query:
-    # Properties common to all queries.
-
     filter_destination: bool = True
-    filter_private: bool = True
-    prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
-    prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
-    probe_src_addr: Optional[str] = None
-    reply_icmp_type: List[int] = field(default_factory=list)
-    round_eq: Optional[int] = None
-    round_leq: Optional[int] = None
+    "If true, ignore the replies from the destination."
 
-    async def execute(self, *args, **kwargs):
+    filter_private: bool = True
+    "If true, ignore the replies from private IP addresses."
+
+    prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
+    "The destination prefix size for IPv4 probes."
+
+    prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
+    "The destination prefix size for IPv6 probes."
+
+    probe_src_addr: Optional[str] = None
+    "If specified, keep only the replies to probes sent by this address."
+
+    reply_icmp_type: Iterable[int] = (1, 11)
+    "If specified, keep only these types of ICMP replies."
+
+    round_eq: Optional[int] = None
+    "If specified, keep only the replies from this round."
+
+    round_leq: Optional[int] = None
+    "If specified, keep only the replies from this round or before."
+
+    async def execute(self, *args, **kwargs) -> List:
         return [row async for row in self.execute_iter(*args, **kwargs)]
 
-    async def execute_iter(self, client: Client, table: str, subsets=(DEFAULT_SUBSET,)):
+    async def execute_iter(
+        self, client: Client, table: str, subsets=(DEFAULT_SUBSET,)
+    ) -> AsyncIterator:
         for subset in subsets:
             query = self.query(table, subset)
-            query_start = datetime.now()
-            logging.info(
-                "query=%s table=%s subset=%s", self.__class__.__name__, table, subset
-            )
+            start = datetime.now()
+            logging.info("query=%s table=%s subset=%s", self.name, table, subset)
             rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
             async for row in rows:
                 yield row
-            query_time = datetime.now() - query_start
+            delta = datetime.now() - start
             logging.info(
-                "query=%s table=%s subset=%s time=%s",
-                self.__class__.__name__,
-                table,
-                subset,
-                query_time,
+                "query=%s table=%s subset=%s time=%s", self.name, table, subset, delta
             )
 
-    def common_filters(self, subset: IPNetwork):
+    def common_filters(self, subset: IPNetwork) -> str:
+        """`WHERE` clause common to all queries."""
         s = f"""
         {ip_in('probe_dst_prefix', subset)}
         AND {ip_eq('probe_src_addr', self.probe_src_addr)}
@@ -91,7 +101,11 @@ class Query:
             s += f"\nAND {ip_not_private('reply_src_addr')}"
         return s
 
-    def probe_dst_prefix(self):
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
+
+    def probe_dst_prefix(self) -> str:
         return f"{cut_ipv6('probe_dst_addr', self.prefix_len_v4, self.prefix_len_v6)}"
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:

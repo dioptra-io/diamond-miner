@@ -1,5 +1,5 @@
 from ipaddress import IPv4Network, IPv6Network, ip_network
-from typing import Any, List, Optional, Union
+from typing import Any, Iterable, Optional, Union
 
 IPNetwork = Union[IPv4Network, IPv6Network]
 
@@ -26,7 +26,7 @@ def leq(column: str, value: Optional[Any]):
     return f"{column} <= {value}"
 
 
-def in_(column: str, values: List[Any]):
+def in_(column: str, values: Iterable[Any]):
     if not values:
         return "1"
     return f"{column} in [{','.join(map(str, values))}]"

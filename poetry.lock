@@ -247,7 +247,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pyflakes"
-version = "2.3.0"
+version = "2.3.1"
 description = "passive checker of Python programs"
 category = "dev"
 optional = false
@@ -255,8 +255,8 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pygfc"
-version = "0.1.2"
-description = "(Partial) implementation of a Generalized-Feistel Cipher for generating random permutations."
+version = "0.2.0"
+description = "Implementation of a Generalized-Feistel Cipher for generating random permutations."
 category = "main"
 optional = false
 python-versions = ">=3.6"
@@ -399,7 +399,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ec6bfdefa0a117ac957721008dcc5858d6f92b0fe2b5ce0334d2dc1660cbf038"
+content-hash = "d4e5412f775ff2aaf75936d1e3c5f892daa7c6439da6ee9a8ea12af6bd7c520e"
 
 [metadata.files]
 aioch = [
@@ -671,21 +671,21 @@ pycodestyle = [
     {file = "pycodestyle-2.7.0.tar.gz", hash = "sha256:c389c1d06bf7904078ca03399a4816f974a1d590090fecea0c63ec26ebaf1cef"},
 ]
 pyflakes = [
-    {file = "pyflakes-2.3.0-py2.py3-none-any.whl", hash = "sha256:910208209dcea632721cb58363d0f72913d9e8cf64dc6f8ae2e02a3609aba40d"},
-    {file = "pyflakes-2.3.0.tar.gz", hash = "sha256:e59fd8e750e588358f1b8885e5a4751203a0516e0ee6d34811089ac294c8806f"},
+    {file = "pyflakes-2.3.1-py2.py3-none-any.whl", hash = "sha256:7893783d01b8a89811dd72d7dfd4d84ff098e5eed95cfa8905b22bbffe52efc3"},
+    {file = "pyflakes-2.3.1.tar.gz", hash = "sha256:f5bc8ecabc05bb9d291eb5203d6810b49040f6ff446a756326104746cc00c1db"},
 ]
 pygfc = [
-    {file = "pygfc-0.1.2-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:a8619517f621042f1e46bcc92f8c3bffbd5d72f8bdb15fa98103c9e74e581056"},
-    {file = "pygfc-0.1.2-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:621bccd47946d2c3455c2b9a9098a628824c554ace62c7bfa9cd5dae8e0e5d76"},
-    {file = "pygfc-0.1.2-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:ca979b39896c1737f427a637a3fb8fd5e84e23843845d513cc8965811943c040"},
-    {file = "pygfc-0.1.2-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:55f1e0e62fe9d90774a0db4138f8f6655505bab111fa595a1d73718519a6da06"},
-    {file = "pygfc-0.1.2-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:3ff7ce8877bc7184bceb1f7fc13977cb1e288b855a7d6a6f4e47f403e79d1507"},
-    {file = "pygfc-0.1.2-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:912acd3c2315d65c9b8017d362b8ad71e7a396457b45cbca68610089dbf4abc6"},
-    {file = "pygfc-0.1.2-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:ab5500dcc811eacf269a7157616afaf5cf1e63c2cfbe212e4ef926ef53ec47a1"},
-    {file = "pygfc-0.1.2-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:8790c2e26e31bb3c38e4627c58130386541c841f85f56a62df15ce8632b919b6"},
-    {file = "pygfc-0.1.2-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:a41a1888fae2ae561cbcfc004ffcf1621941fcbf499717dc8e37e82b38c193ac"},
-    {file = "pygfc-0.1.2-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:8f6c714054255b64fe7e1097282dba62d8a59aa20a4f35f605454ffde0f60d53"},
-    {file = "pygfc-0.1.2.tar.gz", hash = "sha256:d9a346850471d235d1dc25b945235931479426ab6f075b30e6b3977b5d1ba6d6"},
+    {file = "pygfc-0.2.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:9ac1f61d65698460de823d52fa5d92263c02ba449ebeedb4c331ad77b9546c30"},
+    {file = "pygfc-0.2.0-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:56a3ffee3164758d3c188452b42ee960e009c35bcfccee3c35a2ded743bf32f2"},
+    {file = "pygfc-0.2.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:e807cf8e0e3e7505ebcba60f626c355732753b307545177fa46e4d3dba884b89"},
+    {file = "pygfc-0.2.0-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:219a6edb1f523ffddc073de91a583a98248c0a81529cf0b78080886fb96b4ef6"},
+    {file = "pygfc-0.2.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:eed5aec318012e31b685e1de9e39eb2878dad5c796ac132d3dba646202450bf1"},
+    {file = "pygfc-0.2.0-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:b3c2fc0dbf0adda34f57b61c85dfb63fc4f031d431173226f4fc1f68cbd022f0"},
+    {file = "pygfc-0.2.0-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:7d3d29dd3a0bb4bae539e0697a46885fc861ca70b2ccabb55f754c07f04e0fc2"},
+    {file = "pygfc-0.2.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:dd2ba024f7e9cad90f9d4d69a951d2709cd2f3e3cb1c05dabb74756e60446841"},
+    {file = "pygfc-0.2.0-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:ac0dff962a63bc00dbb7f68b7a382fb373965af00563691f5bc6f7a836760a58"},
+    {file = "pygfc-0.2.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:e985f33327db3cff4f2d444422ec9f01c27324649317094bea086e99b7965793"},
+    {file = "pygfc-0.2.0.tar.gz", hash = "sha256:7ba504f0e7eb7994e974682ac1efe2a0007559042199c9b5b5bb996bbce9d98d"},
 ]
 pylint = [
     {file = "pylint-2.7.2-py3-none-any.whl", hash = "sha256:d09b0b07ba06bcdff463958f53f23df25e740ecd81895f7d2699ec04bbd8dc3b"},
