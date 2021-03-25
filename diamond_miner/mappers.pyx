@@ -109,9 +109,9 @@ cdef class RandomFlowMapper:
     cdef uint128_t prefix_size
 
     def __init__(self, int seed, uint128_t prefix_size = DEFAULT_PREFIX_SIZE_V4):
-        # We can generate a random permutation up to 2^64 only.
+        # We can generate a random permutation up to 2^64-1 only.
         self.permutations = []
-        self.prefix_size = min(prefix_size, 2**64)
+        self.prefix_size = min(prefix_size, (2 ** 64) - 1)
         random.seed(seed)
         for i in range(1024):
             perm = Permutation(self.prefix_size, 3, random.randint(0, 2 ** 64))

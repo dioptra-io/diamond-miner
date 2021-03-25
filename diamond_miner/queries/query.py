@@ -61,7 +61,7 @@ class Query:
     probe_src_addr: Optional[str] = None
     "If specified, keep only the replies to probes sent by this address."
 
-    reply_icmp_type: Iterable[int] = (1, 11)
+    reply_icmp_type: Iterable[int] = (3, 11)
     "If specified, keep only these types of ICMP replies."
 
     round_eq: Optional[int] = None
