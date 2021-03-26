@@ -12,7 +12,7 @@ build = "build.py"
 [tool.poetry.dependencies]
 python = "^3.8"
 aioch = "^0.0.2"
-pygfc = "^0.2.0"
+pygfc = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 black = { version = "^20.8b1", allow-prereleases = true }
