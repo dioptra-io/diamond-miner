@@ -1,5 +1,5 @@
 from libc.stdint cimport uint8_t, uint16_t
-from libc.stdlib cimport malloc
+from libc.stdlib cimport free, malloc
 from libc.stdio cimport snprintf
 
 # https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/netinet_in.h.html
@@ -19,7 +19,9 @@ def format_ipv6(int_addr):
     cdef int length = format_ipv6_(int_addr, c_str, size)
     if length < 0:
         return None
-    return c_str[:length].decode('UTF-8')
+    py_str = c_str[:length].decode('UTF-8')
+    free(c_str)
+    return py_str
 
 cdef inline int format_ipv6_(int_addr, char* c_str, size_t size):
     cdef uint16_t a, b, c, d, e, f, g, h
