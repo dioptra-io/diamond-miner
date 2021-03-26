@@ -1,4 +1,3 @@
-import logging
 from dataclasses import dataclass
 from datetime import datetime
 from ipaddress import IPv6Address
@@ -11,6 +10,7 @@ from diamond_miner.defaults import (
     DEFAULT_PREFIX_LEN_V6,
     DEFAULT_SUBSET,
 )
+from diamond_miner.logging import logger
 from diamond_miner.queries.fragments import (
     IPNetwork,
     cut_ipv6,
@@ -79,12 +79,12 @@ class Query:
         for subset in subsets:
             query = self.query(table, subset)
             start = datetime.now()
-            logging.info("query=%s table=%s subset=%s", self.name, table, subset)
+            logger.info("query=%s table=%s subset=%s", self.name, table, subset)
             rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
             async for row in rows:
                 yield row
             delta = datetime.now() - start
-            logging.info(
+            logger.info(
                 "query=%s table=%s subset=%s time=%s", self.name, table, subset, delta
             )
 
