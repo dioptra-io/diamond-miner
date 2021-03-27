@@ -97,6 +97,8 @@ class Query:
         AND {eq('round', self.round_eq)}
         AND {leq('round', self.round_leq)}
         """
+        if self.filter_destination:
+            s += "\nAND reply_src_addr != probe_dst_addr"
         if self.filter_private:
             s += f"\nAND {ip_not_private('reply_src_addr')}"
         return s
