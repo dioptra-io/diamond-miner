@@ -19,10 +19,9 @@ class CountNodesPerTTL(Query):
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        WITH {self.probe_dst_prefix()} AS probe_dst_prefix
-        SELECT probe_ttl_l4, uniqExact(reply_src_addr)
+        SELECT probe_ttl_l3, uniqExact(reply_src_addr)
         FROM {table}
         WHERE {self.common_filters(subset)}
-        AND probe_ttl_l4 <= {self.max_ttl}
-        GROUP BY probe_ttl_l4
+        AND probe_ttl_l3 <= {self.max_ttl}
+        GROUP BY probe_ttl_l3
         """

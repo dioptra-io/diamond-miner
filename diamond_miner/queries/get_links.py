@@ -10,8 +10,7 @@ class GetLinks(Query):
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        WITH {self.probe_dst_prefix()} AS probe_dst_prefix,
-             -- 1) Compute the links
+        WITH -- 1) Compute the links
              --  x.1             x.2             x.3             x.4           x.5             x.6
              -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)
              groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)) AS replies_unsorted,

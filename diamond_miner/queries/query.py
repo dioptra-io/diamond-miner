@@ -5,22 +5,9 @@ from typing import AsyncIterator, Iterable, List, Optional
 
 from aioch import Client
 
-from diamond_miner.defaults import (
-    DEFAULT_PREFIX_LEN_V4,
-    DEFAULT_PREFIX_LEN_V6,
-    DEFAULT_SUBSET,
-)
+from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import (
-    IPNetwork,
-    cut_ipv6,
-    eq,
-    in_,
-    ip_eq,
-    ip_in,
-    ip_not_private,
-    leq,
-)
+from diamond_miner.queries.fragments import IPNetwork, eq, in_, ip_eq, ip_in, leq
 
 CH_QUERY_SETTINGS = {
     "max_block_size": 100000,
@@ -51,12 +38,6 @@ class Query:
 
     filter_private: bool = True
     "If true, ignore the replies from private IP addresses."
-
-    prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
-    "The destination prefix size for IPv4 probes."
-
-    prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
-    "The destination prefix size for IPv6 probes."
 
     probe_src_addr: Optional[str] = None
     "If specified, keep only the replies to probes sent by this address."
@@ -100,15 +81,12 @@ class Query:
         if self.filter_destination:
             s += "\nAND reply_src_addr != probe_dst_addr"
         if self.filter_private:
-            s += f"\nAND {ip_not_private('reply_src_addr')}"
+            s += "\nAND private_reply_src_addr = 0"
         return s
 
     @property
     def name(self) -> str:
         return self.__class__.__name__
-
-    def probe_dst_prefix(self) -> str:
-        return f"{cut_ipv6('probe_dst_addr', self.prefix_len_v4, self.prefix_len_v6)}"
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         raise NotImplementedError

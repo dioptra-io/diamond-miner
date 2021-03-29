@@ -19,18 +19,18 @@ class GetInvalidPrefixes(Query):
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        WITH {self.probe_dst_prefix()} AS probe_dst_prefix,
-             count(reply_src_addr) AS n_replies,
+        WITH count(reply_src_addr)     AS n_replies,
              uniqExact(reply_src_addr) AS n_distinct_replies
         SELECT DISTINCT probe_dst_prefix
         FROM {table}
         WHERE {self.common_filters(subset)}
         GROUP BY (
             probe_src_addr,
+            probe_dst_prefix,
             probe_dst_addr,
             probe_src_port,
             probe_dst_port,
-            probe_ttl_l4
+            probe_ttl_l3
         )
         HAVING (n_replies > 2) OR (n_distinct_replies > 1)
         """

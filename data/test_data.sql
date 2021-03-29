@@ -14,10 +14,17 @@ CREATE TABLE test_schema
     reply_ttl       UInt8,
     reply_size      UInt16,
     rtt             Float64,
-    round           UInt8
+    round           UInt8,
+    -- Materialized columns
+    probe_dst_prefix IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
+    private_reply_src_addr UInt8 MATERIALIZED
+        (reply_src_addr >= toIPv6('10.0.0.0')    AND reply_src_addr <= toIPv6('10.255.255.255'))  OR
+        (reply_src_addr >= toIPv6('172.16.0.0')  AND reply_src_addr <= toIPv6('172.31.255.255'))  OR
+        (reply_src_addr >= toIPv6('192.168.0.0') AND reply_src_addr <= toIPv6('192.168.255.255')) OR
+        (reply_src_addr >= toIPv6('fd00::')      AND reply_src_addr <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff'))
 )
     ENGINE MergeTree
-        ORDER BY (probe_src_addr, probe_dst_addr, probe_src_port, probe_dst_port);
+        ORDER BY (probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3);
 
 -- NSDI '20 paper, Figure 2
 -- 100.0.0.1 => 200.0.0.0/24

@@ -55,7 +55,7 @@ def get_subsets(counts, max_replies_per_subset):
 async def compute_next_round(config: Config, client: Client, table: str, round_: int):
     # Compute the subsets such that each queries runs on at-most X rows.
     count_replies_query = CountReplies(
-        probe_src_addr=config.probe_src_addr, prefix_len_v4=8, prefix_len_v6=8
+        probe_src_addr=config.probe_src_addr, chunk_len_v4=8, chunk_len_v6=8
     )
 
     counts = {}
@@ -105,8 +105,6 @@ async def far_ttls_probes(
     subsets=(DEFAULT_SUBSET,),
 ):
     query = GetMaxTTL(
-        prefix_len_v4=config.prefix_len_v4,
-        prefix_len_v6=config.prefix_len_v6,
         probe_src_addr=config.probe_src_addr,
         round_leq=round_,
     )
@@ -133,8 +131,6 @@ async def next_round_probes(
 ):
     query = GetNextRound(
         adaptive_eps=config.adaptive_eps,
-        prefix_len_v4=config.prefix_len_v4,
-        prefix_len_v6=config.prefix_len_v6,
         probe_src_addr=config.probe_src_addr,
         round_leq=round_,
     )

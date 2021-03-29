@@ -24,8 +24,7 @@ class GetMaxTTL(Query):
         )
 
         return f"""
-        WITH {self.probe_dst_prefix()} AS probe_dst_prefix
-        SELECT probe_dst_addr, max(probe_ttl_l4) AS max_ttl
+        SELECT probe_dst_addr, max(probe_ttl_l3) AS max_ttl
         FROM {table}
         WHERE {self.common_filters(subset)}
         AND probe_dst_prefix NOT IN ({invalid_prefixes_query})

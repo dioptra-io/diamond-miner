@@ -14,7 +14,9 @@ ProbeType = Tuple[int, int, int, int]
 
 
 def count_prefixes(
-    prefixes: Iterable[str], prefix_len_v4: int = 24, prefix_len_v6: int = 64
+    prefixes: Iterable[str],
+    prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
+    prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
 ) -> int:
     """
     >>> count_prefixes(["8.8.4.0/24", "8.8.8.0/24"])

@@ -55,9 +55,10 @@ class GetNextRound(Query):
 
         return f"""
         WITH
-            range(1, 32) AS TTLs, -- TTLs used to group nodes and links
+            range(1, 32)  AS TTLs, -- TTLs used to group nodes and links
             range(1, 256) AS ks,  -- Values of `k` used to compute MDA stopping points `n_k`.
-            {self.probe_dst_prefix()} AS probe_dst_prefix,
+            invalid_prefixes  AS ({invalid_prefixes_query}),
+            resolved_prefixes AS ({resolved_prefixes_query}),
             -- 1) Compute the links
             --  x.1             x.2             x.3             x.4           x.5             x.6
             -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)
@@ -132,8 +133,8 @@ class GetNextRound(Query):
             max(probe_dst_port)
         FROM {table}
         WHERE {self.common_filters(subset)}
-            AND probe_dst_prefix NOT IN ({invalid_prefixes_query})
-            AND probe_dst_prefix NOT IN ({resolved_prefixes_query})
+            AND probe_dst_prefix NOT IN invalid_prefixes
+            AND probe_dst_prefix NOT IN resolved_prefixes
         GROUP BY (probe_src_addr, probe_dst_prefix)
         HAVING length(links) >= 1 OR length(replies) >= 1
         """
