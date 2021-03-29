@@ -83,11 +83,15 @@ cdef class ReverseByteFlowMapper:
 
     cpdef uint128_t flow_id(self, uint128_t addr_offset, uint128_t prefix = 0):
         assert addr_offset < 256
-        return self.reverse_byte(addr_offset)
+        if addr_offset == 0:
+            return 255
+        return self.reverse_byte(addr_offset - 1)
 
     cpdef (uint128_t, uint16_t) offset(self, uint128_t flow_id, uint128_t prefix = 0):
-        if flow_id < 256:
-            return self.reverse_byte(flow_id), 0
+        if flow_id < 255:
+            return self.reverse_byte(flow_id) + 1, 0
+        if flow_id == 255:
+            return 0, 0
         return 255, flow_id - 255
 
     cdef uint8_t reverse_byte(self, uint8_t i):
