@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
 from ipaddress import IPv6Address
-from typing import AsyncIterator, Iterable, List, Optional
+from typing import AsyncIterator, List, Optional
 
 from aioch import Client
 
 from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import IPNetwork, eq, in_, ip_eq, ip_in, leq
+from diamond_miner.queries.fragments import IPNetwork, eq, ip_eq, ip_in, leq
 
 CH_QUERY_SETTINGS = {
     "max_block_size": 100000,
@@ -39,11 +39,11 @@ class Query:
     filter_private: bool = True
     "If true, ignore the replies from private IP addresses."
 
+    time_exceeded_only: bool = True
+    "If true, ignore non ICMP time exceeded replies."
+
     probe_src_addr: Optional[str] = None
     "If specified, keep only the replies to probes sent by this address."
-
-    reply_icmp_type: Iterable[int] = (3, 11)
-    "If specified, keep only these types of ICMP replies."
 
     round_eq: Optional[int] = None
     "If specified, keep only the replies from this round."
@@ -74,7 +74,6 @@ class Query:
         s = f"""
         {ip_in('probe_dst_prefix', subset)}
         AND {ip_eq('probe_src_addr', self.probe_src_addr)}
-        AND {in_('reply_icmp_type', self.reply_icmp_type)}
         AND {eq('round', self.round_eq)}
         AND {leq('round', self.round_leq)}
         """
@@ -82,6 +81,8 @@ class Query:
             s += "\nAND reply_src_addr != probe_dst_addr"
         if self.filter_private:
             s += "\nAND private_reply_src_addr = 0"
+        if self.time_exceeded_only:
+            s += "\nAND time_exceeded_reply = 1"
         return s
 
     @property

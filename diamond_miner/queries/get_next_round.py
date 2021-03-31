@@ -1,7 +1,7 @@
 from collections import namedtuple
 from dataclasses import asdict, dataclass
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import DEFAULT_PROBE_TTL_COLUMN, DEFAULT_SUBSET
 from diamond_miner.queries.fragments import IPNetwork
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
@@ -60,10 +60,10 @@ class GetNextRound(Query):
             invalid_prefixes  AS ({invalid_prefixes_query}),
             resolved_prefixes AS ({resolved_prefixes_query}),
             -- 1) Compute the links
-            --  x.1             x.2             x.3             x.4           x.5             x.6
-            -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)
-            groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3, reply_src_addr, round)) AS replies_unsorted,
-            -- sort by (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3)
+            --  x.1             x.2             x.3             x.4        x.5             x.6
+            -- (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl, reply_src_addr, round)
+            groupUniqArray((probe_dst_addr, probe_src_port, probe_dst_port, {DEFAULT_PROBE_TTL_COLUMN}, reply_src_addr, round)) AS replies_unsorted,
+            -- sort by (probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl)
             arraySort(x -> (x.1, x.2, x.3, x.4), replies_unsorted) AS replies,
             -- shift by 1: remove the element and append a NULL row
             arrayConcat(arrayPopFront(replies), [(toIPv6('::'), 0, 0, 0, toIPv6('::'), 0)]) AS replies_shifted,
@@ -72,7 +72,7 @@ class GetNextRound(Query):
             -- links for round < current round
             arrayFilter(x -> x.1.6 < {self.round_leq} AND x.2.6 < {self.round_leq}, links) AS links_prev,
             -- 2) Count the number of nodes per TTL
-            -- (probe_ttl_l3, reply_src_addr)
+            -- (probe_ttl, reply_src_addr)
             arrayMap(r -> (r.4, r.5), replies) AS ttl_node,
             arrayMap(r -> (r.4, r.5), arrayFilter(x -> x.6 < {self.round_leq}, replies)) AS ttl_node_prev,
             -- count distinct nodes per TTL
@@ -81,7 +81,7 @@ class GetNextRound(Query):
             -- find the maximum number of nodes over all TTLs
             arrayReduce('max', nodes_per_ttl) AS max_nodes,
             -- 3) Count the number of links per TTL
-            -- ((probe_ttl_l3, reply_src_addr), (probe_ttl_l3, reply_src_addr))
+            -- ((probe_ttl, reply_src_addr), (probe_ttl, reply_src_addr))
             arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links)) AS ttl_link,
             arrayDistinct(arrayMap(x -> ((x.1.4, x.1.5), (x.2.4, x.2.5)), links_prev)) AS ttl_link_prev,
             -- count distinct links per TTL

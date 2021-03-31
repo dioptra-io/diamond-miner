@@ -1,30 +1,32 @@
 DROP TABLE IF EXISTS test_schema;
 CREATE TABLE test_schema
 (
-    probe_src_addr  IPv6,
-    probe_dst_addr  IPv6,
-    probe_src_port  UInt16,
-    probe_dst_port  UInt16,
-    probe_ttl_l3    UInt8,
-    probe_ttl_l4    UInt8,
-    reply_src_addr  IPv6,
-    reply_protocol  UInt8,
-    reply_icmp_type UInt8,
-    reply_icmp_code UInt8,
-    reply_ttl       UInt8,
-    reply_size      UInt16,
-    rtt             Float64,
-    round           UInt8,
+    probe_src_addr         IPv6,
+    probe_dst_addr         IPv6,
+    probe_src_port         UInt16,
+    probe_dst_port         UInt16,
+    probe_ttl_l3           UInt8,
+    probe_ttl_l4           UInt8,
+    reply_src_addr         IPv6,
+    reply_protocol         UInt8,
+    reply_icmp_type        UInt8,
+    reply_icmp_code        UInt8,
+    reply_ttl              UInt8,
+    reply_size             UInt16,
+    rtt                    Float64,
+    round                  UInt8,
     -- Materialized columns
-    probe_dst_prefix IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
+    probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
     private_reply_src_addr UInt8 MATERIALIZED
-        (reply_src_addr >= toIPv6('10.0.0.0')    AND reply_src_addr <= toIPv6('10.255.255.255'))  OR
-        (reply_src_addr >= toIPv6('172.16.0.0')  AND reply_src_addr <= toIPv6('172.31.255.255'))  OR
-        (reply_src_addr >= toIPv6('192.168.0.0') AND reply_src_addr <= toIPv6('192.168.255.255')) OR
-        (reply_src_addr >= toIPv6('fd00::')      AND reply_src_addr <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff'))
+                                   (reply_src_addr >= toIPv6('10.0.0.0') AND reply_src_addr <= toIPv6('10.255.255.255')) OR
+                                   (reply_src_addr >= toIPv6('172.16.0.0') AND reply_src_addr <= toIPv6('172.31.255.255')) OR
+                                   (reply_src_addr >= toIPv6('192.168.0.0') AND reply_src_addr <= toIPv6('192.168.255.255')) OR
+                                   (reply_src_addr >= toIPv6('fd00::') AND reply_src_addr <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')),
+    -- ICMP: protocol 1, ICMPv6: protocol 58
+    time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)
 )
     ENGINE MergeTree
-        ORDER BY (probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l3);
+        ORDER BY (probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4);
 
 -- NSDI '20 paper, Figure 2
 -- 100.0.0.1 => 200.0.0.0/24
@@ -230,12 +232,8 @@ CREATE TABLE test_star_node_star AS test_schema;
 
 INSERT INTO test_star_node_star
 SELECT *
-FROM test_nsdi_example;
-ALTER
-TABLE
-test_star_node_star
-DELETE
-WHERE probe_ttl_l3 IN (2, 4) SETTINGS mutations_sync=2;
+FROM test_nsdi_example
+WHERE probe_ttl_l4 NOT IN (2, 4);
 
 -- We send 2 probes per flow
 -- Prefix 200.0.0.0/24 is OK (1 node discovered)

@@ -1,5 +1,6 @@
 from dataclasses import asdict, dataclass
 
+from diamond_miner.defaults import DEFAULT_PROBE_TTL_COLUMN
 from diamond_miner.queries.fragments import IPNetwork
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
@@ -24,7 +25,7 @@ class GetMaxTTL(Query):
         )
 
         return f"""
-        SELECT probe_dst_addr, max(probe_ttl_l3) AS max_ttl
+        SELECT probe_dst_addr, max({DEFAULT_PROBE_TTL_COLUMN}) AS max_ttl
         FROM {table}
         WHERE {self.common_filters(subset)}
         AND probe_dst_prefix NOT IN ({invalid_prefixes_query})
