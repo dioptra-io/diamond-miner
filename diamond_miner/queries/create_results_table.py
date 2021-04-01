@@ -31,6 +31,7 @@ class CreateResultsTable(Query):
             reply_icmp_code        UInt8,
             reply_ttl              UInt8,
             reply_size             UInt16,
+            reply_mpls_labels      Array(UInt32),
             rtt                    Float64,
             round                  UInt8,
             -- Materialized columns
