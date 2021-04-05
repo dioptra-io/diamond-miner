@@ -18,9 +18,20 @@
 }
 ```
 
-## Dependencies
+## NSDI 2020 paper
 
-This software is released under the MIT license, in accordance with the license of its dependencies.
+Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
+Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
+The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner/releases/tag/nsdi2020) tag.
+
+## Authors
+
+Diamond-Miner is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.  
+The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
+
+## License & Dependencies
+
+This software is released under the [MIT license](/LICENSE), in accordance with the license of its dependencies.
 
 Name                                             | License                                    | Usage
 -------------------------------------------------|--------------------------------------------|------
