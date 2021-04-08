@@ -1,7 +1,7 @@
 from ipaddress import ip_network
 from typing import Iterable
 
-from aioch import Client
+from clickhouse_driver import Client
 
 from diamond_miner.config import Config
 from diamond_miner.defaults import DEFAULT_SUBSET
@@ -52,14 +52,14 @@ def get_subsets(counts, max_replies_per_subset):
     return subsets
 
 
-async def compute_next_round(config: Config, client: Client, table: str, round_: int):
+def compute_next_round(config: Config, client: Client, table: str, round_: int):
     # Compute the subsets such that each queries runs on at-most X rows.
     count_replies_query = CountReplies(
         probe_src_addr=config.probe_src_addr, chunk_len_v4=8, chunk_len_v6=8
     )
 
     counts = {}
-    for chunk, count in await count_replies_query.execute(client, table):
+    for chunk, count in count_replies_query.execute(client, table):
         if chunk.ipv4_mapped:
             net = ip_network(str(chunk) + f"/{96+8}")
         else:
@@ -75,18 +75,18 @@ async def compute_next_round(config: Config, client: Client, table: str, round_:
         count_nodes_query = CountNodesPerTTL(
             probe_src_addr=config.probe_src_addr, max_ttl=config.far_ttl_max
         )
-        nodes_per_ttl = await count_nodes_query.execute(client, table)
+        nodes_per_ttl = count_nodes_query.execute(client, table)
         skipped_ttls = {ttl for ttl, n_nodes in nodes_per_ttl if n_nodes < threshold}
     else:
         skipped_ttls = set()
 
     if config.probe_far_ttls:
-        async for specs in far_ttls_probes(
+        for specs in far_ttls_probes(
             config=config, client=client, table=table, round_=round_, subsets=subsets
         ):
             yield specs
 
-    async for specs in next_round_probes(
+    for specs in next_round_probes(
         config=config,
         client=client,
         table=table,
@@ -97,7 +97,7 @@ async def compute_next_round(config: Config, client: Client, table: str, round_:
         yield specs
 
 
-async def far_ttls_probes(
+def far_ttls_probes(
     config: Config,
     client: Client,
     table: str,
@@ -110,7 +110,7 @@ async def far_ttls_probes(
     )
     rows = query.execute_iter(client, table, subsets)
 
-    async for dst_addr, max_ttl in rows:
+    for dst_addr, max_ttl in rows:
         if config.far_ttl_min <= max_ttl <= config.far_ttl_max:
             probe_specs = []
             for ttl in range(max_ttl + 1, config.far_ttl_max + 1):
@@ -121,7 +121,7 @@ async def far_ttls_probes(
                 yield probe_specs
 
 
-async def next_round_probes(
+def next_round_probes(
     config: Config,
     client: Client,
     table: str,
@@ -136,7 +136,7 @@ async def next_round_probes(
     )
     rows = query.execute_iter(client, table, subsets)
 
-    async for row in rows:
+    for row in rows:
         row = GetNextRound.Row(*row)
         dst_prefix_int = int(row.dst_prefix)
 

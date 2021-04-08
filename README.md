@@ -26,7 +26,7 @@ The code as it was at the time of the publication is available in the [`nsdi2020
 
 ## Authors
 
-Diamond-Miner is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.  
+Diamond-Miner is developed and maintained by the [Dioptra team](https://dioptra.io) at Sorbonne Université in Paris, France.
 The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
 
 ## License & Dependencies
@@ -35,5 +35,5 @@ This software is released under the [MIT license](/LICENSE), in accordance with 
 
 Name                                             | License                                    | Usage
 -------------------------------------------------|--------------------------------------------|------
-[aioch](https://github.com/mymarilyn/aioch)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
+[clickhouse-driver](https://github.com/mymarilyn/clickhouse-driver)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
 [pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT) | Generating random permutations

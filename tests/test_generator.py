@@ -1,12 +1,9 @@
-import pytest
-
 from diamond_miner.generator import probe_generator
 from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.utilities import format_ipv6
 
 
-@pytest.mark.asyncio
-async def test_probe_generator_128():
+def test_probe_generator_128():
     prefixes = ["2001:4860:4860::8888/128\n"]
     generator = probe_generator(
         prefixes=prefixes,
@@ -15,7 +12,7 @@ async def test_probe_generator_128():
         ttls=[41, 42],
         mapper=SequentialFlowMapper(prefix_size=1),
     )
-    probes = [x async for x in generator]
+    probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl in probes:
         assert format_ipv6(addr) == "2001:4860:4860:0:0:0:0:8888"
@@ -24,8 +21,7 @@ async def test_probe_generator_128():
         assert ttl in range(41, 43)
 
 
-@pytest.mark.asyncio
-async def test_probe_generator_63():
+def test_probe_generator_63():
     prefixes = ["2001:4860:4860:0000::/63\n"]
     generator = probe_generator(
         prefixes=prefixes,
@@ -34,7 +30,7 @@ async def test_probe_generator_63():
         ttls=[41],
         mapper=SequentialFlowMapper(prefix_size=2 ** 64),
     )
-    probes = [x async for x in generator]
+    probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl in probes:
         assert format_ipv6(addr) in [
@@ -46,8 +42,7 @@ async def test_probe_generator_63():
         assert ttl == 41
 
 
-@pytest.mark.asyncio
-async def test_probe_generator_32():
+def test_probe_generator_32():
     prefixes = ["8.8.8.8/32\n"]
     generator = probe_generator(
         prefixes=prefixes,
@@ -56,7 +51,7 @@ async def test_probe_generator_32():
         ttls=[41, 42],
         mapper=SequentialFlowMapper(prefix_size=1),
     )
-    probes = [x async for x in generator]
+    probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl in probes:
         assert format_ipv6(addr) == "0:0:0:0:0:FFFF:808:808"
@@ -65,8 +60,7 @@ async def test_probe_generator_32():
         assert ttl in range(41, 43)
 
 
-@pytest.mark.asyncio
-async def test_probe_generator_23():
+def test_probe_generator_23():
     prefixes = ["0.0.0.0/23"]
     generator = probe_generator(
         prefixes=prefixes,
@@ -75,7 +69,7 @@ async def test_probe_generator_23():
         ttls=[41],
         mapper=SequentialFlowMapper(prefix_size=2 ** 8),
     )
-    probes = [x async for x in generator]
+    probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl in probes:
         assert format_ipv6(addr) in [

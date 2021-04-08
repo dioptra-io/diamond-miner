@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 from ipaddress import IPv6Address
-from typing import AsyncIterator, List, Optional
+from typing import Iterator, List, Optional
 
-from aioch import Client
+from clickhouse_driver import Client
 
 from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.logging import logger
@@ -51,18 +51,18 @@ class Query:
     round_leq: Optional[int] = None
     "If specified, keep only the replies from this round or before."
 
-    async def execute(self, *args, **kwargs) -> List:
-        return [row async for row in self.execute_iter(*args, **kwargs)]
+    def execute(self, *args, **kwargs) -> List:
+        return [row for row in self.execute_iter(*args, **kwargs)]
 
-    async def execute_iter(
+    def execute_iter(
         self, client: Client, table: str, subsets=(DEFAULT_SUBSET,)
-    ) -> AsyncIterator:
+    ) -> Iterator:
         for subset in subsets:
             query = self.query(table, subset)
             start = datetime.now()
             logger.info("query=%s table=%s subset=%s", self.name, table, subset)
-            rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
-            async for row in rows:
+            rows = client.execute_iter(query, settings=CH_QUERY_SETTINGS)
+            for row in rows:
                 yield row
             delta = datetime.now() - start
             logger.info(

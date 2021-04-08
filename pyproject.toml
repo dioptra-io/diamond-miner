@@ -11,8 +11,8 @@ build = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-aioch = "^0.0.2"
 pygfc = "^0.2.1"
+clickhouse-driver = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 black = { version = "^20.8b1", allow-prereleases = true }
@@ -21,7 +21,6 @@ flake8 = "^3.8.4"
 mypy = "^0.812"
 pylint = "^2.7.2"
 pytest = "^6.2"
-pytest-asyncio = "^0.14.0"
 pytest-cov = "^2.11.1"
 
 [tool.pytest.ini_options]

@@ -1,7 +1,5 @@
 from ipaddress import ip_address
 
-import pytest
-
 from diamond_miner.config import Config
 from diamond_miner.mappers import (
     IntervalFlowMapper,
@@ -16,15 +14,14 @@ from diamond_miner.next_round import (
 )
 
 
-async def collect(f):
+def collect(f):
     res = []
-    async for xs in f:
+    for xs in f:
         res.extend(xs)
     return res
 
 
-@pytest.mark.asyncio
-async def test_compute_next_round(client):
+def test_compute_next_round(client):
     table = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
@@ -33,7 +30,7 @@ async def test_compute_next_round(client):
     )
 
     # Round 1 -> 2, 5 probes at TTL 1-4
-    probes = await collect(compute_next_round(config, client, table, 1))
+    probes = collect(compute_next_round(config, client, table, 1))
 
     target_specs = []
     for ttl in range(1, 5):
@@ -50,8 +47,7 @@ async def test_compute_next_round(client):
     assert sorted(probes) == sorted(target_specs)
 
 
-@pytest.mark.asyncio
-async def test_compute_next_round_mappers(client):
+def test_compute_next_round_mappers(client):
     table = "test_nsdi_lite"
     prefix_size = 2 ** (32 - 24)
 
@@ -68,14 +64,13 @@ async def test_compute_next_round_mappers(client):
 
     for mapper in mappers:
         config = Config(adaptive_eps=False, mapper=mapper, probe_src_addr="100.0.0.1")
-        all_probes.append(await collect(compute_next_round(config, client, table, 1)))
+        all_probes.append(collect(compute_next_round(config, client, table, 1)))
 
     # Ensure that we get the same number of probes for every mapper.
     assert len(set(len(probes) for probes in all_probes)) == 1
 
 
-@pytest.mark.asyncio
-async def test_far_ttls_probes(client):
+def test_far_ttls_probes(client):
     table = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
@@ -86,7 +81,7 @@ async def test_far_ttls_probes(client):
         probe_src_addr="100.0.0.1",
     )
 
-    probes = await collect(far_ttls_probes(config, client, table, 1))
+    probes = collect(far_ttls_probes(config, client, table, 1))
 
     # This should generate probes beyond TTL 4, up to 10 (far_ttl_max),
     # for each flow ID previously used.
@@ -105,8 +100,7 @@ async def test_far_ttls_probes(client):
     assert sorted(probes) == sorted(target_specs)
 
 
-@pytest.mark.asyncio
-async def test_next_round_probes_lite(client):
+def test_next_round_probes_lite(client):
     table = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
@@ -114,8 +108,8 @@ async def test_next_round_probes_lite(client):
         adaptive_eps=False, mapper=SequentialFlowMapper(), probe_src_addr="100.0.0.1"
     )
 
-    async def probes_for_round(round_):
-        return await collect(next_round_probes(config, client, table, round_, set()))
+    def probes_for_round(round_):
+        return collect(next_round_probes(config, client, table, round_, set()))
 
     # Round 1 -> 2, 5 probes at TTL 1-4
     target_specs = []
@@ -130,7 +124,7 @@ async def test_next_round_probes_lite(client):
                 )
             )
 
-    assert sorted(await probes_for_round(1)) == sorted(target_specs)
+    assert sorted(probes_for_round(1)) == sorted(target_specs)
 
     # Round 2 -> 3, 5 probes at TTL 2-4
     target_specs = []
@@ -145,23 +139,22 @@ async def test_next_round_probes_lite(client):
                 )
             )
 
-    assert sorted(await probes_for_round(2)) == sorted(target_specs)
+    assert sorted(probes_for_round(2)) == sorted(target_specs)
 
     # Round 3 -> 4, 0 probes
-    assert await probes_for_round(3) == []
+    assert probes_for_round(3) == []
 
 
-@pytest.mark.asyncio
-async def test_next_round_probes_lite_adaptive(client):
+def test_next_round_probes_lite_adaptive(client):
     table = "test_nsdi_lite"
 
     config = Config(
         adaptive_eps=False, mapper=SequentialFlowMapper(), probe_src_addr="100.0.0.1"
     )
 
-    async def probes_for_round(round_):
-        return await collect(next_round_probes(config, client, table, round_, set()))
+    def probes_for_round(round_):
+        return collect(next_round_probes(config, client, table, round_, set()))
 
     # Simple test to make sure the query works.
     # TODO: Better adaptive eps test in the future.
-    assert len(await probes_for_round(1)) >= 5
+    assert len(probes_for_round(1)) >= 5

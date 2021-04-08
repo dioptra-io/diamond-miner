@@ -1,5 +1,5 @@
 from ipaddress import IPv4Network, ip_network
-from typing import AsyncIterator, Iterable, List, Optional, Tuple
+from typing import Iterator, Iterable, List, Optional, Tuple
 
 from diamond_miner.defaults import (
     DEFAULT_PREFIX_LEN_V4,
@@ -45,7 +45,7 @@ def count_prefixes(
     return count
 
 
-async def probe_generator(
+def probe_generator(
     prefixes: Iterable[str],  # /32 or / 128 if nothing specified
     flow_ids: Iterable[int] = range(6),
     ttls: Iterable[int] = range(1, 33),
@@ -55,7 +55,7 @@ async def probe_generator(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     mapper=SequentialFlowMapper(),
     seed: Optional[int] = None,
-) -> AsyncIterator[ProbeType]:
+) -> Iterator[ProbeType]:
     """
     # Returns:
     #     destination address (little endian), source port, destination port, TTL.
