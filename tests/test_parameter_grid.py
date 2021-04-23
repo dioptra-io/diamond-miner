@@ -1,6 +1,6 @@
 import pytest
 
-from diamond_miner.utilities.parameter_grid import ParameterGrid
+from diamond_miner.grid import ParameterGrid
 
 
 def test_parameter_grid():
