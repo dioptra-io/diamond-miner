@@ -1,3 +1,4 @@
+import time
 from ipaddress import ip_network
 from typing import Iterable
 
@@ -5,6 +6,7 @@ from clickhouse_driver import Client
 
 from diamond_miner.config import Config
 from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.logging import logger
 from diamond_miner.queries.count_nodes_per_ttl import CountNodesPerTTL
 from diamond_miner.queries.count_replies import CountReplies
 from diamond_miner.queries.get_max_ttl import GetMaxTTL
@@ -61,7 +63,7 @@ def compute_next_round(config: Config, client: Client, table: str, round_: int):
     counts = {}
     for chunk, count in count_replies_query.execute(client, table):
         if chunk.ipv4_mapped:
-            net = ip_network(str(chunk) + f"/{96+8}")
+            net = ip_network(str(chunk) + f"/{96 + 8}")
         else:
             net = ip_network(str(chunk) + f"/{8}")
         counts[net] = count
@@ -110,15 +112,26 @@ def far_ttls_probes(
     )
     rows = query.execute_iter(client, table, subsets)
 
+    # Monitor time spent in the loop and in foreign code, excluding database code.
+    loop_time_ns = 0
+    yield_time_ns = 0
+
     for dst_addr, max_ttl in rows:
         if config.far_ttl_min <= max_ttl <= config.far_ttl_max:
+            loop_start_ns = time.time_ns()
             probe_specs = []
             for ttl in range(max_ttl + 1, config.far_ttl_max + 1):
                 probe_specs.append(
                     (int(dst_addr), config.probe_src_port, config.probe_dst_port, ttl)
                 )
+            loop_time_ns += time.time_ns() - loop_start_ns
             if probe_specs:
+                yield_start_ns = time.time_ns()
                 yield probe_specs
+                yield_time_ns += time.time_ns() - yield_start_ns
+
+    logger.info(f"timer=far_ttls_probes_loop, time_ms={loop_time_ns / 10 ** 6}")
+    logger.info(f"timer=far_ttls_probes_yield, time_ms={yield_time_ns / 10 ** 6}")
 
 
 def next_round_probes(
@@ -136,7 +149,12 @@ def next_round_probes(
     )
     rows = query.execute_iter(client, table, subsets)
 
+    # Monitor time spent in the loop and in foreign code, excluding database code.
+    loop_time_ns = 0
+    yield_time_ns = 0
+
     for row in rows:
+        loop_start_ns = time.time_ns()
         row = GetNextRound.Row(*row)
         dst_prefix_int = int(row.dst_prefix)
 
@@ -173,5 +191,11 @@ def next_round_probes(
                         ttl + 1,
                     )
                 )
+        loop_time_ns += time.time_ns() - loop_start_ns
         if probe_specs:
+            yield_start_ns = time.time_ns()
             yield probe_specs
+            yield_time_ns += time.time_ns() - yield_start_ns
+
+    logger.info(f"timer=next_round_probes_loop, time_ms={loop_time_ns / 10 ** 6}")
+    logger.info(f"timer=next_round_probes_yield, time_ms={yield_time_ns / 10 ** 6}")
