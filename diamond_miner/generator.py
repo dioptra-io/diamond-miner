@@ -65,7 +65,7 @@ def split_prefix(
 
 
 def probe_generator(
-    prefixes: Iterable[str],  # /32 or / 128 if nothing specified
+    prefixes: Iterable[Tuple[str, str]],  # /32 or / 128 if nothing specified
     flow_ids: Iterable[int] = range(6),
     ttls: Iterable[int] = range(1, 33),
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
@@ -74,27 +74,31 @@ def probe_generator(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     mapper_v4=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
     mapper_v6=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
-    protocol: str = "icmp",
     seed: Optional[int] = None,
 ) -> Iterator[ProbeType]:
     """
     Generate a probe for each prefix, flow_id and TTL, in a random order.
     """
-    prefixes_: List[Tuple[int, int, int]] = []
-    for prefix in prefixes:
-        prefixes_.extend(split_prefix(prefix, prefix_len_v4, prefix_len_v6))
+    prefixes_: List[Tuple[int, int, int, str]] = []
+    for prefix, protocol in prefixes:
+        for af, subprefix, subprefix_size in split_prefix(
+            prefix, prefix_len_v4, prefix_len_v6
+        ):
+            prefixes_.append((af, subprefix, subprefix_size, protocol))
 
     grid = ParameterGrid(prefixes_, ttls, flow_ids)
     grid = grid.shuffled(seed=seed)
 
-    for (af, prefix, prefix_size), ttl, flow_id in grid:
+    for (af, prefix, prefix_size, protocol), ttl, flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
         addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=prefix)
         yield prefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol
 
 
 def probe_generator_by_flow(
-    prefixes: Iterable[Tuple[str, Iterable[int]]],  # /32 or / 128 if nothing specified
+    prefixes: Iterable[
+        Tuple[str, str, Iterable[int]]
+    ],  # /32 or / 128 if nothing specified
     flow_ids: Iterable[int] = range(6),
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
@@ -102,7 +106,6 @@ def probe_generator_by_flow(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     mapper_v4=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
     mapper_v6=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
-    protocol: str = "icmp",
     seed: Optional[int] = None,
 ) -> Iterator[ProbeType]:
     """
@@ -111,17 +114,17 @@ def probe_generator_by_flow(
     - The TTLs are specified for each prefixes, and not globally.
     - All the probes for a given prefix and flow id are generated sequentially.
     """
-    prefixes_: List[Tuple[int, int, int, Iterable[int]]] = []
-    for prefix, ttls in prefixes:
+    prefixes_: List[Tuple[int, int, int, str, Iterable[int]]] = []
+    for prefix, protocol, ttls in prefixes:
         for af, subprefix, subprefix_size in split_prefix(
             prefix, prefix_len_v4, prefix_len_v6
         ):
-            prefixes_.append((af, subprefix, subprefix_size, ttls))
+            prefixes_.append((af, subprefix, subprefix_size, protocol, ttls))
 
     grid = ParameterGrid(prefixes_, flow_ids)
     grid = grid.shuffled(seed=seed)
 
-    for (af, prefix, prefix_size, ttls), flow_id in grid:
+    for (af, prefix, prefix_size, protocol, ttls), flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
         for ttl in ttls:
             addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=prefix)

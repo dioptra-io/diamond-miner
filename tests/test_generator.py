@@ -4,7 +4,7 @@ from diamond_miner.utilities import format_ipv6
 
 
 def test_probe_generator_128():
-    prefixes = ["2001:4860:4860::8888/128\n"]
+    prefixes = [("2001:4860:4860::8888/128", "icmp")]
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len_v6=128,
@@ -23,7 +23,7 @@ def test_probe_generator_128():
 
 
 def test_probe_generator_63():
-    prefixes = ["2001:4860:4860:0000::/63\n"]
+    prefixes = [("2001:4860:4860:0000::/63", "icmp")]
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len_v6=64,
@@ -45,7 +45,7 @@ def test_probe_generator_63():
 
 
 def test_probe_generator_32():
-    prefixes = ["8.8.8.8/32\n"]
+    prefixes = [("8.8.8.8/32", "udp")]
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len_v4=32,
@@ -60,11 +60,11 @@ def test_probe_generator_32():
         assert src_port in range(24010, 24013)
         assert dst_port == 33434
         assert ttl in range(41, 43)
-        assert protocol == "icmp"
+        assert protocol == "udp"
 
 
 def test_probe_generator_23():
-    prefixes = ["0.0.0.0/23"]
+    prefixes = [("0.0.0.0/23", "udp")]
     generator = probe_generator(
         prefixes=prefixes,
         prefix_len_v4=24,
@@ -82,12 +82,15 @@ def test_probe_generator_23():
         assert src_port == 24000
         assert dst_port == 33434
         assert ttl == 41
-        assert protocol == "icmp"
+        assert protocol == "udp"
 
 
 # TODO: Better test, with hypothesis? Or list probes exhaustively...
 def test_probe_generator_by_flow():
-    prefixes = [("0.0.0.0/23", [10, 20, 30]), ("2001:4860:4860::8888/128", range(2))]
+    prefixes = [
+        ("0.0.0.0/23", "icmp", [10, 20, 30]),
+        ("2001:4860:4860::8888/128", "icmp", range(2)),
+    ]
     generator = probe_generator_by_flow(
         prefixes,
         prefix_len_v4=24,
