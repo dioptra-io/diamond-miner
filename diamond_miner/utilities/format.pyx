@@ -6,8 +6,8 @@ from libc.stdio cimport snprintf
 # > INET6_ADDRSTRLEN: 46. Length of the string form for IPv6.
 cdef size_t INET6_ADDRSTRLEN = 46
 
-def format_probe(dst_addr_v6, uint16_t src_port, uint16_t dst_port, uint8_t ttl):
-    return f"{format_ipv6(dst_addr_v6)},{src_port},{dst_port},{ttl}"
+def format_probe(dst_addr_v6, uint16_t src_port, uint16_t dst_port, uint8_t ttl, str protocol):
+    return f"{format_ipv6(dst_addr_v6)},{src_port},{dst_port},{ttl},{protocol}"
 
 def format_ipv6(int_addr):
     """

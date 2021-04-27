@@ -13,6 +13,6 @@ def test_format_ipv6():
 
 def test_format_probe():
     assert (
-        format_probe(2 ** 128 - 1, 2 ** 16 - 1, 2 ** 16 - 1, 2 ** 8 - 1)
-        == "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF,65535,65535,255"
+        format_probe(2 ** 128 - 1, 2 ** 16 - 1, 2 ** 16 - 1, 2 ** 8 - 1, "udp")
+        == "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF,65535,65535,255,udp"
     )
