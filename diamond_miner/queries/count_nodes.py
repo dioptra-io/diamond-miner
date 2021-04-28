@@ -15,6 +15,7 @@ class CountNodes(Query):
     """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        assert subset == DEFAULT_SUBSET, "subset not allowed for this query"
         return f"""
         SELECT uniqExact(reply_src_addr)
         FROM {table}

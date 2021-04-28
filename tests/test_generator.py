@@ -1,6 +1,7 @@
+from ipaddress import ip_address
+
 from diamond_miner.generator import probe_generator, probe_generator_by_flow
 from diamond_miner.mappers import SequentialFlowMapper
-from diamond_miner.utilities import format_ipv6
 
 
 def test_probe_generator_128():
@@ -15,7 +16,7 @@ def test_probe_generator_128():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert format_ipv6(addr) == "2001:4860:4860:0:0:0:0:8888"
+        assert str(ip_address(addr)) == "2001:4860:4860::8888"
         assert src_port in range(24010, 24013)
         assert dst_port == 33434
         assert ttl in range(41, 43)
@@ -34,9 +35,9 @@ def test_probe_generator_63():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert format_ipv6(addr) in [
-            "2001:4860:4860:0:0:0:0:A",
-            "2001:4860:4860:1:0:0:0:A",
+        assert str(ip_address(addr)) in [
+            "2001:4860:4860::a",
+            "2001:4860:4860:1::a",
         ]
         assert src_port == 24000
         assert dst_port == 33434
@@ -56,7 +57,7 @@ def test_probe_generator_32():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert format_ipv6(addr) == "0:0:0:0:0:FFFF:808:808"
+        assert str(ip_address(addr)) == "::ffff:808:808"
         assert src_port in range(24010, 24013)
         assert dst_port == 33434
         assert ttl in range(41, 43)
@@ -75,9 +76,9 @@ def test_probe_generator_23():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert format_ipv6(addr) in [
-            "0:0:0:0:0:FFFF:0:A",
-            "0:0:0:0:0:FFFF:0:10A",
+        assert str(ip_address(addr)) in [
+            "::ffff:0:a",
+            "::ffff:0:10a",
         ]
         assert src_port == 24000
         assert dst_port == 33434
@@ -102,12 +103,12 @@ def test_probe_generator_by_flow():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 16
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert format_ipv6(addr) in [
-            "0:0:0:0:0:FFFF:0:A",
-            "0:0:0:0:0:FFFF:0:B",
-            "0:0:0:0:0:FFFF:0:10A",
-            "0:0:0:0:0:FFFF:0:10B",
-            "2001:4860:4860:0:0:0:0:8888",
+        assert str(ip_address(addr)) in [
+            "::ffff:0:a",
+            "::ffff:0:b",
+            "::ffff:0:10a",
+            "::ffff:0:10b",
+            "2001:4860:4860::8888",
         ]
         assert src_port in [24000, 24010, 24011]
         assert dst_port == 33434

@@ -18,6 +18,7 @@ class CountNodesPerTTL(Query):
     max_ttl: int = 255
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        assert subset == DEFAULT_SUBSET, "subset not allowed for this query"
         return f"""
         SELECT {DEFAULT_PROBE_TTL_COLUMN}, uniqExact(reply_src_addr)
         FROM {table}
