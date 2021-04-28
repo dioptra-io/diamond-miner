@@ -15,6 +15,7 @@ pygfc = "^1.0"
 clickhouse-driver = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
+bumpversion = "^0.6.0"
 black = { version = "^21.4b1", allow-prereleases = true }
 Cython = "^0.29.22"
 flake8 = "^3.8.4"
@@ -23,7 +24,6 @@ pylint = "^2.8"
 pytest = "^6.2"
 pytest-cov = "^2.11.1"
 Sphinx = "^3.5.4"
-bumpversion = "^0.6.0"
 sphinx-rtd-theme = "^0.5.2"
 
 [tool.pytest.ini_options]
