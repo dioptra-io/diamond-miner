@@ -1,3 +1,6 @@
+from collections import Iterator
+from typing import List
+
 from clickhouse_driver import Client
 
 from diamond_miner.defaults import (
@@ -7,9 +10,9 @@ from diamond_miner.defaults import (
     PROTOCOLS,
 )
 from diamond_miner.logging import logger
-from diamond_miner.mappers import FlowMapper
 from diamond_miner.queries import CountNodesPerTTL, GetNextRound
 from diamond_miner.timer import Timer
+from diamond_miner.typing import FlowMapper, ProbeType
 
 
 def mda_probes(
@@ -25,7 +28,7 @@ def mda_probes(
     skip_unpopulated_ttls: bool = False,
     skip_unpopulated_ttls_threshold: int = 100,
     subsets=(DEFAULT_SUBSET,),
-):
+) -> Iterator[List[ProbeType]]:
     # Skip the TTLs where few nodes are discovered, in order to avoid
     # re-probing them extensively (e.g. low TTLs).
     skipped_ttls = set()
@@ -73,8 +76,8 @@ def mda_probes(
 
                 if port_offset > 0 and (
                     (row.min_dst_port != probe_dst_port)
-                    or (row.max_dst_port != config.probe_dst_port)  # noqa
-                    or (row.min_src_port < config.probe_src_port)  # noqa
+                    or (row.max_dst_port != probe_dst_port)  # noqa
+                    or (row.min_src_port < probe_src_port)  # noqa
                 ):
                     # There is a case where max_src_port > sport,
                     # but real_flow_id < 255 (see dst_prefix == 28093440)

@@ -1,3 +1,6 @@
+from collections import Iterator
+from typing import List
+
 from clickhouse_driver import Client
 
 from diamond_miner.defaults import (
@@ -9,6 +12,7 @@ from diamond_miner.defaults import (
 from diamond_miner.logging import logger
 from diamond_miner.queries import GetMaxTTL
 from diamond_miner.timer import Timer
+from diamond_miner.typing import ProbeType
 
 
 def far_ttls_probes(
@@ -21,7 +25,7 @@ def far_ttls_probes(
     far_ttl_min: int = 20,
     far_ttl_max: int = 40,
     subsets=(DEFAULT_SUBSET,),
-):
+) -> Iterator[List[ProbeType]]:
     query = GetMaxTTL(
         probe_src_addr=probe_src_addr,
         round_leq=round_,

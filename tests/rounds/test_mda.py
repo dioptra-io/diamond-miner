@@ -1,8 +1,7 @@
 from ipaddress import ip_address
 
-from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V6
+from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4, DEFAULT_PREFIX_SIZE_V6
 from diamond_miner.mappers import (
-    DEFAULT_PREFIX_SIZE_V4,
     IntervalFlowMapper,
     RandomFlowMapper,
     ReverseByteFlowMapper,

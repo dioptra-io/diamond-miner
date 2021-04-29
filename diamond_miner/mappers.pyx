@@ -6,21 +6,17 @@ We make the flow ID start at 0.
 """
 import random
 from typing import Protocol, Tuple
+
 from libc.stdint cimport uint8_t, uint16_t
+
 from pygfc import Permutation
 
 from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4
 
+
 cdef extern from *:
     ctypedef long long int128_t "__int128_t"
     ctypedef unsigned long long uint128_t "__uint128_t"
-
-class FlowMapper(Protocol):
-    def flow_id(self, addr_offset: int, prefix: int) -> int:
-        pass
-
-    def offset(self, flow_id: int, prefix: int) -> Tuple[int,int]:
-        pass
 
 
 cdef class SequentialFlowMapper:

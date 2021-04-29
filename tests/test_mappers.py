@@ -1,10 +1,10 @@
 from diamond_miner.mappers import (
-    FlowMapper,
     IntervalFlowMapper,
     RandomFlowMapper,
     ReverseByteFlowMapper,
     SequentialFlowMapper,
 )
+from diamond_miner.typing import FlowMapper
 
 
 def _test_mapper(mapper: FlowMapper, prefix: int, prefix_size: int):

@@ -1,5 +1,5 @@
 from ipaddress import IPv4Network, IPv6Network, ip_network
-from typing import Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from diamond_miner.defaults import (
     DEFAULT_PREFIX_LEN_V4,
@@ -11,8 +11,7 @@ from diamond_miner.defaults import (
 )
 from diamond_miner.grid import ParameterGrid
 from diamond_miner.mappers import SequentialFlowMapper
-
-ProbeType = Tuple[int, int, int, int, str]
+from diamond_miner.typing import ProbeType
 
 
 def count_prefixes(
@@ -91,9 +90,9 @@ def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int):
 
 
 def probe_generator(
-    prefixes: Iterable[Tuple[str, str]],  # /32 or / 128 if nothing specified
-    flow_ids: Iterable[int] = range(6),
-    ttls: Iterable[int] = range(1, 33),
+    prefixes: Sequence[Tuple[str, str]],  # /32 or / 128 if nothing specified
+    flow_ids: Sequence[int] = range(6),
+    ttls: Sequence[int] = range(1, 33),
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
@@ -166,8 +165,7 @@ def probe_generator(
         ):
             prefixes_.append((af, subprefix, subprefix_size, protocol))
 
-    grid = ParameterGrid(prefixes_, ttls, flow_ids)
-    grid = grid.shuffled(seed=seed)
+    grid = ParameterGrid(prefixes_, ttls, flow_ids).shuffled(seed=seed)
 
     for (af, prefix, prefix_size, protocol), ttl, flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
@@ -179,7 +177,7 @@ def probe_generator_by_flow(
     prefixes: Iterable[
         Tuple[str, str, Iterable[int]]
     ],  # /32 or / 128 if nothing specified
-    flow_ids: Iterable[int] = range(6),
+    flow_ids: Sequence[int] = range(6),
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
@@ -204,8 +202,7 @@ def probe_generator_by_flow(
         ):
             prefixes_.append((af, subprefix, subprefix_size, protocol, ttls))
 
-    grid = ParameterGrid(prefixes_, flow_ids)
-    grid = grid.shuffled(seed=seed)
+    grid = ParameterGrid(prefixes_, flow_ids).shuffled(seed=seed)
 
     for (af, prefix, prefix_size, protocol, ttls), flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
