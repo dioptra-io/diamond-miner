@@ -13,18 +13,19 @@ class GetInvalidPrefixes(Query):
     >>> execute(GetInvalidPrefixes(), 'test_nsdi_example')
     []
     >>> prefixes = execute(GetInvalidPrefixes(), 'test_invalid_prefixes')
-    >>> sorted(addr_to_string(pfx[0]) for pfx in prefixes)
-    ['201.0.0.0', '202.0.0.0']
+    >>> sorted((x[0], addr_to_string(x[1])) for x in prefixes)
+    [(1, '201.0.0.0'), (1, '202.0.0.0')]
     """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
         WITH count(reply_src_addr)     AS n_replies,
              uniqExact(reply_src_addr) AS n_distinct_replies
-        SELECT DISTINCT probe_dst_prefix
+        SELECT DISTINCT probe_protocol, probe_dst_prefix
         FROM {table}
         WHERE {self.common_filters(subset)}
         GROUP BY (
+            probe_protocol,
             probe_src_addr,
             probe_dst_prefix,
             probe_dst_addr,

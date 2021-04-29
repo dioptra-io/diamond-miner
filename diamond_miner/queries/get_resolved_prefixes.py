@@ -14,16 +14,16 @@ class GetResolvedPrefixes(Query):
     >>> execute(GetResolvedPrefixes(round_leq=1), 'test_nsdi_example')
     []
     >>> prefixes = execute(GetResolvedPrefixes(round_leq=5), 'test_nsdi_example')
-    >>> [addr_to_string(pfx[0]) for pfx in prefixes]
-    ['200.0.0.0']
+    >>> [(x[0], addr_to_string(x[1])) for x in prefixes]
+    [(1, '200.0.0.0')]
     """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         assert self.round_leq is not None
         return f"""
-        SELECT DISTINCT probe_dst_prefix
+        SELECT DISTINCT probe_protocol, probe_dst_prefix
         FROM {table}
         WHERE {self.common_filters(subset)}
-        GROUP BY (probe_src_addr, probe_dst_prefix)
+        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING max(round) < {self.round_leq - 1}
         """

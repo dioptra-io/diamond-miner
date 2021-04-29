@@ -12,6 +12,8 @@ from diamond_miner.queries.count_replies import CountReplies
 from diamond_miner.queries.get_max_ttl import GetMaxTTL
 from diamond_miner.queries.get_next_round import GetNextRound
 
+PROTOCOLS = {1: "icmp", 17: "udp", 58: "icmp6"}
+
 
 def get_subsets(counts, max_replies_per_subset):
     """
@@ -116,13 +118,19 @@ def far_ttls_probes(
     loop_time_ns = 0
     yield_time_ns = 0
 
-    for dst_addr, max_ttl in rows:
+    for protocol, dst_addr, max_ttl in rows:
         if config.far_ttl_min <= max_ttl <= config.far_ttl_max:
             loop_start_ns = time.time_ns()
             probe_specs = []
             for ttl in range(max_ttl + 1, config.far_ttl_max + 1):
                 probe_specs.append(
-                    (int(dst_addr), config.probe_src_port, config.probe_dst_port, ttl)
+                    (
+                        int(dst_addr),
+                        config.probe_src_port,
+                        config.probe_dst_port,
+                        ttl,
+                        PROTOCOLS[protocol],
+                    )
                 )
             loop_time_ns += time.time_ns() - loop_start_ns
             if probe_specs:
@@ -189,6 +197,7 @@ def next_round_probes(
                         config.probe_dst_port,
                         # TTL in enumerate starts at 0 instead of 1
                         ttl + 1,
+                        PROTOCOLS[row.protocol],
                     )
                 )
         loop_time_ns += time.time_ns() - loop_start_ns

@@ -41,6 +41,7 @@ def test_compute_next_round(client):
                     config.probe_src_port,
                     config.probe_dst_port,
                     ttl,
+                    "icmp",
                 )
             )
 
@@ -94,6 +95,7 @@ def test_far_ttls_probes(client):
                     config.probe_src_port,
                     config.probe_dst_port,
                     ttl,
+                    "icmp",
                 )
             )
 
@@ -121,6 +123,7 @@ def test_next_round_probes_lite(client):
                     config.probe_src_port,
                     config.probe_dst_port,
                     ttl,
+                    "icmp",
                 )
             )
 
@@ -136,6 +139,7 @@ def test_next_round_probes_lite(client):
                     config.probe_src_port,
                     config.probe_dst_port,
                     ttl,
+                    "icmp",
                 )
             )
 
@@ -158,3 +162,32 @@ def test_next_round_probes_lite_adaptive(client):
     # Simple test to make sure the query works.
     # TODO: Better adaptive eps test in the future.
     assert len(probes_for_round(1)) >= 5
+
+
+def test_next_round_probes_multi_protocol(client):
+    table = "test_multi_protocol"
+    probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
+
+    config = Config(
+        adaptive_eps=False, mapper=SequentialFlowMapper(), probe_src_addr="100.0.0.1"
+    )
+
+    def probes_for_round(round_):
+        return collect(next_round_probes(config, client, table, round_, set()))
+
+    # Round 1 -> 2, 5 probes at TTL 1-2 only for ICMP
+    # TODO: Better test/test table
+    target_specs = []
+    for ttl in range(1, 3):
+        for flow_id in range(6, 6 + 5):
+            target_specs.append(
+                (
+                    probe_dst_prefix + flow_id,
+                    config.probe_src_port,
+                    config.probe_dst_port,
+                    ttl,
+                    "icmp",
+                )
+            )
+
+    assert sorted(probes_for_round(1)) == sorted(target_specs)

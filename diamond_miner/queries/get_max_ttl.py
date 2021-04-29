@@ -14,8 +14,8 @@ class GetMaxTTL(Query):
 
     >>> from diamond_miner.test import execute
     >>> rows = execute(GetMaxTTL(round_leq=1), 'test_max_ttl')
-    >>> sorted((addr_to_string(a), b) for a, b in rows)
-    [('200.0.0.0', 3), ('201.0.0.0', 2)]
+    >>> sorted((a, addr_to_string(b), c) for a, b, c in rows)
+    [(1, '200.0.0.0', 3), (1, '201.0.0.0', 2)]
     """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
@@ -25,10 +25,10 @@ class GetMaxTTL(Query):
         )
 
         return f"""
-        SELECT probe_dst_addr, max({DEFAULT_PROBE_TTL_COLUMN}) AS max_ttl
+        SELECT probe_protocol, probe_dst_addr, max({DEFAULT_PROBE_TTL_COLUMN}) AS max_ttl
         FROM {table}
         WHERE {self.common_filters(subset)}
-        AND probe_dst_prefix NOT IN ({invalid_prefixes_query})
-        AND probe_dst_prefix NOT IN ({resolved_prefixes_query})
-        GROUP BY probe_dst_addr
+        AND (probe_protocol, probe_dst_prefix) NOT IN ({invalid_prefixes_query})
+        AND (probe_protocol, probe_dst_prefix) NOT IN ({resolved_prefixes_query})
+        GROUP BY (probe_protocol, probe_dst_addr)
         """

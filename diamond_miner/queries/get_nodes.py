@@ -11,13 +11,13 @@ class GetNodes(Query):
 
     >>> from diamond_miner.test import execute
     >>> nodes = execute(GetNodes(), 'test_nsdi_example')
-    >>> sorted(addr_to_string(node[0]) for node in nodes)
-    ['150.0.1.1', '150.0.2.1', '150.0.3.1', '150.0.4.1', '150.0.5.1', '150.0.6.1', '150.0.7.1']
+    >>> sorted((x[0], addr_to_string(x[1])) for x in nodes)
+    [(1, '150.0.1.1'), (1, '150.0.2.1'), (1, '150.0.3.1'), (1, '150.0.4.1'), (1, '150.0.5.1'), (1, '150.0.6.1'), (1, '150.0.7.1')]
     """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        SELECT DISTINCT reply_src_addr
+        SELECT DISTINCT probe_protocol, reply_src_addr
         FROM {table}
         WHERE {self.common_filters(subset)}
         """
