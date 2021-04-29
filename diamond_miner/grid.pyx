@@ -2,6 +2,7 @@ from random import randint
 
 from pygfc import Permutation
 
+
 # The Cython version is approx. 2x faster on a M1 CPU.
 cdef class ParameterGrid:
     cdef tuple parameters

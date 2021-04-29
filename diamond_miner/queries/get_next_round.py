@@ -2,10 +2,10 @@ from collections import namedtuple
 from dataclasses import asdict, dataclass
 
 from diamond_miner.defaults import DEFAULT_PROBE_TTL_COLUMN, DEFAULT_SUBSET
-from diamond_miner.queries.fragments import IPNetwork
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
 from diamond_miner.queries.query import Query
+from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)

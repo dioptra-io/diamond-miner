@@ -1,4 +1,5 @@
-from typing import Protocol, Tuple
+from ipaddress import IPv4Network, IPv6Network
+from typing import Protocol, Tuple, Union
 
 
 class FlowMapper(Protocol):
@@ -9,4 +10,5 @@ class FlowMapper(Protocol):
         pass
 
 
-ProbeType = Tuple[int, int, int, int, str]
+Probe = Tuple[int, int, int, int, str]
+IPNetwork = Union[IPv4Network, IPv6Network]

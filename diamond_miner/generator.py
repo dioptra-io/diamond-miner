@@ -11,7 +11,7 @@ from diamond_miner.defaults import (
 )
 from diamond_miner.grid import ParameterGrid
 from diamond_miner.mappers import SequentialFlowMapper
-from diamond_miner.typing import ProbeType
+from diamond_miner.typing import FlowMapper, Probe
 
 
 def count_prefixes(
@@ -69,7 +69,7 @@ def split_prefix(
             yield 6, x, prefix_size
 
 
-def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int):
+def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int) -> Sequence[int]:
     """
     Faster version of ipaddress.IPv4Network.subnets(...).
     Returns only the network address as an integer.
@@ -97,10 +97,10 @@ def probe_generator(
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
-    mapper_v4=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
-    mapper_v6=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
+    mapper_v4: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
+    mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
     seed: Optional[int] = None,
-) -> Iterator[ProbeType]:
+) -> Iterator[Probe]:
     """
     Generate a probe for each prefix, flow_id and TTL, in a random order.
 
@@ -167,10 +167,10 @@ def probe_generator(
 
     grid = ParameterGrid(prefixes_, ttls, flow_ids).shuffled(seed=seed)
 
-    for (af, prefix, prefix_size, protocol), ttl, flow_id in grid:
+    for (af, subprefix, subprefix_size, protocol), ttl, flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
-        addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=prefix)
-        yield prefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol
+        addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=subprefix)
+        yield subprefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol
 
 
 def probe_generator_by_flow(
@@ -182,10 +182,10 @@ def probe_generator_by_flow(
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
-    mapper_v4=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
-    mapper_v6=SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
+    mapper_v4: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
+    mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
     seed: Optional[int] = None,
-) -> Iterator[ProbeType]:
+) -> Iterator[Probe]:
     """
     Generate a probe for each prefix, flow id and TTL, in a random order.
     This function differs from :func:`probe_generator` in two aspects:
@@ -204,8 +204,8 @@ def probe_generator_by_flow(
 
     grid = ParameterGrid(prefixes_, flow_ids).shuffled(seed=seed)
 
-    for (af, prefix, prefix_size, protocol, ttls), flow_id in grid:
+    for (af, subprefix, subprefix_size, protocol, ttls), flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
         for ttl in ttls:
-            addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=prefix)
-            yield prefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol
+            addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=subprefix)
+            yield subprefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol

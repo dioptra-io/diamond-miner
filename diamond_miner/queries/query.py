@@ -1,13 +1,14 @@
 from dataclasses import dataclass
 from datetime import datetime
 from ipaddress import IPv6Address
-from typing import Iterator, List, Optional
+from typing import Iterable, Iterator, List, Optional
 
 from clickhouse_driver import Client
 
 from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import IPNetwork, eq, ip_eq, ip_in, leq
+from diamond_miner.queries.fragments import eq, ip_eq, ip_in, leq
+from diamond_miner.typing import IPNetwork
 
 CH_QUERY_SETTINGS = {
     "max_block_size": 100000,
@@ -20,7 +21,7 @@ CH_QUERY_SETTINGS = {
 }
 
 
-def addr_to_string(addr: IPv6Address):
+def addr_to_string(addr: IPv6Address) -> str:
     """
     >>> from ipaddress import ip_address
     >>> addr_to_string(ip_address('::dead:beef'))
@@ -51,11 +52,19 @@ class Query:
     round_leq: Optional[int] = None
     "If specified, keep only the replies from this round or before."
 
-    def execute(self, *args, **kwargs) -> List:
-        return [row for row in self.execute_iter(*args, **kwargs)]
+    def execute(
+        self,
+        client: Client,
+        table: str,
+        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+    ) -> List:
+        return [row for row in self.execute_iter(client, table, subsets)]
 
     def execute_iter(
-        self, client: Client, table: str, subsets=(DEFAULT_SUBSET,)
+        self,
+        client: Client,
+        table: str,
+        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
     ) -> Iterator:
         for subset in subsets:
             query = self.query(table, subset)

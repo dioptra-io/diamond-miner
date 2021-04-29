@@ -1,5 +1,5 @@
 from ipaddress import IPv6Network, ip_network
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from clickhouse_driver import Client
 
@@ -25,7 +25,7 @@ def get_subsets(
     []
     """
 
-    def count_replies(subset):
+    def count_replies(subset: IPv6Network) -> int:
         total = 0
         for network, count in counts.items():
             if network.subnet_of(subset):
@@ -56,8 +56,11 @@ def get_subsets(
 
 
 def subsets_for_table(
-    client: Client, table: str, max_replies_per_subset=256_000_000, query_kwargs=None
-):
+    client: Client,
+    table: str,
+    max_replies_per_subset: int = 256_000_000,
+    query_kwargs: Optional[Dict] = None,
+) -> List[IPv6Network]:
     """
     Return the IP prefixes such that there are no more than `max_replies_per_subset`
     replies per prefix.

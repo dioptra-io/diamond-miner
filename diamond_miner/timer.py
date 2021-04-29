@@ -7,16 +7,16 @@ class Timer:
     start_time = None
     total_time = 0
 
-    def start(self):
+    def start(self) -> None:
         self.start_time = time.time_ns()
 
-    def stop(self):
+    def stop(self) -> None:
         if self.start_time:
             self.total_time += time.time_ns() - self.start_time
             self.start_time = None
 
     @property
-    def total_ms(self):
+    def total_ms(self) -> float:
         return self.total_time / 10 ** 6
 
     def __enter__(self):

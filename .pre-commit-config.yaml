@@ -6,7 +6,7 @@ repos:
     args: [--profile=black]
 
 - repo: https://github.com/psf/black
-  rev: 21.4b1
+  rev: 21.4b2
   hooks:
   - id: black
 
@@ -14,6 +14,12 @@ repos:
   rev: 3.9.1
   hooks:
   - id: flake8
+
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v0.812
+  hooks:
+    - id: mypy
+      exclude: build.py|tests/
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v3.4.0

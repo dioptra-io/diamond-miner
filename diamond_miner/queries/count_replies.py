@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.fragments import IPNetwork, cut_ipv6
+from diamond_miner.queries.fragments import cut_ipv6
 from diamond_miner.queries.query import DEFAULT_SUBSET, Query, addr_to_string  # noqa
 from diamond_miner.test import execute  # noqa
+from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)

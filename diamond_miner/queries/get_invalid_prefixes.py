@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import DEFAULT_PROBE_TTL_COLUMN, DEFAULT_SUBSET
-from diamond_miner.queries.fragments import IPNetwork
 from diamond_miner.queries.query import Query, addr_to_string  # noqa
+from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,5 @@
 from collections import Iterator
-from typing import List
+from typing import Iterable, List
 
 from clickhouse_driver import Client
 
@@ -12,7 +12,7 @@ from diamond_miner.defaults import (
 from diamond_miner.logging import logger
 from diamond_miner.queries import CountNodesPerTTL, GetNextRound
 from diamond_miner.timer import Timer
-from diamond_miner.typing import FlowMapper, ProbeType
+from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
 def mda_probes(
@@ -27,8 +27,8 @@ def mda_probes(
     adaptive_eps: bool = False,
     skip_unpopulated_ttls: bool = False,
     skip_unpopulated_ttls_threshold: int = 100,
-    subsets=(DEFAULT_SUBSET,),
-) -> Iterator[List[ProbeType]]:
+    subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+) -> Iterator[List[Probe]]:
     # Skip the TTLs where few nodes are discovered, in order to avoid
     # re-probing them extensively (e.g. low TTLs).
     skipped_ttls = set()
