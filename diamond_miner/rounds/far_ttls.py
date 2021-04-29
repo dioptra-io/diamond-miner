@@ -4,6 +4,7 @@ from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
     DEFAULT_PROBE_SRC_PORT,
     DEFAULT_SUBSET,
+    PROTOCOLS,
 )
 from diamond_miner.logging import logger
 from diamond_miner.queries import GetMaxTTL
@@ -32,22 +33,18 @@ def far_ttls_probes(
     yield_timer = Timer()
 
     rows = (
-        (dst_addr, max_ttl)
-        for dst_addr, max_ttl in rows
+        (protocol, dst_addr, max_ttl)
+        for protocol, dst_addr, max_ttl in rows
         if far_ttl_min <= max_ttl <= far_ttl_max
     )
 
-    for dst_addr, max_ttl in rows:
+    for protocol, dst_addr, max_ttl in rows:
         probe_specs = []
+        protocol_str = PROTOCOLS[protocol]
         with loop_timer:
             for ttl in range(max_ttl + 1, far_ttl_max + 1):
                 probe_specs.append(
-                    (
-                        int(dst_addr),
-                        probe_src_port,
-                        probe_dst_port,
-                        ttl,
-                    )
+                    (int(dst_addr), probe_src_port, probe_dst_port, ttl, protocol_str)
                 )
         if probe_specs:
             with yield_timer:

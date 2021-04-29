@@ -25,6 +25,7 @@ class CreateResultsTable(Query):
             probe_dst_port         UInt16,
             probe_ttl_l3           UInt8,
             probe_ttl_l4           UInt8,
+            probe_protocol         UInt8,
             reply_src_addr         IPv6,
             reply_protocol         UInt8,
             reply_icmp_type        UInt8,
@@ -45,5 +46,5 @@ class CreateResultsTable(Query):
             time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)
         )
             ENGINE MergeTree
-                ORDER BY (probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4);
+                ORDER BY (probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4);
         """

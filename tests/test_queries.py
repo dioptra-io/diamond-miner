@@ -5,17 +5,41 @@ from diamond_miner.test import execute  # noqa
 def test_get_links_nsdi():
     """
     >>> row = execute(GetLinks(), 'test_nsdi_example')[0]
-    >>> addr_to_string(row[0])
-    '100.0.0.1'
+    >>> row[0]
+    1
     >>> addr_to_string(row[1])
+    '100.0.0.1'
+    >>> addr_to_string(row[2])
     '200.0.0.0'
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in row[2]]
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in row[3]]
     >>> sorted(links)[:3]
     [('150.0.1.1', '150.0.2.1'), ('150.0.1.1', '150.0.3.1'), ('150.0.2.1', '150.0.4.1')]
     >>> sorted(links)[3:6]
     [('150.0.3.1', '150.0.5.1'), ('150.0.3.1', '150.0.7.1'), ('150.0.4.1', '150.0.6.1')]
     >>> sorted(links)[6:]
     [('150.0.5.1', '150.0.6.1'), ('150.0.7.1', '150.0.6.1')]
+    """
+
+
+def test_get_links_multi_protocol():
+    """
+    >>> rows = execute(GetLinks(), 'test_multi_protocol')
+    >>> addr_to_string(rows[0][1])
+    '100.0.0.1'
+    >>> addr_to_string(rows[0][2])
+    '200.0.0.0'
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows[0][3]]
+    >>> sorted(links)
+    [('150.0.0.1', '150.0.1.1'), ('150.0.0.2', '150.0.1.1')]
+    >>> rows[1][0]
+    17
+    >>> addr_to_string(rows[1][1])
+    '100.0.0.1'
+    >>> addr_to_string(rows[1][2])
+    '200.0.0.0'
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows[1][3]]
+    >>> sorted(links)
+    [('150.0.0.1', '150.0.1.1')]
     """
 
 

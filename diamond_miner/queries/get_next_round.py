@@ -18,7 +18,7 @@ class GetNextRound(Query):
 
     Row = namedtuple(
         "Row",
-        "dst_prefix,skip_prefix,probes,prev_max_flow,min_src_port,min_dst_port,max_dst_port",
+        "protocol,dst_prefix,skip_prefix,probes,prev_max_flow,min_src_port,min_dst_port,max_dst_port",
     )
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
@@ -124,6 +124,7 @@ class GetNextRound(Query):
             -- 8) Compute the final number of probes to send
             arrayMap(t -> arrayReduce('max', [dminer_probes_nostar[t], dminer_probes_star[t]]), TTLs) AS dminer_probes
         SELECT
+            probe_protocol,
             probe_dst_prefix,
             skip_prefix,
             dminer_probes,
@@ -133,8 +134,8 @@ class GetNextRound(Query):
             max(probe_dst_port)
         FROM {table}
         WHERE {self.common_filters(subset)}
-            AND probe_dst_prefix NOT IN invalid_prefixes
-            AND probe_dst_prefix NOT IN resolved_prefixes
-        GROUP BY (probe_src_addr, probe_dst_prefix)
+            AND (probe_protocol, probe_dst_prefix) NOT IN invalid_prefixes
+            AND (probe_protocol, probe_dst_prefix) NOT IN resolved_prefixes
+        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING length(links) >= 1 OR length(replies) >= 1
         """

@@ -22,10 +22,12 @@ class GetLinks(Query):
              -- compute the links by zipping the two arrays
              arrayFilter(x -> x.1.4 + 1 == x.2.4, arrayZip(replies, replies_shifted)) AS links,
              arrayDistinct(arrayMap(x -> (x.1.5, x.2.5), links)) AS links_minimal
-        SELECT probe_src_addr,
+        SELECT
+               probe_protocol,
+               probe_src_addr,
                probe_dst_prefix,
                links_minimal
         FROM {table}
         WHERE {self.common_filters(subset)}
-        GROUP BY (probe_src_addr, probe_dst_prefix)
+        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         """

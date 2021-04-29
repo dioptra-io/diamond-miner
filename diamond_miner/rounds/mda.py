@@ -4,6 +4,7 @@ from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
     DEFAULT_PROBE_SRC_PORT,
     DEFAULT_SUBSET,
+    PROTOCOLS,
 )
 from diamond_miner.logging import logger
 from diamond_miner.mappers import FlowMapper
@@ -53,6 +54,7 @@ def mda_probes(
         loop_timer.start()
         row = GetNextRound.Row(*row)
         dst_prefix_int = int(row.dst_prefix)
+        protocol_str = PROTOCOLS[row.protocol]
         mapper = mapper_v4 if row.dst_prefix.ipv4_mapped else mapper_v6
 
         if row.skip_prefix:
@@ -86,6 +88,7 @@ def mda_probes(
                         probe_dst_port,
                         # TTL in enumerate starts at 0 instead of 1
                         ttl + 1,
+                        protocol_str,
                     )
                 )
         loop_timer.stop()

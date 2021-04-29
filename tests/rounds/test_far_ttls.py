@@ -39,6 +39,7 @@ def test_far_ttls_probes(client):
                     probe_src_port,
                     probe_dst_port,
                     ttl,
+                    "icmp",
                 )
             )
 

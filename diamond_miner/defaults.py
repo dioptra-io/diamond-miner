@@ -14,3 +14,6 @@ DEFAULT_SUBSET = ip_network("::/0")
 # NOTE: If you change the TTL column, make sure to update the schema
 # in test_data.sql and in Iris. In particular, the column in the ORDER BY clause.
 DEFAULT_PROBE_TTL_COLUMN = "probe_ttl_l4"
+
+# Mapping of IP protocol number to caracal protocol string
+PROTOCOLS = {1: "icmp", 17: "udp", 58: "icmp6"}
