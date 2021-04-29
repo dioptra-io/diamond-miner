@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from clickhouse_driver import Client
 
-from diamond_miner.queries.count_replies import CountReplies
+from diamond_miner.queries import CountReplies
 
 
 def get_subsets(

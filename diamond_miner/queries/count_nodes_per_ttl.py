@@ -9,6 +9,7 @@ from diamond_miner.queries.query import Query
 class CountNodesPerTTL(Query):
     """
     Return the number of nodes discovered at each TTL.
+    This query does not support the ``subset`` parameter.
 
     >>> from diamond_miner.test import execute
     >>> execute(CountNodesPerTTL(), 'test_nsdi_example')

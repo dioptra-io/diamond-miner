@@ -9,6 +9,7 @@ from diamond_miner.test import execute  # noqa
 class CountReplies(Query):
     """
     Count replies by "chunks".
+
     >>> rows = execute(CountReplies(chunk_len_v4=8, chunk_len_v6=8), 'test_count_replies')
     >>> sorted((addr_to_string(a), b) for a, b in rows)
     [('0.0.0.0', 2), ('1.0.0.0', 1), ('230.0.0.0', 1)]

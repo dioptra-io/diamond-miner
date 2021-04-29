@@ -7,8 +7,7 @@ from diamond_miner.defaults import (
 )
 from diamond_miner.logging import logger
 from diamond_miner.mappers import FlowMapper
-from diamond_miner.queries.count_nodes_per_ttl import CountNodesPerTTL
-from diamond_miner.queries.get_next_round import GetNextRound
+from diamond_miner.queries import CountNodesPerTTL, GetNextRound
 from diamond_miner.timer import Timer
 
 

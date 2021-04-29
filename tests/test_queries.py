@@ -1,6 +1,4 @@
-from diamond_miner.queries.get_links import GetLinks  # noqa
-from diamond_miner.queries.get_next_round import GetNextRound  # noqa
-from diamond_miner.queries.query import addr_to_string  # noqa
+from diamond_miner.queries import GetLinks, GetNextRound, addr_to_string  # noqa
 from diamond_miner.test import execute  # noqa
 
 

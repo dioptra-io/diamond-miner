@@ -6,7 +6,7 @@ from diamond_miner.defaults import (
     DEFAULT_SUBSET,
 )
 from diamond_miner.logging import logger
-from diamond_miner.queries.get_max_ttl import GetMaxTTL
+from diamond_miner.queries import GetMaxTTL
 from diamond_miner.timer import Timer
 
 

@@ -9,6 +9,7 @@ from diamond_miner.queries.query import Query, addr_to_string  # noqa
 class GetInvalidPrefixes(Query):
     """
     Return the prefixes with per-packet LB or that sends more replies than probes.
+
     >>> from diamond_miner.test import execute
     >>> execute(GetInvalidPrefixes(), 'test_nsdi_example')
     []

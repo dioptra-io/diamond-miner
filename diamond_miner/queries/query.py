@@ -70,7 +70,7 @@ class Query:
             )
 
     def common_filters(self, subset: IPNetwork) -> str:
-        """`WHERE` clause common to all queries."""
+        """``WHERE`` clause common to all queries."""
         s = f"""
         {ip_in('probe_dst_prefix', subset)}
         AND {ip_eq('probe_src_addr', self.probe_src_addr)}

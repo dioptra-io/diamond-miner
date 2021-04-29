@@ -7,7 +7,8 @@ from diamond_miner.queries.query import DEFAULT_SUBSET, Query  # noqa
 @dataclass(frozen=True)
 class CountNodes(Query):
     """
-    Count all the discovered nodes.
+    Return the number of nodes discovered.
+    This query does not support the ``subset`` parameter.
 
     >>> from diamond_miner.test import execute
     >>> execute(CountNodes(), 'test_nsdi_example')[0][0]
