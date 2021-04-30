@@ -10,6 +10,7 @@ from diamond_miner.mappers import (
     SequentialFlowMapper,
 )
 from diamond_miner.rounds.mda import mda_probes
+from diamond_miner.subsets import subsets_for_table
 
 
 async def collect(f):
@@ -39,6 +40,7 @@ async def test_mda_probes_lite(async_client):
                 probe_src_port=probe_src_port,
                 probe_dst_port=probe_dst_port,
                 adaptive_eps=False,
+                subsets=await subsets_for_table(async_client, table),
             )
         )
 

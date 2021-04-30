@@ -1,7 +1,7 @@
 from ipaddress import IPv6Network, ip_network
 from typing import Dict, List, Optional
 
-from clickhouse_driver import Client
+from aioch import Client
 
 from diamond_miner.queries import CountReplies
 
@@ -55,7 +55,7 @@ def get_subsets(
     return subsets
 
 
-def subsets_for_table(
+async def subsets_for_table(
     client: Client,
     table: str,
     max_replies_per_subset: int = 256_000_000,
@@ -77,7 +77,7 @@ def subsets_for_table(
 
     # TODO: Cleanup this
     counts = {}
-    for chunk, count in count_replies_query.execute(client, table):
+    for chunk, count in await count_replies_query.execute_async(client, table):
         if chunk.ipv4_mapped:
             net = ip_network(str(chunk) + f"/{96 + 8}")
         else:
