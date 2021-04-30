@@ -11,8 +11,9 @@ build = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pygfc = "^1.0"
+aioch = "^0.0.2"
 clickhouse-driver = "^0.2.0"
+pygfc = "^1.0"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "^0.6.0"
@@ -22,6 +23,7 @@ flake8 = "^3.8.4"
 mypy = "^0.812"
 pylint = "^2.8"
 pytest = "^6.2"
+pytest-asyncio = "^0.15.1"
 pytest-cov = "^2.11.1"
 Sphinx = "^3.5.4"
 sphinx-rtd-theme = "^0.5.2"

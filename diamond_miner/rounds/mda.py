@@ -1,7 +1,6 @@
-from collections import Iterator
-from typing import Iterable, List
+from typing import AsyncIterator, Iterable, List
 
-from clickhouse_driver import Client
+from aioch import Client
 
 from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
@@ -15,7 +14,7 @@ from diamond_miner.timer import Timer
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
-def mda_probes(
+async def mda_probes(
     client: Client,
     table: str,
     round_: int,
@@ -28,14 +27,14 @@ def mda_probes(
     skip_unpopulated_ttls: bool = False,
     skip_unpopulated_ttls_threshold: int = 100,
     subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
-) -> Iterator[List[Probe]]:
+) -> AsyncIterator[List[Probe]]:
     # Skip the TTLs where few nodes are discovered, in order to avoid
     # re-probing them extensively (e.g. low TTLs).
     skipped_ttls = set()
 
     if skip_unpopulated_ttls:
         count_nodes_query = CountNodesPerTTL(probe_src_addr=probe_src_addr)
-        nodes_per_ttl = count_nodes_query.execute(client, table)
+        nodes_per_ttl = await count_nodes_query.execute_async(client, table)
         skipped_ttls = {
             ttl
             for ttl, n_nodes in nodes_per_ttl
@@ -47,13 +46,13 @@ def mda_probes(
         probe_src_addr=probe_src_addr,
         round_leq=round_,
     )
-    rows = query.execute_iter(client, table, subsets)
+    rows = query.execute_iter_async(client, table, subsets)
 
     # Monitor time spent in the loop and in foreign code, excluding database code.
     loop_timer = Timer()
     yield_timer = Timer()
 
-    for row in rows:
+    async for row in rows:
         loop_timer.start()
         row = GetNextRound.Row(*row)
         dst_prefix_int = int(row.dst_prefix)

@@ -1,8 +1,10 @@
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from ipaddress import IPv6Address
-from typing import Iterable, Iterator, List, Optional
+from typing import AsyncIterator, Iterable, Iterator, List, Optional
 
+from aioch import Client as AsyncClient
 from clickhouse_driver import Client
 
 from diamond_miner.defaults import DEFAULT_SUBSET
@@ -60,6 +62,14 @@ class Query:
     ) -> List:
         return [row for row in self.execute_iter(client, table, subsets)]
 
+    async def execute_async(
+        self,
+        client: AsyncClient,
+        table: str,
+        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+    ) -> List:
+        return [row async for row in self.execute_iter_async(client, table, subsets)]
+
     def execute_iter(
         self,
         client: Client,
@@ -68,15 +78,23 @@ class Query:
     ) -> Iterator:
         for subset in subsets:
             query = self.query(table, subset)
-            start = datetime.now()
-            logger.info("query=%s table=%s subset=%s", self.name, table, subset)
-            rows = client.execute_iter(query, settings=CH_QUERY_SETTINGS)
-            for row in rows:
-                yield row
-            delta = datetime.now() - start
-            logger.info(
-                "query=%s table=%s subset=%s time=%s", self.name, table, subset, delta
-            )
+            with self._log_time(table, subset):
+                rows = client.execute_iter(query, settings=CH_QUERY_SETTINGS)
+                for row in rows:
+                    yield row
+
+    async def execute_iter_async(
+        self,
+        client: AsyncClient,
+        table: str,
+        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+    ) -> AsyncIterator:
+        for subset in subsets:
+            query = self.query(table, subset)
+            with self._log_time(table, subset):
+                rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
+                async for row in rows:
+                    yield row
 
     def common_filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries."""
@@ -100,3 +118,13 @@ class Query:
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         raise NotImplementedError
+
+    @contextmanager
+    def _log_time(self, table: str, subset: IPNetwork) -> Iterator:
+        logger.info("query=%s table=%s subset=%s", self.name, table, subset)
+        start = datetime.now()
+        yield
+        delta = datetime.now() - start
+        logger.info(
+            "query=%s table=%s subset=%s time=%s", self.name, table, subset, delta
+        )

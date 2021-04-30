@@ -1,7 +1,6 @@
-from collections import Iterator
-from typing import Iterable, List
+from typing import AsyncIterator, Iterable, List
 
-from clickhouse_driver import Client
+from aioch import Client
 
 from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
@@ -15,7 +14,7 @@ from diamond_miner.timer import Timer
 from diamond_miner.typing import IPNetwork, Probe
 
 
-def far_ttls_probes(
+async def far_ttls_probes(
     client: Client,
     table: str,
     round_: int,
@@ -25,12 +24,12 @@ def far_ttls_probes(
     far_ttl_min: int = 20,
     far_ttl_max: int = 40,
     subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
-) -> Iterator[List[Probe]]:
+) -> AsyncIterator[List[Probe]]:
     query = GetMaxTTL(
         probe_src_addr=probe_src_addr,
         round_leq=round_,
     )
-    rows = query.execute_iter(client, table, subsets)
+    rows = query.execute_iter_async(client, table, subsets)
 
     # Monitor time spent in the loop and in foreign code, excluding database code.
     loop_timer = Timer()
@@ -38,11 +37,11 @@ def far_ttls_probes(
 
     rows = (
         (protocol, dst_addr, max_ttl)
-        for protocol, dst_addr, max_ttl in rows
+        async for protocol, dst_addr, max_ttl in rows
         if far_ttl_min <= max_ttl <= far_ttl_max
     )
 
-    for protocol, dst_addr, max_ttl in rows:
+    async for protocol, dst_addr, max_ttl in rows:
         probe_specs = []
         protocol_str = PROTOCOLS[protocol]
         with loop_timer:

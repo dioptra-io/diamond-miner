@@ -1,25 +1,28 @@
 from ipaddress import ip_address
 
+import pytest
+
 from diamond_miner.rounds.far_ttls import far_ttls_probes
 
 
-def collect(f):
+async def collect(f):
     res = []
-    for xs in f:
+    async for xs in f:
         res.extend(xs)
     return res
 
 
-def test_far_ttls_probes(client):
+@pytest.mark.asyncio
+async def test_far_ttls_probes(async_client):
     table = "test_nsdi_lite"
 
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
     probe_src_port = 24000
     probe_dst_port = 33434
 
-    probes = collect(
+    probes = await collect(
         far_ttls_probes(
-            client=client,
+            client=async_client,
             table=table,
             round_=1,
             probe_src_addr="100.0.0.1",
