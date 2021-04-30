@@ -3,6 +3,10 @@
 [![Tests](https://github.com/dioptra-io/diamond-miner/actions/workflows/quality.yml/badge.svg)](https://github.com/dioptra-io/diamond-miner/actions/workflows/quality.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/diamond-miner?logo=codecov&logoColor=white&token=RKZSQ2CL4J)](https://app.codecov.io/gh/dioptra-io/diamond-miner)
 
+```bash
+pip install diamond-miner
+```
+
 ```bibtex
 @inproceedings {DiamondMiner2020,
   author = {Kevin Vermeulen and Justin P. Rohrer and Robert Beverly and Olivier Fourmaux and Timur Friedman},
