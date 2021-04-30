@@ -2,7 +2,7 @@ from pathlib import Path
 
 from clickhouse_driver import Client
 
-test_data = Path(__file__).parent / ".." / "data" / "test_data.sql"
+test_data = Path(__file__).parent / ".." / "tests" / "test_data.sql"
 
 
 def get_test_data():
