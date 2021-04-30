@@ -35,5 +35,6 @@ This software is released under the [MIT license](/LICENSE), in accordance with 
 
 Name                                             | License                                    | Usage
 -------------------------------------------------|--------------------------------------------|------
+[aioch](https://github.com/mymarilyn/aioch)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
 [clickhouse-driver](https://github.com/mymarilyn/clickhouse-driver)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
 [pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT) | Generating random permutations
