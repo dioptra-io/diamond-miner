@@ -42,6 +42,9 @@ class Query:
     filter_private: bool = True
     "If true, ignore the replies from private IP addresses."
 
+    filter_invalid_probe_protocol: bool = True
+    "If true, ignore the replies with probe protocol != ICMP, ICMPv6 or UDP"
+
     time_exceeded_only: bool = True
     "If true, ignore non ICMP time exceeded replies."
 
@@ -110,6 +113,8 @@ class Query:
             s += "\nAND private_reply_src_addr = 0"
         if self.time_exceeded_only:
             s += "\nAND time_exceeded_reply = 1"
+        if self.filter_invalid_probe_protocol:
+            s += "\nAND probe_protocol IN [1, 17, 58]"
         return s
 
     @property
