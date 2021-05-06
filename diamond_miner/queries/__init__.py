@@ -1,9 +1,8 @@
 from .count_nodes import CountNodes
 from .count_nodes_per_ttl import CountNodesPerTTL
 from .count_replies import CountReplies
-from .create_nodes_view import CreateNodesView
+from .create_flows_view import CreateFlowsView
 from .create_results_table import CreateResultsTable
-from .create_traceroutes_view import CreateTraceroutesView
 from .get_invalid_prefixes import GetInvalidPrefixes
 from .get_links import GetLinks
 from .get_max_ttl import GetMaxTTL
@@ -16,9 +15,8 @@ __all__ = (
     "CountNodes",
     "CountNodesPerTTL",
     "CountReplies",
-    "CreateNodesView",
+    "CreateFlowsView",
     "CreateResultsTable",
-    "CreateTraceroutesView",
     "GetInvalidPrefixes",
     "GetLinks",
     "GetMaxTTL",
