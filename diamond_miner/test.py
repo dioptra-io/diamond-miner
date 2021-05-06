@@ -11,7 +11,7 @@ def get_test_data():
     return test_data.read_text().split(";")[:-1]
 
 
-def execute(q, table):
+def execute(q, table=None):
     if not hasattr(execute, "test_data_inserted"):
         execute.test_data_inserted = False
 
@@ -20,4 +20,6 @@ def execute(q, table):
         for statement in get_test_data():
             client.execute(statement)
         execute.test_data_inserted = True
+    if isinstance(q, str):
+        return client.execute(q)
     return q.execute(client, table)
