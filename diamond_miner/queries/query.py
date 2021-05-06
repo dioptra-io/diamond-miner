@@ -34,6 +34,18 @@ def addr_to_string(addr: IPv6Address) -> str:
     return str(addr.ipv4_mapped or addr)
 
 
+def bytes_to_addr(b: bytes) -> IPv6Address:
+    return IPv6Address(bytes_to_addr_int(b))
+
+
+def bytes_to_addr_int(b: bytes) -> int:
+    return int.from_bytes(b, "big")
+
+
+def bytes_to_addr_str(b: bytes) -> str:
+    return addr_to_string(bytes_to_addr(b))
+
+
 @dataclass(frozen=True)
 class Query:
     filter_destination: bool = True
@@ -101,12 +113,13 @@ class Query:
 
     def common_filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries."""
-        s = f"""
-        {ip_in('probe_dst_prefix', subset)}
-        AND {ip_eq('probe_src_addr', self.probe_src_addr)}
-        AND {eq('round', self.round_eq)}
-        AND {leq('round', self.round_leq)}
-        """
+        s = f"{ip_in('probe_dst_prefix', subset)}"
+        if self.probe_src_addr:
+            s += f"\nAND {ip_eq('probe_src_addr', self.probe_src_addr)}"
+        if self.round_eq:
+            s += f"\nAND {eq('round', self.round_eq)}"
+        if self.round_leq:
+            s += f"\nAND {leq('round', self.round_leq)}"
         if self.filter_destination:
             s += "\nAND reply_src_addr != probe_dst_addr"
         if self.filter_private:
