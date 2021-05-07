@@ -12,11 +12,18 @@ class GetLinksFromView(Query):
     Compute the links from the flows view.
     This returns one line per (flow, link) pair.
 
+    We do not emit a link in the case of single reply in a traceroute.
+    For example: * * node * *, does not generate a link.
+    However, * * node * * node', will generate (node, *) and (*, node').
+
     >>> from diamond_miner.test import client
     >>> links = GetLinksFromView().execute(client, "test_nsdi_example_flows")
     >>> len(links)
     58
     """
+
+    # TODO: Ignore invalid prefixes
+    # => modify the GetInvalidPrefixes to work on the FlowsView?
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
