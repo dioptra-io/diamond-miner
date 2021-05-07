@@ -33,6 +33,11 @@ class CreateResultsTable(Query):
             round                  UInt8,
             -- Materialized columns
             probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
+            private_probe_dst_prefix UInt8 MATERIALIZED
+                (probe_dst_prefix >= toIPv6('10.0.0.0')    AND probe_dst_prefix <= toIPv6('10.255.255.255'))  OR
+                (probe_dst_prefix >= toIPv6('172.16.0.0')  AND probe_dst_prefix <= toIPv6('172.31.255.255'))  OR
+                (probe_dst_prefix >= toIPv6('192.168.0.0') AND probe_dst_prefix <= toIPv6('192.168.255.255')) OR
+                (probe_dst_prefix >= toIPv6('fd00::')      AND probe_dst_prefix <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')),
             private_reply_src_addr UInt8 MATERIALIZED
                 (reply_src_addr >= toIPv6('10.0.0.0')    AND reply_src_addr <= toIPv6('10.255.255.255'))  OR
                 (reply_src_addr >= toIPv6('172.16.0.0')  AND reply_src_addr <= toIPv6('172.31.255.255'))  OR
