@@ -27,20 +27,22 @@ class GetLinksFromView(Query):
     """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
-        # TODO: Include * - node and node - *
         return f"""
         WITH
             groupUniqArrayMerge(replies) AS traceroute,
-            arraySort(x -> x.1, traceroute) AS traceroute_sorted,
-            arrayPushBack(arrayPopFront(traceroute_sorted), (0, toIPv6('::'))) AS traceroute_shifted,
-            arrayZip(traceroute_sorted, traceroute_shifted) AS candidates,
-            arrayFilter(x -> x.1.1 + 1 == x.2.1, candidates) AS links,
+            arrayMap(x -> x.1, traceroute) AS ttls,
+            arrayMap(x -> x.2, traceroute) AS addrs,
+            CAST((ttls, addrs), 'Map(UInt8, IPv6)') AS map,
+            arrayReduce('min', ttls) AS first_ttl,
+            arrayReduce('max', ttls) AS last_ttl,
+            arrayMap(i -> (toUInt8(i), map[toUInt8(i)], map[toUInt8(i + 1)]), range(first_ttl, last_ttl)) AS candidates,
+            arrayFilter(x -> x.2 != toIPv6('::') OR x.3 != toIPv6('::'), candidates) AS links,
             arrayJoin(links) AS link
         SELECT
             {CreateFlowsView.FLOW_COLUMNS},
-            link.1.1 AS near_ttl,
-            link.1.2 AS near_addr,
-            link.2.2 AS far_addr
+            link.1 AS near_ttl,
+            link.2 AS near_addr,
+            link.3 AS far_addr
         FROM {table}
         GROUP BY ({CreateFlowsView.FLOW_COLUMNS})
         SETTINGS optimize_aggregation_in_order = 1

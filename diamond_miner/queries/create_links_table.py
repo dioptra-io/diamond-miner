@@ -42,5 +42,5 @@ class CreateLinksTable(Query):
             far_addr               IPv6
         )
             ENGINE MergeTree
-                ORDER BY ({CreateFlowsView.FLOW_COLUMNS}, near_ttl)
+                ORDER BY ({CreateFlowsView.FLOW_COLUMNS})
         """
