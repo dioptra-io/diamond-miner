@@ -6,7 +6,7 @@ from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetLinks(Query):
+class GetLinksFromResults(Query):
     # This query is tested in test_queries.py due to its complexity.
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
@@ -30,4 +30,15 @@ class GetLinks(Query):
         FROM {table}
         WHERE {self.common_filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
+        """
+
+
+@dataclass(frozen=True)
+class GetLinks(Query):
+    # NOTE: It counts the links ('::', a) and (a, '::')
+
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        return f"""
+        SELECT DISTINCT (near_addr, far_addr)
+        FROM {table}
         """
