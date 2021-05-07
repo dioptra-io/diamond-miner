@@ -4,8 +4,6 @@ import pytest
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
 
-from diamond_miner.test import get_test_data
-
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -16,15 +14,9 @@ def event_loop():
 
 @pytest.fixture(scope="session")
 def client():
-    client = Client("127.0.0.1")
-    for statement in get_test_data():
-        client.execute(statement)
-    return client
+    return Client("127.0.0.1")
 
 
 @pytest.fixture(scope="session")
 async def async_client():
-    client = AsyncClient("127.0.0.1")
-    for statement in get_test_data():
-        await client.execute(statement)
-    return client
+    return AsyncClient("127.0.0.1")

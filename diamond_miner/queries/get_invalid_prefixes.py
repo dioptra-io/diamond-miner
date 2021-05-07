@@ -10,10 +10,10 @@ class GetInvalidPrefixes(Query):
     """
     Return the prefixes with per-packet LB or that sends more replies than probes.
 
-    >>> from diamond_miner.test import execute
-    >>> execute(GetInvalidPrefixes(), 'test_nsdi_example')
+    >>> from diamond_miner.test import client
+    >>> GetInvalidPrefixes().execute(client, 'test_nsdi_example')
     []
-    >>> prefixes = execute(GetInvalidPrefixes(), 'test_invalid_prefixes')
+    >>> prefixes = GetInvalidPrefixes().execute(client, 'test_invalid_prefixes')
     >>> sorted((x[0], addr_to_string(x[1])) for x in prefixes)
     [(1, '201.0.0.0'), (1, '202.0.0.0')]
     """

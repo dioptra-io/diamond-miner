@@ -1,0 +1,3 @@
+- SQL files are processed in order.
+- The results table, and the associated view(s) will be created automatically according to the filename.
+- Naming: `{order}_{table_name}.sql`

@@ -10,10 +10,10 @@ class GetResolvedPrefixes(Query):
     Return the prefixes for which no replies have been received at the previous round
     (i.e. no probes have been sent, most likely).
 
-    >>> from diamond_miner.test import execute
-    >>> execute(GetResolvedPrefixes(round_leq=1), 'test_nsdi_example')
+    >>> from diamond_miner.test import client
+    >>> GetResolvedPrefixes(round_leq=1).execute(client, 'test_nsdi_example')
     []
-    >>> prefixes = execute(GetResolvedPrefixes(round_leq=5), 'test_nsdi_example')
+    >>> prefixes = GetResolvedPrefixes(round_leq=5).execute(client, 'test_nsdi_example')
     >>> [(x[0], addr_to_string(x[1])) for x in prefixes]
     [(1, '200.0.0.0')]
     """

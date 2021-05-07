@@ -12,16 +12,8 @@ class GetLinksFromView(Query):
     Compute the links from the flows view.
     This returns one line per (flow, link) pair.
 
-    TODO: Better test.
-
-    >>> from diamond_miner.test import execute
-    >>> from diamond_miner.queries.create_results_table import CreateResultsTable
-    >>> _ = execute("DROP TABLE IF EXISTS results_test")
-    >>> _ = execute("DROP TABLE IF EXISTS flows_test")
-    >>> _ = execute(CreateResultsTable(), "results_test")
-    >>> _ = execute(CreateFlowsView(parent="results_test"), "flows_test")
-    >>> _ = execute("INSERT INTO results_test SELECT * FROM test_nsdi_example")
-    >>> links = execute(GetLinksFromView(), "flows_test")
+    >>> from diamond_miner.test import client
+    >>> links = GetLinksFromView().execute(client, "test_nsdi_example_flows")
     >>> len(links)
     58
     """
@@ -39,11 +31,11 @@ class GetLinksFromView(Query):
             arrayFilter(x -> x.2 != toIPv6('::') OR x.3 != toIPv6('::'), candidates) AS links,
             arrayJoin(links) AS link
         SELECT
-            {CreateFlowsView.FLOW_COLUMNS},
+            {CreateFlowsView.SORTING_KEY},
             link.1 AS near_ttl,
             link.2 AS near_addr,
             link.3 AS far_addr
         FROM {table}
-        GROUP BY ({CreateFlowsView.FLOW_COLUMNS})
+        GROUP BY ({CreateFlowsView.SORTING_KEY})
         SETTINGS optimize_aggregation_in_order = 1
         """

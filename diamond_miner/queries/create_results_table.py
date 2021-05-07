@@ -7,13 +7,9 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateResultsTable(Query):
-    """
-    Create the table used to store the measurement results from the prober.
+    """Create the table used to store the measurement results from the prober."""
 
-    >>> from diamond_miner.test import execute
-    >>> execute(CreateResultsTable(), "results_test")
-    []
-    """
+    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4"
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
@@ -45,6 +41,6 @@ class CreateResultsTable(Query):
             -- ICMP: protocol 1, ICMPv6: protocol 58
             time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)
         )
-            ENGINE MergeTree
-                ORDER BY (probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4);
+        ENGINE MergeTree
+        ORDER BY ({self.SORTING_KEY});
         """

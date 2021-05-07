@@ -26,6 +26,7 @@ jobs:
           poetry install
       - name: Tests
         run: |
+          poetry run tests/data/insert.py
           poetry run pytest -s --cov-report xml
       - name: Upload coverage
         run: bash <(curl -s https://codecov.io/bash)
