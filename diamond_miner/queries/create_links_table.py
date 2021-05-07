@@ -8,22 +8,9 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateLinksTable(Query):
-    """
-    Create the links table containing one line per (flow, link) pair.
+    """Create the links table containing one line per (flow, link) pair."""
 
-    >>> from diamond_miner.test import execute
-    >>> from diamond_miner.queries.create_results_table import CreateResultsTable
-    >>> from diamond_miner.queries.create_flows_view import CreateFlowsView
-    >>> from diamond_miner.queries.get_links_from_view import GetLinksFromView
-    >>> _ = execute("DROP TABLE IF EXISTS results_test")
-    >>> _ = execute("DROP TABLE IF EXISTS flows_test")
-    >>> _ = execute(CreateResultsTable(), "results_test")
-    >>> _ = execute(CreateFlowsView(parent="results_test"), "flows_test")
-    >>> _ = execute(CreateLinksTable(), "links_test")
-    >>> _ = execute("INSERT INTO results_test SELECT * FROM test_nsdi_example")
-    >>> sql = GetLinksFromView().query("flows_test")
-    >>> _ = execute(f"INSERT INTO links_test SELECT * FROM ({sql})")
-    """
+    SORTING_KEY = CreateFlowsView.SORTING_KEY
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         assert subset == DEFAULT_SUBSET, "subset not allowed for this query"
@@ -41,6 +28,6 @@ class CreateLinksTable(Query):
             near_addr              IPv6,
             far_addr               IPv6
         )
-            ENGINE MergeTree
-                ORDER BY ({CreateFlowsView.FLOW_COLUMNS})
+        ENGINE MergeTree
+        ORDER BY ({self.SORTING_KEY})
         """

@@ -7,13 +7,9 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateResultsTable(Query):
-    """
-    Create the table used to store the measurement results from the prober.
+    """Create the table used to store the measurement results from the prober."""
 
-    >>> from diamond_miner.test import execute
-    >>> execute(CreateResultsTable(), "results_test")
-    []
-    """
+    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4"
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
@@ -37,6 +33,11 @@ class CreateResultsTable(Query):
             round                  UInt8,
             -- Materialized columns
             probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
+            private_probe_dst_prefix UInt8 MATERIALIZED
+                (probe_dst_prefix >= toIPv6('10.0.0.0')    AND probe_dst_prefix <= toIPv6('10.255.255.255'))  OR
+                (probe_dst_prefix >= toIPv6('172.16.0.0')  AND probe_dst_prefix <= toIPv6('172.31.255.255'))  OR
+                (probe_dst_prefix >= toIPv6('192.168.0.0') AND probe_dst_prefix <= toIPv6('192.168.255.255')) OR
+                (probe_dst_prefix >= toIPv6('fd00::')      AND probe_dst_prefix <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')),
             private_reply_src_addr UInt8 MATERIALIZED
                 (reply_src_addr >= toIPv6('10.0.0.0')    AND reply_src_addr <= toIPv6('10.255.255.255'))  OR
                 (reply_src_addr >= toIPv6('172.16.0.0')  AND reply_src_addr <= toIPv6('172.31.255.255'))  OR
@@ -45,6 +46,6 @@ class CreateResultsTable(Query):
             -- ICMP: protocol 1, ICMPv6: protocol 58
             time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)
         )
-            ENGINE MergeTree
-                ORDER BY (probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4);
+        ENGINE MergeTree
+        ORDER BY ({self.SORTING_KEY});
         """

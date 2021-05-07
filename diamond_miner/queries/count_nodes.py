@@ -10,8 +10,8 @@ class CountNodesFromResults(Query):
     Return the number of nodes discovered.
     This query does not support the ``subset`` parameter.
 
-    >>> from diamond_miner.test import execute
-    >>> execute(CountNodes(), 'test_nsdi_example')[0][0]
+    >>> from diamond_miner.test import client
+    >>> CountNodes().execute(client, 'test_nsdi_example')[0][0]
     7
     """
 
