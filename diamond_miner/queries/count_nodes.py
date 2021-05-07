@@ -11,7 +11,7 @@ class CountNodesFromResults(Query):
     This query does not support the ``subset`` parameter.
 
     >>> from diamond_miner.test import client
-    >>> CountNodes().execute(client, 'test_nsdi_example')[0][0]
+    >>> CountNodesFromResults().execute(client, 'test_nsdi_example')[0][0]
     7
     """
 
