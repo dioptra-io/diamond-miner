@@ -1,7 +1,8 @@
 # Diamond-Miner :gem:
 
-[![Tests](https://github.com/dioptra-io/diamond-miner/actions/workflows/quality.yml/badge.svg)](https://github.com/dioptra-io/diamond-miner/actions/workflows/quality.yml)
+[![Tests](https://github.com/dioptra-io/diamond-miner/actions/workflows/tests.yml/badge.svg)](https://github.com/dioptra-io/diamond-miner/actions/workflows/tests.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/diamond-miner?logo=codecov&logoColor=white&token=RKZSQ2CL4J)](https://app.codecov.io/gh/dioptra-io/diamond-miner)
+[![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/diamond-miner/)
 
 > D-Miner is the first Internet-scale system that captures a multipath view of the topology. By combining and adapting state-of-the-art multipath detection and high speed randomized topology discovery techniques, D-Miner permits discovery of the Internet’s multipath topology in 2.5 days when probing at 100kpps. [[1]](#references)
 
