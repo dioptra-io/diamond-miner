@@ -9,7 +9,7 @@ from diamond_miner.typing import IPNetwork
 class CreateFlowsView(Query):
     """Create the flows view."""
 
-    SORTING_KEY = "round, probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
+    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
     parent: str = ""
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
@@ -21,7 +21,7 @@ class CreateFlowsView(Query):
         ORDER BY ({self.SORTING_KEY})
         AS SELECT
             {self.SORTING_KEY},
-            groupUniqArrayState((probe_ttl_l4, reply_src_addr)) AS replies
+            groupUniqArrayState((round, probe_ttl_l4, reply_src_addr)) AS replies
         FROM {self.parent}
         WHERE {self.common_filters(subset)}
         GROUP BY ({self.SORTING_KEY})

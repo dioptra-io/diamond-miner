@@ -54,7 +54,7 @@ class GetNextRound(Query):
             -- 1) Compute the links
             --  x.1    x.2       x.3        x.4
             -- (round, near_ttl, near_addr, far_addr)
-            groupUniqArray((round, near_ttl, near_addr, far_addr)) AS links,
+            groupUniqArray((near_round, near_ttl, near_addr, far_addr)) AS links,
             -- links for round < current round
             arrayFilter(x -> x.1 < {self.round_leq}, links) AS links_prev,
             -- 2) Count the number of links per TTL
@@ -101,7 +101,9 @@ class GetNextRound(Query):
             min(probe_dst_port),
             max(probe_dst_port)
         FROM {table}
-        WHERE round <= {self.round_leq}
+        WHERE near_round <= {self.round_leq}
+          AND is_inter_round = 0
+          AND is_virtual = 0
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING length(links) >= 1 AND skip_prefix = 0
         """

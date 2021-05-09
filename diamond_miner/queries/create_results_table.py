@@ -29,7 +29,7 @@ class CreateResultsTable(Query):
             reply_ttl              UInt8,
             reply_size             UInt16,
             reply_mpls_labels      Array(UInt32),
-            rtt                    Float64,
+            rtt                    Float32,
             round                  UInt8,
             -- Materialized columns
             probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
