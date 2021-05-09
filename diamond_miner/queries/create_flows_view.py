@@ -20,9 +20,14 @@ class CreateFlowsView(Query):
         ENGINE = AggregatingMergeTree
         ORDER BY ({self.SORTING_KEY})
         AS SELECT
+            round,
             {self.SORTING_KEY},
+            -- The duplication of the round column here allows us to drop `round`
+            -- from the GROUP BY clause when querying the view, and still get the
+            -- round information in the replies. This is useful for computing
+            -- inter-round links.
             groupUniqArrayState((round, probe_ttl_l4, reply_src_addr)) AS replies
         FROM {self.parent}
         WHERE {self.common_filters(subset)}
-        GROUP BY ({self.SORTING_KEY})
+        GROUP BY (round, {self.SORTING_KEY})
         """

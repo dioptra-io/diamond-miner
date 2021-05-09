@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.queries import CreateFlowsView
@@ -33,7 +34,18 @@ class GetLinksFromView(Query):
     # => modify the GetInvalidPrefixes to work on the FlowsView?
     # count replies_per_ttl and HAVING max(replies_per_ttl) = 1
 
+    round_eq: Optional[int] = None
+    """
+    If none, compute the links per flow, across all rounds.
+    Otherwise, compute the links per flow, for the specified round.
+    This is useful if you want to update a `links` table round-by-round:
+    such a table will contain only intra-round links but can be updated incrementally.
+    """
+
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        round_filter = "1"
+        if self.round_eq:
+            round_filter = f"round = {self.round_eq}"
         return f"""
         WITH
             -- (round, ttl, addr)
@@ -48,7 +60,8 @@ class GetLinksFromView(Query):
         SELECT
             {CreateFlowsView.SORTING_KEY},
             -- Set the round number for partial links:
-            -- the link (1, 1, A) -> (0, 2, *) becomes (1, 1, A) -> (1, 2, *)
+            -- The link (1, 10, A) -> (null, 11, *) becomes
+            --          (1, 10, A) -> (1,    11, *)
             if(link.3.1 != 0, link.3.1, link.4.1) AS near_round,
             if(link.4.1 != 0, link.4.1, link.3.1) AS far_round,
             link.1 AS near_ttl,
@@ -56,6 +69,7 @@ class GetLinksFromView(Query):
             link.3.2 AS near_addr,
             link.4.2 AS far_addr
         FROM {table}
+        WHERE {round_filter}
         GROUP BY ({CreateFlowsView.SORTING_KEY})
         SETTINGS optimize_aggregation_in_order = 1
         """
