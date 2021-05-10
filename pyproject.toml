@@ -34,3 +34,6 @@ addopts = "--cov=diamond_miner --cov-report term --doctest-ignore-import-errors 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=40.6.0", "Cython>=0.29.0"]
 build-backend = "poetry.core.masonry.api"
+
+[project]
+requires-python = ">=3.8"
