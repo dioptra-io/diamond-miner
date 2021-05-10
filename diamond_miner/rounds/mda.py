@@ -25,6 +25,8 @@ async def mda_probes(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
     skip_unpopulated_ttls: bool = False,
+    # TODO: Compute CountNodesPerTTL on the links table instead.
+    skip_unpopulated_ttls_table: str = "",
     skip_unpopulated_ttls_threshold: int = 100,
     subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
 ) -> AsyncIterator[List[Probe]]:
@@ -34,7 +36,9 @@ async def mda_probes(
 
     if skip_unpopulated_ttls:
         count_nodes_query = CountNodesPerTTL(probe_src_addr=probe_src_addr)
-        nodes_per_ttl = await count_nodes_query.execute_async(client, table)
+        nodes_per_ttl = await count_nodes_query.execute_async(
+            client, skip_unpopulated_ttls_table
+        )
         skipped_ttls = {
             ttl
             for ttl, n_nodes in nodes_per_ttl
