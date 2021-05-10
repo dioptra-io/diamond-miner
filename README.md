@@ -1,11 +1,26 @@
 # Diamond-Miner :gem:
 
-[![Tests](https://github.com/dioptra-io/diamond-miner/actions/workflows/quality.yml/badge.svg)](https://github.com/dioptra-io/diamond-miner/actions/workflows/quality.yml)
+[![Tests](https://github.com/dioptra-io/diamond-miner/actions/workflows/tests.yml/badge.svg)](https://github.com/dioptra-io/diamond-miner/actions/workflows/tests.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/diamond-miner?logo=codecov&logoColor=white&token=RKZSQ2CL4J)](https://app.codecov.io/gh/dioptra-io/diamond-miner)
+[![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/diamond-miner/)
 
+> D-Miner is the first Internet-scale system that captures a multipath view of the topology. By combining and adapting state-of-the-art multipath detection and high speed randomized topology discovery techniques, D-Miner permits discovery of the Internet’s multipath topology in 2.5 days when probing at 100kpps. [[1]](#references)
+
+## :rocket: Quickstart
+
+Diamond-Miner is implemented as a Python library which computes the probes to send.
+To actually send the probes, we recommend [Caracal](https://github.com/dioptra-io/caracal) but you can use the tool of your liking, such as [yarrp](https://github.com/cmand/yarrp) or [scamper](https://www.caida.org/catalog/software/scamper/) as long as you convert its output to the expected format described in the documentation.
+
+To get started, install Diamond-Miner and head over to the [documentation](https://dioptra-io.github.io/diamond-miner/):
 ```bash
 pip install diamond-miner
 ```
+
+## Publications
+
+Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
+Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
+The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner/releases/tag/nsdi2020) tag.
 
 ```bibtex
 @inproceedings {DiamondMiner2020,
@@ -22,16 +37,14 @@ pip install diamond-miner
 }
 ```
 
-## NSDI 2020 paper
-
-Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
-Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
-The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner/releases/tag/nsdi2020) tag.
-
 ## Authors
 
 Diamond-Miner is developed and maintained by the [Dioptra group](https://dioptra.io) at Sorbonne Université in Paris, France.
 The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
+
+## References
+
+[1] Vermeulen, Kevin, et al. ["Diamond-Miner: Comprehensive Discovery of the Internet's Topology Diamonds."](https://www.usenix.org/system/files/nsdi20-paper-vermeulen.pdf) _17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20)_. 2020.
 
 ## License & Dependencies
 
