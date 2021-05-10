@@ -10,7 +10,6 @@ from diamond_miner.mappers import (
     SequentialFlowMapper,
 )
 from diamond_miner.rounds.mda import mda_probes
-from diamond_miner.subsets import subsets_for_table
 
 
 async def collect(f):
@@ -22,7 +21,7 @@ async def collect(f):
 
 @pytest.mark.asyncio
 async def test_mda_probes_lite(async_client):
-    table = "test_nsdi_lite"
+    table = "test_nsdi_lite_links"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
     probe_src_port = 24000
@@ -40,7 +39,6 @@ async def test_mda_probes_lite(async_client):
                 probe_src_port=probe_src_port,
                 probe_dst_port=probe_dst_port,
                 adaptive_eps=False,
-                subsets=await subsets_for_table(async_client, table),
             )
         )
 
@@ -82,7 +80,7 @@ async def test_mda_probes_lite(async_client):
 
 @pytest.mark.asyncio
 async def test_mda_probes_lite_adaptive(async_client):
-    table = "test_nsdi_lite"
+    table = "test_nsdi_lite_links"
 
     async def probes_for_round(round_):
         return await collect(
@@ -104,7 +102,7 @@ async def test_mda_probes_lite_adaptive(async_client):
 
 @pytest.mark.asyncio
 async def test_mda_probes_lite_mappers(async_client):
-    table = "test_nsdi_lite"
+    table = "test_nsdi_lite_links"
 
     # In this test, we simplify verify that the next round works with
     # all the different flow mappers. We do not check the probes themselves.
@@ -144,7 +142,7 @@ async def test_mda_probes_lite_mappers(async_client):
 
 @pytest.mark.asyncio
 async def test_next_round_probes_multi_protocol(async_client):
-    table = "test_multi_protocol"
+    table = "test_multi_protocol_links"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
     probe_src_port = 24000

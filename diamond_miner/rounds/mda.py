@@ -59,9 +59,6 @@ async def mda_probes(
         protocol_str = PROTOCOLS[row.protocol]
         mapper = mapper_v4 if row.dst_prefix.ipv4_mapped else mapper_v6
 
-        if row.skip_prefix:
-            continue
-
         probe_specs = []
         for ttl, n_to_send in enumerate(row.probes):
             if ttl in skipped_ttls:
@@ -72,16 +69,6 @@ async def mda_probes(
                 addr_offset, port_offset = mapper.offset(
                     flow_id=flow_id, prefix=dst_prefix_int
                 )
-
-                if port_offset > 0 and (
-                    (row.min_dst_port != probe_dst_port)
-                    or (row.max_dst_port != probe_dst_port)  # noqa
-                    or (row.min_src_port < probe_src_port)  # noqa
-                ):
-                    # There is a case where max_src_port > sport,
-                    # but real_flow_id < 255 (see dst_prefix == 28093440)
-                    # It's probably NAT, nothing to do more
-                    continue
 
                 probe_specs.append(
                     (
