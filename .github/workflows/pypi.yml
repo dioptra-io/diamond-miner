@@ -27,14 +27,15 @@ jobs:
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.10.0
         env:
-          CIBW_ARCHS_MACOS: x86_64 arm64
+          # arm64 macos wheels are broken as of 10/05/2020
+          CIBW_ARCHS_MACOS: x86_64
           CIBW_ARCHS_LINUX: x86_64 aarch64
 
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-          TWINE_REPOSITORY_URL: http://132.227.123.15:30041/root/default/
+          TWINE_REPOSITORY_URL: ${{ secrets.PYPI_REPOSITORY_URL }}
         run: |
           python3 -m pip install --upgrade poetry twine
           python3 -m poetry build --format sdist
