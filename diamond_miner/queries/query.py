@@ -133,7 +133,7 @@ class Query:
         if self.filter_destination:
             s += "\nAND reply_src_addr != probe_dst_addr"
         if self.filter_private:
-            s += "\nAND private_probe_dst_prefix = 0"
+            # s += "\nAND private_probe_dst_prefix = 0"
             s += "\nAND private_reply_src_addr = 0"
         if self.time_exceeded_only:
             s += "\nAND time_exceeded_reply = 1"

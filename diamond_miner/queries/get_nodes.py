@@ -17,7 +17,7 @@ class GetNodesFromResults(Query):
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        SELECT DISTINCT probe_protocol, reply_src_addr
+        SELECT DISTINCT probe_protocol, {self.addr_cast('reply_src_addr')}
         FROM {table}
         WHERE {self.common_filters(subset)}
         """

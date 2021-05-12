@@ -34,19 +34,56 @@ class GetLinksFromResults(Query):
 
 @dataclass(frozen=True)
 class GetLinks(Query):
-    # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
-    # Does not group by probe_protocol and probe_src_addr
+    # NOTE: Does not group by probe_protocol and probe_src_addr
+
+    # Get the ('::', a) and (a, '::') links
+    is_partial: bool = True
+
+    # Get the ('::', '::') links
+    is_virtual: bool = True
+
+    # Get the inter round links
+    is_inter_round: bool = True
+
+    def links_filters(self):
+        s = "1=1"
+        if not self.is_partial:
+            s += "\nAND NOT is_partial"
+        if not self.is_virtual:
+            s += "\nAND NOT is_virtual"
+        if not self.is_inter_round:
+            s += "\nAND NOT is_inter_round"
+        return s
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
         SELECT DISTINCT ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
         FROM {table}
+        WHERE {self.links_filters()}
         """
 
 
 @dataclass(frozen=True)
 class GetLinksPerPrefix(Query):
-    # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
+
+    # Get the ('::', a) and (a, '::') links
+    is_partial: bool = True
+
+    # Get the ('::', '::') links
+    is_virtual: bool = True
+
+    # Get the inter round links
+    is_inter_round: bool = True
+
+    def links_filters(self):
+        s = "1=1"
+        if not self.is_partial:
+            s += "\nAND NOT is_partial"
+        if not self.is_virtual:
+            s += "\nAND NOT is_virtual"
+        if not self.is_inter_round:
+            s += "\nAND NOT is_inter_round"
+        return s
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
@@ -58,5 +95,6 @@ class GetLinksPerPrefix(Query):
                 ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
             )
         FROM {table}
+        WHERE {self.links_filters()}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         """
