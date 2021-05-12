@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from ipaddress import IPv6Address
 from typing import AsyncIterator, Iterable, Iterator, List, Optional
 
@@ -21,6 +22,13 @@ CH_QUERY_SETTINGS = {
     # https://github.com/ClickHouse/ClickHouse/issues/18406
     "read_backoff_min_latency_ms": 100000,
 }
+
+
+class AddrType(str, Enum):
+    IPv6 = "IPv6"
+    String = "String"
+    FixedString = "FixedString"
+    IPv6NumToString = "IPv6NumToString"
 
 
 def addr_to_string(addr: IPv6Address) -> str:
@@ -68,6 +76,8 @@ class Query:
 
     round_leq: Optional[int] = None
     "If specified, keep only the replies from this round or before."
+
+    addr_type: AddrType = AddrType.IPv6
 
     def execute(
         self,
@@ -123,13 +133,26 @@ class Query:
         if self.filter_destination:
             s += "\nAND reply_src_addr != probe_dst_addr"
         if self.filter_private:
-            s += "\nAND private_probe_dst_prefix = 0"
+            # s += "\nAND private_probe_dst_prefix = 0"
             s += "\nAND private_reply_src_addr = 0"
         if self.time_exceeded_only:
             s += "\nAND time_exceeded_reply = 1"
         if self.filter_invalid_probe_protocol:
             s += "\nAND probe_protocol IN [1, 17, 58]"
         return s
+
+    def addr_cast(self, column: str) -> str:
+        """Returns the column casted to the specified address type."""
+        if self.addr_type == AddrType.IPv6:
+            return column
+        elif self.addr_type == AddrType.String:
+            return f"CAST({column} AS String)"
+        elif self.addr_type == AddrType.FixedString:
+            return f"CAST({column} AS FixedString(16))"
+        elif self.addr_type == AddrType.IPv6NumToString:
+            return f"IPv6NumToString({column})"
+        else:
+            raise AttributeError("`addr_type` must be `AddrType` type")
 
     @property
     def name(self) -> str:

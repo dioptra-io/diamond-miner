@@ -25,17 +25,17 @@ class CountNodesFromResults(Query):
 
 
 @dataclass(frozen=True)
-class CountNodesFromLinks(Query):
+class CountNodes(Query):
     # NOTE: It counts the node '::'
-    # Slower than computing on results table
+    # Does not group by probe_protocol and probe_src_addr
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        SELECT uniqExact(*)
-        FROM
-        (
-            SELECT near_addr FROM {table}
-            UNION DISTINCT
-            SELECT far_addr FROM {table}
+        SELECT arrayUniq(
+            arrayConcat(
+                groupUniqArray(near_addr),
+                groupUniqArray(far_addr)
+            )
         )
+        FROM {table}
         """

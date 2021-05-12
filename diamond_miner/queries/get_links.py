@@ -24,21 +24,39 @@ class GetLinksFromResults(Query):
              arrayDistinct(arrayMap(x -> (x.1.5, x.2.5), links)) AS links_minimal
         SELECT
                probe_protocol,
-               probe_src_addr,
                probe_dst_prefix,
                links_minimal
         FROM {table}
         WHERE {self.common_filters(subset)}
-        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
+        GROUP BY (probe_protocol, probe_dst_prefix)
         """
 
 
 @dataclass(frozen=True)
 class GetLinks(Query):
-    # NOTE: It counts the links ('::', a) and (a, '::')
+    # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
+    # Does not group by probe_protocol and probe_src_addr
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        SELECT DISTINCT (near_addr, far_addr)
+        SELECT DISTINCT ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
         FROM {table}
+        """
+
+
+@dataclass(frozen=True)
+class GetLinksPerPrefix(Query):
+    # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
+
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        return f"""
+        SELECT
+            probe_protocol,
+            probe_src_addr,
+            probe_dst_prefix,
+            groupUniqArray(
+                ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
+            )
+        FROM {table}
+        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         """

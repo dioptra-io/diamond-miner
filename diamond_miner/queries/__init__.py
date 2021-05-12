@@ -1,4 +1,4 @@
-from .count_nodes import CountNodesFromLinks, CountNodesFromResults
+from .count_nodes import CountNodesFromResults, CountNodes
 from .count_nodes_per_ttl import CountNodesPerTTL
 from .count_replies import CountReplies
 from .create_flows_view import CreateFlowsView
@@ -14,8 +14,9 @@ from .get_resolved_prefixes import GetResolvedPrefixes
 from .query import Query, addr_to_string
 
 __all__ = (
-    "CountNodesFromLinks",
+    "CountNodes",
     "CountNodesFromResults",
+    "GetNodesPerPrefix",
     "CountNodesPerTTL",
     "CountReplies",
     "CreateFlowsView",
@@ -24,6 +25,7 @@ __all__ = (
     "GetInvalidPrefixes",
     "GetLinks",
     "GetLinksFromResults",
+    "GetNodesPerPrefix",
     "GetLinksFromView",
     "GetMaxTTL",
     "GetNextRound",

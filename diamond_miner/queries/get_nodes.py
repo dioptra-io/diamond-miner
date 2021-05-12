@@ -26,11 +26,39 @@ class GetNodesFromResults(Query):
 @dataclass(frozen=True)
 class GetNodes(Query):
     # NOTE: It counts the node '::'
-    # Slower than computing on results table
+    # Does not group by probe_protocol and probe_src_addr
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
-        SELECT near_addr FROM {table}
-        UNION DISTINCT
-        SELECT far_addr FROM {table}
+        SELECT
+            arrayJoin(
+                arrayDistinct(
+                    arrayConcat(
+                        groupUniqArray({self.addr_cast('near_addr')}),
+                        groupUniqArray({self.addr_cast('far_addr')})
+                    )
+                )
+            )
+        FROM {table}
+        """
+
+
+@dataclass(frozen=True)
+class GetNodesPerPrefix(Query):
+    # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
+
+    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+        return f"""
+        SELECT
+            probe_protocol,
+            probe_src_addr,
+            probe_src_addr,
+            arrayDistinct(
+                    arrayConcat(
+                        groupUniqArray({self.addr_cast('near_addr')}),
+                        groupUniqArray({self.addr_cast('far_addr')})
+                    )
+                )
+        FROM {table}
+        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         """
