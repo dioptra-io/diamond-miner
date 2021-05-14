@@ -95,8 +95,8 @@ class GetNextRound(Query):
             -- TODO: Cleanup/optimize/rewrite/... below
             -- do not send probes to TTLs where no replies have been received
             -- it is unlikely that we will discover more at this TTL if the first 6 flows have seen nothing
-            arrayMap(t -> arrayUniq(arrayMap(x -> x.2, arrayFilter(x -> x.1 == t, ttl_link))), TTLs) AS nodes_per_ttl_near,
-            arrayMap(t -> arrayUniq(arrayMap(x -> x.3, arrayFilter(x -> x.1 + 1 == t, ttl_link))), TTLs) AS nodes_per_ttl_far,
+            arrayMap(t -> arrayUniq(arrayFilter(x -> x != toIPv6('::'), arrayMap(x -> x.2, arrayFilter(x -> x.1 == t, ttl_link)))), TTLs) AS nodes_per_ttl_near,
+            arrayMap(t -> arrayUniq(arrayFilter(x -> x != toIPv6('::'), arrayMap(x -> x.3, arrayFilter(x -> x.1 + 1 == t, ttl_link)))), TTLs) AS nodes_per_ttl_far,
             arrayMap(t -> arrayMax([nodes_per_ttl_near[t], nodes_per_ttl_far[t]]), TTLs) AS nodes_per_ttl,
             arrayMap(t -> if(nodes_per_ttl[t] > 0, probes[t], 0), TTLs) AS probes_final
         SELECT
