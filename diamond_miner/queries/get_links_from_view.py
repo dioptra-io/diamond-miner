@@ -53,8 +53,8 @@ class GetLinksFromView(Query):
             arrayMap(x -> x.2, traceroute) AS ttls,
             arrayMap(x -> (x.1, x.3), traceroute) AS val,
             CAST((ttls, val), 'Map(UInt8, Tuple(UInt8, IPv6))') AS map,
-            arrayReduce('min', ttls) AS first_ttl,
-            arrayReduce('max', ttls) AS last_ttl,
+            arrayMin(ttls) AS first_ttl,
+            arrayMax(ttls) AS last_ttl,
             arrayMap(i -> (toUInt8(i), toUInt8(i + 1), map[toUInt8(i)], map[toUInt8(i + 1)]), range(first_ttl, last_ttl)) AS links,
             arrayJoin(links) AS link
         SELECT

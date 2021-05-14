@@ -65,8 +65,8 @@ class GetNextRound(Query):
             arrayMap(t -> arrayUniq(arrayFilter(x -> x.1 == t, ttl_link)), TTLs) AS links_per_ttl,
             arrayMap(t -> arrayUniq(arrayFilter(x -> x.1 == t, ttl_link_prev)), TTLs) AS links_per_ttl_prev,
             -- find the maximum number of links over all TTLs
-            arrayReduce('max', links_per_ttl) AS max_links,
-            arrayReduce('max', links_per_ttl_prev) AS max_links_prev,
+            arrayMax(links_per_ttl) AS max_links,
+            arrayMax(links_per_ttl_prev) AS max_links_prev,
             -- 3) Determine if the prefix can be skipped at the next round
             -- 1 if no new links and nodes have been discovered in the current round
             equals(links_per_ttl, links_per_ttl_prev) AS skip_prefix,
@@ -85,17 +85,24 @@ class GetNextRound(Query):
             -- the number of links discovered during the previous rounds
             -- if round > 1 and TTL > 1: we take the max of the DMiner formula
             -- over the links discovered during the previous rounds at TTL t and t-1
-            arrayMap(t -> if({self.round_leq} == 1, 6, if(t == 1, nkv_Dhv_prev[t], arrayReduce('max', [nkv_Dhv_prev[t], nkv_Dhv_prev[t-1]]))), TTLs) AS prev_max_flow_per_ttl,
+            arrayMap(t -> if({self.round_leq} == 1, 6, if(t == 1, nkv_Dhv_prev[t], arrayMax([nkv_Dhv_prev[t], nkv_Dhv_prev[t-1]]))), TTLs) AS prev_max_flow_per_ttl,
             -- compute the number of probes to send during the next round
             -- if TTL = 1: we use the DMiner formula and we substract the
             -- number of probes sent during the previous rounds.
             -- if TTL > 1: we take the max of probes to send over TTL t and t-1
-            arrayMap(t -> if(t == 1, nkv_Dhv[t] - prev_max_flow_per_ttl[t], arrayReduce('max', [nkv_Dhv[t] - prev_max_flow_per_ttl[t], nkv_Dhv[t-1] - prev_max_flow_per_ttl[t-1]])), TTLs) AS candidate_probes,
-            arrayMap(t -> if(candidate_probes[t] < 0, 0, candidate_probes[t]), TTLs) AS probes
+            arrayMap(t -> if(t == 1, nkv_Dhv[t] - prev_max_flow_per_ttl[t], arrayMax([nkv_Dhv[t] - prev_max_flow_per_ttl[t], nkv_Dhv[t-1] - prev_max_flow_per_ttl[t-1]])), TTLs) AS candidate_probes,
+            arrayMap(t -> if(candidate_probes[t] < 0, 0, candidate_probes[t]), TTLs) AS probes,
+            -- TODO: Cleanup/optimize/rewrite/... below
+            -- do not send probes to TTLs where no replies have been received
+            -- it is unlikely that we will discover more at this TTL if the first 6 flows have seen nothing
+            arrayMap(t -> arrayUniq(arrayMap(x -> x.2, arrayFilter(x -> x.1 == t, ttl_link))), TTLs) AS nodes_per_ttl_near,
+            arrayMap(t -> arrayUniq(arrayMap(x -> x.3, arrayFilter(x -> x.1 + 1 == t, ttl_link))), TTLs) AS nodes_per_ttl_far,
+            arrayMap(t -> arrayMax([nodes_per_ttl_near[t], nodes_per_ttl_far[t]]), TTLs) AS nodes_per_ttl,
+            arrayMap(t -> if(nodes_per_ttl[t] > 0, probes[t], 0), TTLs) AS probes_final
         SELECT
             probe_protocol,
             probe_dst_prefix,
-            probes,
+            probes_final,
             prev_max_flow_per_ttl,
             min(probe_src_port),
             min(probe_dst_port),
