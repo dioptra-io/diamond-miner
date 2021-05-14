@@ -1,4 +1,4 @@
-from .count_nodes import CountNodesFromResults, CountNodes
+from .count_nodes import CountNodes, CountNodesFromResults
 from .count_nodes_per_ttl import CountNodesPerTTL
 from .count_replies import CountReplies
 from .create_flows_view import CreateFlowsView
