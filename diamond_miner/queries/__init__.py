@@ -1,3 +1,4 @@
+from .count_links import CountLinks
 from .count_nodes import CountNodes, CountNodesFromResults
 from .count_nodes_per_ttl import CountNodesPerTTL
 from .count_replies import CountReplies
@@ -14,6 +15,7 @@ from .get_resolved_prefixes import GetResolvedPrefixes
 from .query import Query, addr_to_string
 
 __all__ = (
+    "CountLinks",
     "CountNodes",
     "CountNodesFromResults",
     "CountNodesPerTTL",

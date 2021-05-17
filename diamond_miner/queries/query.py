@@ -63,7 +63,7 @@ class Query:
     "If true, ignore the replies from private IP addresses."
 
     filter_invalid_probe_protocol: bool = True
-    "If true, ignore the replies with probe protocol != ICMP, ICMPv6 or UDP."
+    "If true, ignore the replies with probe protocol ≠ ICMP, ICMPv6 or UDP."
 
     time_exceeded_only: bool = True
     "If true, ignore non ICMP time exceeded replies."

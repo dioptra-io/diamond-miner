@@ -11,15 +11,15 @@ from diamond_miner.typing import IPNetwork
 class GetLinksFromView(Query):
     """
     Compute the links from the flows view.
-    This returns one line per (flow, link) pair.
+    This returns one line per ``(flow, link)`` pair.
 
     We do not emit a link in the case of single reply in a traceroute.
-    For example: * * node * *, does not generate a link.
-    However, * * node * * node', will generate (node, *) and (*, node').
+    For example: ``* * node * *``, does not generate a link.
+    However, ``* * node * * node'``, will generate ``(node, *)`` and ``(*, node')``.
 
     We emit cross-rounds links.
     For example if flow N sees node A at TTL 10 at round 1 and flow N sees node B at TTL 11 at round 2,
-    we will emit (1, 10, A) -> (2, 11, B).
+    we will emit ``(1, 10, A) - (2, 11, B)``.
 
     We assume that there exists a single (flow, ttl) pair over all rounds.
     TODO: Assert this?

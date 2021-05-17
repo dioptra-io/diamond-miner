@@ -10,7 +10,11 @@ Welcome to diamond-miner's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   generator
+   mappers
    queries
+   rounds
+   references
 
 
 Indices and tables

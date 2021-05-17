@@ -1,8 +1,8 @@
 """
 Functions for mapping flow IDs to addresses and ports.
 We make the flow ID start at 0.
-`prefix_size` is the number of addresses in the prefix:
-    2**(32-24) for a /24 in IPv4
+``prefix_size`` is the number of addresses in the prefix:
+``2 ** (32 - 24)`` for a /24 in IPv4.
 """
 import random
 
@@ -40,9 +40,9 @@ cdef class SequentialFlowMapper:
 
 cdef class IntervalFlowMapper:
     """
-    Similar to the `SequentialFlowMapper` but with an increment >= 1.
+    Similar to the :py:class:`SequentialFlowMapper` but with an increment >= 1.
     This allows to target addresses .1, .33, .65, ... in priority,
-    which according to a paper by J. Heidemann are more likely to respond to probes.
+    which are more likely to respond to probes :cite:`fan2010selecting`.
     """
 
     cdef uint128_t period
@@ -74,7 +74,7 @@ cdef class IntervalFlowMapper:
 
 cdef class ReverseByteFlowMapper:
     """
-    Maps flow n to address reverse(n) until we have done the whole prefix.
+    Maps flow ``n`` to address ``reverse(n)`` until we have done the whole prefix.
     It then increases the port number sequentially.
     """
 
@@ -103,7 +103,7 @@ cdef class ReverseByteFlowMapper:
 
 cdef class RandomFlowMapper:
     """
-    Similar to the `SequentialFlowMapper` but with a random mapping
+    Similar to the :py:class:`SequentialFlowMapper` but with a random mapping
     between flow IDs and addresses.
     The mapping is randomized by prefix.
     """

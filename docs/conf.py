@@ -35,6 +35,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
+    "sphinxcontrib.bibtex",
     "sphinx_rtd_theme",
 ]
 
@@ -61,3 +62,7 @@ html_static_path = ["_static"]
 # -- Options for intersphinx -------------------------------------------------
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+
+# -- Options for sphinxcontrib-bibtex ----------------------------------------
+
+bibtex_bibfiles = ["bibliography.bib"]

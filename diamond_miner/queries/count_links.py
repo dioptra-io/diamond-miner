@@ -6,8 +6,13 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CountLinks(Query):
-    # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
-    # Does not group by probe_protocol and probe_src_addr
+    """
+    Count the distinct links in the links table, including
+    ``('::', node)``, ``(node, '::')`` and ``('::', '::')``.
+
+    .. note:: This query doesn't group replies by probe protocol and probe source address:
+              it assumes that the table contains the replies for a single vantage point and a single protocol.
+    """
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""

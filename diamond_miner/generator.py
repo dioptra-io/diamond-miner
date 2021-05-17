@@ -71,8 +71,9 @@ def split_prefix(
 
 def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int) -> Sequence[int]:
     """
-    Faster version of ipaddress.IPv4Network.subnets(...).
+    Faster version of :py:meth:`ipaddress.IPv4Network.subnets`.
     Returns only the network address as an integer.
+
     >>> from ipaddress import ip_network
     >>> list(subnets(ip_network("0.0.0.0/0"), new_prefix=2))
     [0, 1073741824, 2147483648, 3221225472]
@@ -189,8 +190,10 @@ def probe_generator_by_flow(
     """
     Generate a probe for each prefix, flow id and TTL, in a random order.
     This function differs from :func:`probe_generator` in two aspects:
+
         * The TTLs are specified for each prefixes, and not globally.
         * All the probes for a given prefix and flow id are generated sequentially.
+
     The parameters and output are identical to :func:`probe_generator`,
     excepted for ``prefixes`` which is a list of (prefix, protocol, TTLs) tuples,
     and the absence of the ``ttls`` parameter.
