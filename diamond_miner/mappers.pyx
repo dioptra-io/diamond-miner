@@ -5,7 +5,6 @@ We make the flow ID start at 0.
     2**(32-24) for a /24 in IPv4
 """
 import random
-from typing import Protocol, Tuple
 
 from libc.stdint cimport uint8_t, uint16_t
 
@@ -30,8 +29,8 @@ cdef class SequentialFlowMapper:
     def __init__(self, uint128_t prefix_size = DEFAULT_PREFIX_SIZE_V4):
         self.prefix_size = prefix_size
 
-    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint128_t prefix = 0):
-        return addr_offset
+    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint16_t port_offset, uint128_t prefix = 0):
+        return addr_offset + port_offset
 
     cpdef (uint128_t, uint16_t) offset(self, uint128_t flow_id, uint128_t prefix = 0):
         if flow_id < self.prefix_size:
@@ -57,9 +56,11 @@ cdef class IntervalFlowMapper:
         self.prefix_size = prefix_size
         self.step = step
 
-    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint128_t prefix = 0):
+    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint16_t port_offset, uint128_t prefix = 0):
         if addr_offset == 0:
             return self.prefix_size - 1
+        if port_offset != 0:
+            return self.prefix_size + port_offset - 1
         q, r = divmod(addr_offset - 1, self.step)
         return r * self.period + q
 
@@ -77,10 +78,12 @@ cdef class ReverseByteFlowMapper:
     It then increases the port number sequentially.
     """
 
-    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint128_t prefix = 0):
+    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint16_t port_offset, uint128_t prefix = 0):
         assert addr_offset < 256
         if addr_offset == 0:
             return 255
+        if port_offset != 0:
+            return 255 + port_offset
         return self.reverse_byte(addr_offset - 1)
 
     cpdef (uint128_t, uint16_t) offset(self, uint128_t flow_id, uint128_t prefix = 0):
@@ -117,8 +120,10 @@ cdef class RandomFlowMapper:
             perm = Permutation(self.prefix_size, 3, random.randint(0, 2 ** 64))
             self.permutations.append(perm)
 
-    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint128_t prefix):
+    cpdef uint128_t flow_id(self, uint128_t addr_offset, uint16_t port_offset, uint128_t prefix):
         assert addr_offset < self.prefix_size
+        if port_offset != 0:
+            return self.prefix_size + port_offset - 1
         perm = self.permutations[prefix % len(self.permutations)]
         return perm.inv(addr_offset)
 

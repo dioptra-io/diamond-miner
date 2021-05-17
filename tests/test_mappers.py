@@ -11,19 +11,9 @@ def _test_mapper(mapper: FlowMapper, prefix: int, prefix_size: int):
     offsets = []
 
     # Ensure that there is a unique flow ID <-> address mapping
-    for flow_id in range(prefix_size):
+    for flow_id in range(prefix_size + 1024):
         addr_offset, port_offset = mapper.offset(flow_id, prefix=prefix)
-        assert mapper.flow_id(addr_offset, prefix) == flow_id
-        assert port_offset == 0
-        offsets.append((addr_offset, port_offset))
-
-    # We currently do not use the port number (due to NAT, etc.) to compute the flow ID,
-    # so we can't test mapper.flow_id(...) when the flow ID is larger
-    # than the number of addresses.
-    for flow_id in range(prefix_size, prefix_size + 100):
-        addr_offset, port_offset = mapper.offset(flow_id, prefix=prefix)
-        assert addr_offset == prefix_size - 1
-        assert port_offset == flow_id - prefix_size + 1
+        assert mapper.flow_id(addr_offset, port_offset, prefix) == flow_id
         offsets.append((addr_offset, port_offset))
 
     # Ensure that there are no duplicate offsets.
