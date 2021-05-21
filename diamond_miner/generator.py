@@ -105,7 +105,7 @@ def probe_generator(
     """
     Generate a probe for each prefix, flow_id and TTL, in a random order.
 
-    :param prefixes: A list of (prefix, protocol) tuples. The protocol can be "icmp", "icmp6" or "udp".
+    :param prefixes: A list of (prefix, protocol) tuples. The protocol can be ``icmp``, ``icmp6`` or ``udp``.
     :param flow_ids: The flow IDs to probe.
     :param ttls: The TTLs to probe.
     :param prefix_len_v4: The prefix length to which the IPv4 prefixes will be split to.

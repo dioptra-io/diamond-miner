@@ -111,6 +111,8 @@ class GetNextRound(Query):
         WHERE near_round <= {self.round_leq}
           AND is_inter_round = 0
           AND is_virtual = 0
+          -- TODO: Temporary
+          AND is_partial = 0
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING length(links) >= 1 AND skip_prefix = 0
         """
