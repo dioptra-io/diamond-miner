@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.defaults import DEFAULT_PROBE_TTL_COLUMN, DEFAULT_SUBSET
+from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.queries.query import Query, addr_to_string  # noqa
 from diamond_miner.typing import IPNetwork
 
@@ -32,7 +32,7 @@ class GetInvalidPrefixes(Query):
             probe_dst_addr,
             probe_src_port,
             probe_dst_port,
-            {DEFAULT_PROBE_TTL_COLUMN}
+            probe_ttl
         )
         HAVING (n_replies > 2) OR (n_distinct_replies > 1)
         """

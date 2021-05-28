@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.defaults import DEFAULT_PROBE_TTL_COLUMN, DEFAULT_SUBSET
+from diamond_miner.defaults import DEFAULT_SUBSET
 from diamond_miner.queries.query import Query
 from diamond_miner.typing import IPNetwork
 
@@ -21,9 +21,9 @@ class CountNodesPerTTL(Query):
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         assert subset == DEFAULT_SUBSET, "subset not allowed for this query"
         return f"""
-        SELECT {DEFAULT_PROBE_TTL_COLUMN}, uniqExact(reply_src_addr)
+        SELECT probe_ttl, uniqExact(reply_src_addr)
         FROM {table}
         WHERE {self.common_filters(subset)}
-        AND {DEFAULT_PROBE_TTL_COLUMN} <= {self.max_ttl}
-        GROUP BY {DEFAULT_PROBE_TTL_COLUMN}
+        AND probe_ttl <= {self.max_ttl}
+        GROUP BY probe_ttl
         """
