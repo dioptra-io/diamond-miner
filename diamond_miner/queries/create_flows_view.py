@@ -26,7 +26,7 @@ class CreateFlowsView(Query):
             -- from the GROUP BY clause when querying the view, and still get the
             -- round information in the replies. This is useful for computing
             -- inter-round links.
-            groupUniqArrayState((round, probe_ttl_l4, reply_src_addr)) AS replies
+            groupUniqArrayState((round, probe_ttl, reply_src_addr)) AS replies
         FROM {self.parent}
         WHERE {self.common_filters(subset)}
         GROUP BY (round, {self.SORTING_KEY})

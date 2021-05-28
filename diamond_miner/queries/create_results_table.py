@@ -9,19 +9,19 @@ from diamond_miner.typing import IPNetwork
 class CreateResultsTable(Query):
     """Create the table used to store the measurement results from the prober."""
 
-    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl_l4"
+    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
 
     def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
         return f"""
         CREATE TABLE IF NOT EXISTS {table}
         (
+            probe_protocol         UInt8,
             probe_src_addr         IPv6,
             probe_dst_addr         IPv6,
             probe_src_port         UInt16,
             probe_dst_port         UInt16,
-            probe_ttl_l3           UInt8,
-            probe_ttl_l4           UInt8,
-            probe_protocol         UInt8,
+            probe_ttl              UInt8,
+            quoted_ttl             UInt8,
             reply_src_addr         IPv6,
             reply_protocol         UInt8,
             reply_icmp_type        UInt8,

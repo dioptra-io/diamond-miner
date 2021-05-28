@@ -3,4 +3,4 @@
 INSERT INTO test_star_node_star
 SELECT *
 FROM test_nsdi_example
-WHERE probe_ttl_l4 NOT IN (2, 4);
+WHERE probe_ttl NOT IN (2, 4);
