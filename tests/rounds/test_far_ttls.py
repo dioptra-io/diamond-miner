@@ -25,7 +25,6 @@ async def test_far_ttls_probes(async_client):
             client=async_client,
             table=table,
             round_=1,
-            probe_src_addr="100.0.0.1",
             far_ttl_min=1,
             far_ttl_max=10,
         )

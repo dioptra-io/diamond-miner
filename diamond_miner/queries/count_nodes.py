@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import DEFAULT_SUBSET, Query  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query  # noqa
 from diamond_miner.typing import IPNetwork
 
 
@@ -13,7 +13,7 @@ class CountNodes(Query):
               it assumes that the table contains the replies for a single vantage point and a single protocol.
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         SELECT arrayUniq(
             arrayConcat(
@@ -36,8 +36,8 @@ class CountNodesFromResults(Query):
     7
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
-        assert subset == DEFAULT_SUBSET, "subset not allowed for this query"
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+        assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
         return f"""
         SELECT uniqExact(reply_src_addr)
         FROM {table}

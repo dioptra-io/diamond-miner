@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
 from diamond_miner.queries.query import Query
 from diamond_miner.typing import IPNetwork
@@ -42,7 +42,7 @@ class GetLinksFromView(Query):
     such a table will contain only intra-round links but can be updated incrementally.
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         round_filter = "1"
         if self.round_eq:
             round_filter = f"round = {self.round_eq}"

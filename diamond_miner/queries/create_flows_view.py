@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import Query
 from diamond_miner.typing import IPNetwork
 
@@ -9,16 +9,18 @@ from diamond_miner.typing import IPNetwork
 class CreateFlowsView(Query):
     """Create the flows view."""
 
+    PRIMARY_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
     parent: str = ""
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
-        assert subset == DEFAULT_SUBSET, "subset not allowed for this query"
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+        assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
         assert self.parent
         return f"""
         CREATE MATERIALIZED VIEW IF NOT EXISTS {table}
         ENGINE = AggregatingMergeTree
         ORDER BY ({self.SORTING_KEY})
+        PRIMARY KEY ({self.PRIMARY_KEY})
         AS SELECT
             round,
             {self.SORTING_KEY},

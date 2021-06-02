@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from diamond_miner.queries.fragments import cut_ipv6
-from diamond_miner.queries.query import DEFAULT_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
 from diamond_miner.typing import IPNetwork
 
 
@@ -19,7 +19,7 @@ class CountReplies(Query):
     chunk_len_v4: int = 8
     chunk_len_v6: int = 8
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         WITH {cut_ipv6('probe_dst_addr', self.chunk_len_v4, self.chunk_len_v6)} AS chunk
         SELECT chunk, count()

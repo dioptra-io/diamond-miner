@@ -8,7 +8,7 @@ from typing import AsyncIterator, Iterable, Iterator, List, Optional
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logging import logger
 from diamond_miner.queries.fragments import eq, ip_eq, ip_in, leq
 from diamond_miner.typing import IPNetwork
@@ -69,7 +69,10 @@ class Query:
     "If true, ignore non ICMP time exceeded replies."
 
     probe_src_addr: Optional[str] = None
-    "If specified, keep only the replies to probes sent by this address."
+    """
+    If specified, keep only the replies to probes sent by this address.
+    This filter is relatively costly (IPv6 comparison on each row).
+    """
 
     round_eq: Optional[int] = None
     "If specified, keep only the replies from this round."
@@ -83,7 +86,7 @@ class Query:
         self,
         client: Client,
         table: str,
-        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> List:
         return [row for row in self.execute_iter(client, table, subsets)]
 
@@ -91,7 +94,7 @@ class Query:
         self,
         client: AsyncClient,
         table: str,
-        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> List:
         return [row async for row in self.execute_iter_async(client, table, subsets)]
 
@@ -99,7 +102,7 @@ class Query:
         self,
         client: Client,
         table: str,
-        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator:
         for subset in subsets:
             query = self.query(table, subset)
@@ -112,7 +115,7 @@ class Query:
         self,
         client: AsyncClient,
         table: str,
-        subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> AsyncIterator:
         for subset in subsets:
             query = self.query(table, subset)
@@ -122,8 +125,10 @@ class Query:
                     yield row
 
     def common_filters(self, subset: IPNetwork) -> str:
-        """``WHERE`` clause common to all queries."""
-        s = f"{ip_in('probe_dst_prefix', subset)}"
+        """``WHERE`` clause common to all queries on the results table."""
+        s = "1"
+        if subset != UNIVERSE_SUBSET:
+            s += f"\n{ip_in('probe_dst_prefix', subset)}"
         if self.probe_src_addr:
             s += f"\nAND {ip_eq('probe_src_addr', self.probe_src_addr)}"
         if self.round_eq:
@@ -131,14 +136,14 @@ class Query:
         if self.round_leq:
             s += f"\nAND {leq('round', self.round_leq)}"
         if self.filter_destination:
-            s += "\nAND reply_src_addr != probe_dst_addr"
+            s += "\nAND NOT destination_reply"
         if self.filter_private:
-            # s += "\nAND private_probe_dst_prefix = 0"
-            s += "\nAND private_reply_src_addr = 0"
+            s += "\nAND NOT private_probe_dst_prefix"
+            s += "\nAND NOT private_reply_src_addr"
         if self.time_exceeded_only:
-            s += "\nAND time_exceeded_reply = 1"
+            s += "\nAND time_exceeded_reply"
         if self.filter_invalid_probe_protocol:
-            s += "\nAND probe_protocol IN [1, 17, 58]"
+            s += "\nAND valid_probe_protocol"
         return s
 
     def addr_cast(self, column: str) -> str:
@@ -158,7 +163,7 @@ class Query:
     def name(self) -> str:
         return self.__class__.__name__
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         raise NotImplementedError
 
     @contextmanager

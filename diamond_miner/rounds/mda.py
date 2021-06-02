@@ -5,8 +5,8 @@ from aioch import Client
 from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
     DEFAULT_PROBE_SRC_PORT,
-    DEFAULT_SUBSET,
     PROTOCOLS,
+    UNIVERSE_SUBSET,
 )
 from diamond_miner.logging import logger
 from diamond_miner.queries import CountNodesPerTTL, GetNextRound
@@ -20,7 +20,6 @@ async def mda_probes(
     round_: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
-    probe_src_addr: str,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
@@ -28,7 +27,7 @@ async def mda_probes(
     # TODO: Compute CountNodesPerTTL on the links table instead.
     skip_unpopulated_ttls_table: str = "",
     skip_unpopulated_ttls_threshold: int = 100,
-    subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+    subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> AsyncIterator[List[Probe]]:
     """TODO"""
     # Skip the TTLs where few nodes are discovered, in order to avoid
@@ -36,7 +35,7 @@ async def mda_probes(
     skipped_ttls = set()
 
     if skip_unpopulated_ttls:
-        count_nodes_query = CountNodesPerTTL(probe_src_addr=probe_src_addr)
+        count_nodes_query = CountNodesPerTTL()
         nodes_per_ttl = await count_nodes_query.execute_async(
             client, skip_unpopulated_ttls_table
         )
@@ -46,11 +45,7 @@ async def mda_probes(
             if n_nodes < skip_unpopulated_ttls_threshold
         }
 
-    query = GetNextRound(
-        adaptive_eps=adaptive_eps,
-        probe_src_addr=probe_src_addr,
-        round_leq=round_,
-    )
+    query = GetNextRound(adaptive_eps=adaptive_eps, round_leq=round_)
     rows = query.execute_iter_async(client, table, subsets)
 
     # Monitor time spent in the loop and in foreign code, excluding database code.

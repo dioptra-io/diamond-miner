@@ -35,7 +35,6 @@ async def test_mda_probes_lite(async_client):
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
-                probe_src_addr="100.0.0.1",
                 probe_src_port=probe_src_port,
                 probe_dst_port=probe_dst_port,
                 adaptive_eps=False,
@@ -90,7 +89,6 @@ async def test_mda_probes_lite_adaptive(async_client):
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
-                probe_src_addr="100.0.0.1",
                 adaptive_eps=True,
             )
         )
@@ -131,7 +129,6 @@ async def test_mda_probes_lite_mappers(async_client):
                     round_=1,
                     mapper_v4=mapper_v4,
                     mapper_v6=mapper_v6,
-                    probe_src_addr="100.0.0.1",
                 )
             )
         )
@@ -156,7 +153,6 @@ async def test_next_round_probes_multi_protocol(async_client):
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
-                probe_src_addr="100.0.0.1",
                 probe_src_port=probe_src_port,
                 probe_dst_port=probe_dst_port,
                 adaptive_eps=False,

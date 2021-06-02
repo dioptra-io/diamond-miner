@@ -5,8 +5,8 @@ from aioch import Client
 from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
     DEFAULT_PROBE_SRC_PORT,
-    DEFAULT_SUBSET,
     PROTOCOLS,
+    UNIVERSE_SUBSET,
 )
 from diamond_miner.logging import logger
 from diamond_miner.queries import GetMaxTTL
@@ -18,18 +18,14 @@ async def far_ttls_probes(
     client: Client,
     table: str,
     round_: int,
-    probe_src_addr: str,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     far_ttl_min: int = 20,
     far_ttl_max: int = 40,
-    subsets: Iterable[IPNetwork] = (DEFAULT_SUBSET,),
+    subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> AsyncIterator[List[Probe]]:
     """TODO"""
-    query = GetMaxTTL(
-        probe_src_addr=probe_src_addr,
-        round_leq=round_,
-    )
+    query = GetMaxTTL(round_leq=round_)
     rows = query.execute_iter_async(client, table, subsets)
 
     # Monitor time spent in the loop and in foreign code, excluding database code.

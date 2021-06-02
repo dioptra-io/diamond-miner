@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
-from diamond_miner.queries.query import DEFAULT_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
 from diamond_miner.typing import IPNetwork
 
 
@@ -17,7 +17,7 @@ class GetMaxTTL(Query):
     [(1, '200.0.0.0', 3), (1, '201.0.0.0', 2)]
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         invalid_prefixes_query = GetInvalidPrefixes(**asdict(self)).query(table, subset)
         resolved_prefixes_query = GetResolvedPrefixes(**asdict(self)).query(
             table, subset

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import Query
 from diamond_miner.typing import IPNetwork
 
@@ -11,7 +11,7 @@ class CreateResultsTable(Query):
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         CREATE TABLE IF NOT EXISTS {table}
         (
@@ -43,7 +43,9 @@ class CreateResultsTable(Query):
                 (reply_src_addr >= toIPv6('172.16.0.0')  AND reply_src_addr <= toIPv6('172.31.255.255'))  OR
                 (reply_src_addr >= toIPv6('192.168.0.0') AND reply_src_addr <= toIPv6('192.168.255.255')) OR
                 (reply_src_addr >= toIPv6('fd00::')      AND reply_src_addr <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')),
-            -- ICMP: protocol 1, ICMPv6: protocol 58
+            destination_reply     UInt8 MATERIALIZED probe_dst_addr = reply_src_addr,
+            -- ICMP: protocol 1, UDP: protocol 17, ICMPv6: protocol 58
+            valid_probe_protocol   UInt8 MATERIALIZED probe_protocol IN [1, 17, 58],
             time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)
         )
         ENGINE MergeTree

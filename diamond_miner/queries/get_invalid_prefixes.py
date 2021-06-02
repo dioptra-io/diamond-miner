@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import Query, addr_to_string  # noqa
 from diamond_miner.typing import IPNetwork
 
@@ -18,7 +18,7 @@ class GetInvalidPrefixes(Query):
     [(1, '201.0.0.0'), (1, '202.0.0.0')]
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         WITH count(reply_src_addr)     AS n_replies,
              uniqExact(reply_src_addr) AS n_distinct_replies

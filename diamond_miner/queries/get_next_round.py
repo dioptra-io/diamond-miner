@@ -1,7 +1,7 @@
 from collections import namedtuple
 from dataclasses import dataclass
 
-from diamond_miner.defaults import DEFAULT_SUBSET
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import Query
 from diamond_miner.typing import IPNetwork
 
@@ -19,7 +19,7 @@ class GetNextRound(Query):
         "protocol,dst_prefix,probes,prev_max_flow,min_src_port,min_dst_port,max_dst_port",
     )
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         if self.adaptive_eps:
             eps_fragment = """
             if(max_links == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links))
@@ -39,9 +39,8 @@ class GetNextRound(Query):
             arrayMap(n -> nks_prev[n + 1], links_per_ttl_prev) AS nkv_Dhv_prev,
             """
         else:
-            dm_fragment = """
-            TODO: Implement by computing Dh(v)
-            """
+            # TODO: Implement by computing Dh(v)
+            raise NotImplementedError
 
         # TODO: Speed-up by ignoring resolved prefixes?
         # (As we did with the old query)

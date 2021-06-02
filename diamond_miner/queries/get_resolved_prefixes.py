@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import DEFAULT_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
 from diamond_miner.typing import IPNetwork
 
 
@@ -18,7 +18,7 @@ class GetResolvedPrefixes(Query):
     [(1, '200.0.0.0')]
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         assert self.round_leq is not None
         return f"""
         SELECT DISTINCT probe_protocol, probe_dst_prefix

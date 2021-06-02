@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import DEFAULT_SUBSET, Query
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
 from diamond_miner.typing import IPNetwork
 
 
@@ -32,7 +32,7 @@ class GetLinks(Query):
             s += "\nAND NOT is_virtual"
         return s
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         SELECT DISTINCT ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
         FROM {table}
@@ -66,7 +66,7 @@ class GetLinksPerPrefix(Query):
             s += "\nAND NOT is_virtual"
         return s
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         SELECT
             probe_protocol,
@@ -89,7 +89,7 @@ class GetLinksFromResults(Query):
     it assumes that the table contains the replies for a single vantage point.
     """
 
-    def query(self, table: str, subset: IPNetwork = DEFAULT_SUBSET) -> str:
+    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         WITH -- 1) Compute the links
              --  x.1             x.2             x.3             x.4        x.5             x.6
