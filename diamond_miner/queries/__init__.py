@@ -12,9 +12,10 @@ from .get_max_ttl import GetMaxTTL
 from .get_next_round import GetNextRound
 from .get_nodes import GetNodes
 from .get_resolved_prefixes import GetResolvedPrefixes
-from .query import Query, addr_to_string
+from .query import AddrType, Query, addr_to_string
 
 __all__ = (
+    "AddrType",
     "CountLinks",
     "CountNodes",
     "CountNodesFromResults",

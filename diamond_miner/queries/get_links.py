@@ -17,10 +17,10 @@ class GetLinks(Query):
     "If true, exclude links inferred across rounds."
 
     filter_partial: bool = False
-    "If true, exclude partial links: ('::', node) and (node, '::')."
+    "If true, exclude partial links: ``('::', node)`` and ``(node, '::')``."
 
     filter_virtual: bool = False
-    "If true, exclude virtual links: ('::', '::')."
+    "If true, exclude virtual links: ``('::', '::')``."
 
     def link_filter(self) -> str:
         s = "1"

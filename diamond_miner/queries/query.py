@@ -14,21 +14,42 @@ from diamond_miner.queries.fragments import eq, ip_eq, ip_in, leq
 from diamond_miner.typing import IPNetwork
 
 CH_QUERY_SETTINGS = {
-    "max_block_size": 100000,
+    "max_block_size": 128_000,
     # Avoid timeout in case of a slow connection
     "connect_timeout": 1000,
     "send_timeout": 6000,
     "receive_timeout": 6000,
     # https://github.com/ClickHouse/ClickHouse/issues/18406
-    "read_backoff_min_latency_ms": 100000,
+    "read_backoff_min_latency_ms": 100_000,
 }
 
 
 class AddrType(str, Enum):
+    """ClickHouse IPv6 type."""
+
     IPv6 = "IPv6"
+    """
+    IPv6 stored as FixedString(16) internally.
+    Slow with clickhouse-driver as it will call :func:`ipaddress.IPv6Address` on each address.
+    """
+
     String = "String"
+    """
+    String representation of the internal FixedString.
+    With clickhouse-driver each address will be decoded as Python string.
+    """
+
     FixedString = "FixedString"
+    """
+    Native FixedString(16) representation.
+    Fastest with clickhouse-driver as it will return directly a byte string.
+    """
+
     IPv6NumToString = "IPv6NumToString"
+    """
+    Human string representation of the IPv6.
+    With clickhouse-driver each address will be decoded as Python string.
+    """
 
 
 def addr_to_string(addr: IPv6Address) -> str:
