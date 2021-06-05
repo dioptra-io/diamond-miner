@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import Query, addr_to_string  # noqa
+from diamond_miner.queries.query import Query
 from diamond_miner.typing import IPNetwork
 
 
@@ -10,6 +10,7 @@ class GetInvalidPrefixes(Query):
     """
     Return the prefixes with per-packet LB or that sends more replies than probes.
 
+    >>> from diamond_miner.queries import addr_to_string
     >>> from diamond_miner.test import client
     >>> GetInvalidPrefixes().execute(client, 'test_nsdi_example')
     []

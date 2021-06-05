@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 
 from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
 from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
 from diamond_miner.typing import IPNetwork
 
 
@@ -11,6 +11,7 @@ class GetMaxTTL(Query):
     """
     Return the maximum TTL for each dst_addr.
 
+    >>> from diamond_miner.queries import addr_to_string
     >>> from diamond_miner.test import client
     >>> rows = GetMaxTTL(round_leq=1).execute(client, 'test_max_ttl')
     >>> sorted((a, addr_to_string(b), c) for a, b, c in rows)

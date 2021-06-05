@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
 from diamond_miner.typing import IPNetwork
 
 
@@ -9,6 +9,7 @@ class GetNodesFromResults(Query):
     """
     Return all the discovered nodes.
 
+    >>> from diamond_miner.queries import addr_to_string
     >>> from diamond_miner.test import client
     >>> nodes = GetNodesFromResults().execute(client, 'test_nsdi_example')
     >>> sorted((x[0], addr_to_string(x[1])) for x in nodes)

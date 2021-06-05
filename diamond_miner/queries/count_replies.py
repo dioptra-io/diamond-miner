@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from diamond_miner.queries.fragments import cut_ipv6
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
 from diamond_miner.typing import IPNetwork
 
 
@@ -10,6 +10,7 @@ class CountReplies(Query):
     """
     Count replies by "chunks".
 
+    >>> from diamond_miner.queries import addr_to_string
     >>> from diamond_miner.test import client
     >>> rows = CountReplies(chunk_len_v4=8, chunk_len_v6=8).execute(client, 'test_count_replies')
     >>> sorted((addr_to_string(a), b) for a, b in rows)

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
 from diamond_miner.typing import IPNetwork
 
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query, addr_to_string  # noqa
+from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
 from diamond_miner.typing import IPNetwork
 
 
@@ -10,6 +10,7 @@ class GetResolvedPrefixes(Query):
     Return the prefixes for which no replies have been received at the previous round
     (i.e. no probes have been sent, most likely).
 
+    >>> from diamond_miner.queries import addr_to_string
     >>> from diamond_miner.test import client
     >>> GetResolvedPrefixes(round_leq=1).execute(client, 'test_nsdi_example')
     []
