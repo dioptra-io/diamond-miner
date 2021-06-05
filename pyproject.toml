@@ -1,11 +1,22 @@
 [tool.poetry]
 name = "diamond-miner"
 version = "0.1.1"
-description = ""
+description = "High-speed, Internet-scale, load-balanced paths discovery."
+license = "MIT"
 authors = [
     "Kevin Vermeulen <kevin.vermeulen@columbia.edu>",
     "Matthieu Gouel <matthieu.gouel@lip6.fr>",
     "Maxime Mouchet <maxime.mouchet@lip6.fr>"
+]
+readme = "README.md"
+homepage = "https://github.com/dioptra-io/diamond-miner"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Internet",
+    "Typing :: Typed"
 ]
 build = "build.py"
 
