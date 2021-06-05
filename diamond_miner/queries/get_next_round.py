@@ -81,13 +81,20 @@ class GetNextRound(Query):
             -- the number of links discovered during the previous rounds
             -- if round > 1 and TTL > 1: we take the max of the DMiner formula
             -- over the links discovered during the previous rounds at TTL t and t-1
-            arrayMap(t -> if(current_round == 1, 6, if(t == 1, nkv_Dhv_prev[t], arrayMax([nkv_Dhv_prev[t], nkv_Dhv_prev[t-1]]))), TTLs) AS prev_max_flow_per_ttl,
+            if(
+                current_round == 1,
+                arrayMap(t -> 6, TTLs),
+                arrayMap(i -> arrayMax([nkv_Dhv_prev[i], nkv_Dhv_prev[i - 1]]), arrayEnumerate(TTLs))
+            ) AS prev_max_flow_per_ttl,
             -- compute the number of probes to send during the next round
             -- if TTL = 1: we use the DMiner formula and we substract the
             -- number of probes sent during the previous rounds.
             -- if TTL > 1: we take the max of probes to send over TTL t and t-1
-            arrayMap(t -> if(t == 1, nkv_Dhv_curr[t] - prev_max_flow_per_ttl[t], arrayMax([nkv_Dhv_curr[t] - prev_max_flow_per_ttl[t], nkv_Dhv_curr[t-1] - prev_max_flow_per_ttl[t-1]])), TTLs) AS candidate_probes,
-            arrayMap(t -> if(candidate_probes[t] < 0, 0, candidate_probes[t]), TTLs) AS probes
+            arrayMap(i -> arrayMax([
+                0,
+                nkv_Dhv_curr[i] - prev_max_flow_per_ttl[i],
+                nkv_Dhv_curr[i - 1] - prev_max_flow_per_ttl[i - 1]
+            ]), arrayEnumerate(TTLs)) AS probes
             -- TODO: Cleanup/optimize/rewrite/... below
             -- do not send probes to TTLs where no replies have been received
             -- it is unlikely that we will discover more at this TTL if the first 6 flows have seen nothing
