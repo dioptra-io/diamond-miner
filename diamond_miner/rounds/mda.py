@@ -45,7 +45,14 @@ async def mda_probes(
             if n_nodes < skip_unpopulated_ttls_threshold
         }
 
-    query = GetNextRound(adaptive_eps=adaptive_eps, round_leq=round_)
+    # TODO: filter_partial is temporary.
+    query = GetNextRound(
+        adaptive_eps=adaptive_eps,
+        filter_partial=True,
+        filter_virtual=True,
+        filter_inter_round=True,
+        round_leq=round_,
+    )
     rows = query.execute_iter_async(client, table, subsets)
 
     # Monitor time spent in the loop and in foreign code, excluding database code.

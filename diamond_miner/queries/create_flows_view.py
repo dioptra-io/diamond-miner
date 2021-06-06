@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import Query
+from diamond_miner.queries.query import ResultsQuery
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class CreateFlowsView(Query):
+class CreateFlowsView(ResultsQuery):
     """Create the flows view."""
 
     PRIMARY_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
@@ -30,6 +30,6 @@ class CreateFlowsView(Query):
             -- inter-round links.
             groupUniqArrayState((round, probe_ttl, reply_src_addr)) AS replies
         FROM {self.parent}
-        WHERE {self.common_filters(subset)}
+        WHERE {self.filters(subset)}
         GROUP BY (round, {self.SORTING_KEY})
         """

@@ -1,17 +1,16 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
+from diamond_miner.queries.query import UNIVERSE_SUBSET, ResultsQuery
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetResolvedPrefixes(Query):
+class GetResolvedPrefixes(ResultsQuery):
     """
     Return the prefixes for which no replies have been received at the previous round
     (i.e. no probes have been sent, most likely).
 
-    >>> from diamond_miner.queries import addr_to_string
-    >>> from diamond_miner.test import client
+    >>> from diamond_miner.test import addr_to_string, client
     >>> GetResolvedPrefixes(round_leq=1).execute(client, 'test_nsdi_example')
     []
     >>> prefixes = GetResolvedPrefixes(round_leq=5).execute(client, 'test_nsdi_example')
@@ -24,7 +23,7 @@ class GetResolvedPrefixes(Query):
         return f"""
         SELECT DISTINCT probe_protocol, probe_dst_prefix
         FROM {table}
-        WHERE {self.common_filters(subset)}
+        WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING max(round) < {self.round_leq - 1}
         """

@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, Query
+from diamond_miner.queries.query import UNIVERSE_SUBSET, LinksQuery
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class CountLinks(Query):
+class CountLinks(LinksQuery):
     """
     Count the distinct links in the links table, including
     ``('::', node)``, ``(node, '::')`` and ``('::', '::')``.
@@ -18,4 +18,5 @@ class CountLinks(Query):
         return f"""
         SELECT uniqExact(near_addr, far_addr)
         FROM {table}
+        WHERE {self.filters(subset)}
         """

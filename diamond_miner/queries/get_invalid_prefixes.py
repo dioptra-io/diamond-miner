@@ -1,17 +1,17 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import Query
+from diamond_miner.queries.query import ResultsQuery
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetInvalidPrefixes(Query):
+class GetInvalidPrefixes(ResultsQuery):
     """
     Return the prefixes with per-packet LB or that sends more replies than probes.
 
-    >>> from diamond_miner.queries import addr_to_string
-    >>> from diamond_miner.test import client
+
+    >>> from diamond_miner.test import addr_to_string, client
     >>> GetInvalidPrefixes().execute(client, 'test_nsdi_example')
     []
     >>> prefixes = GetInvalidPrefixes().execute(client, 'test_invalid_prefixes')
@@ -25,7 +25,7 @@ class GetInvalidPrefixes(Query):
              uniqExact(reply_src_addr) AS n_distinct_replies
         SELECT DISTINCT probe_protocol, probe_dst_prefix
         FROM {table}
-        WHERE {self.common_filters(subset)}
+        WHERE {self.filters(subset)}
         GROUP BY (
             probe_protocol,
             probe_src_addr,

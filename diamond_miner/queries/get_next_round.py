@@ -2,12 +2,12 @@ from collections import namedtuple
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import Query
+from diamond_miner.queries.query import LinksQuery
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetNextRound(Query):
+class GetNextRound(LinksQuery):
     # This query is tested in test_queries.py due to its complexity.
 
     adaptive_eps: bool = True
@@ -104,11 +104,7 @@ class GetNextRound(Query):
             to_send,
             TTLs
         FROM {table}
-        WHERE near_round <= current_round
-          AND NOT is_inter_round
-          AND NOT is_virtual
-          -- TODO: Temporary
-          AND NOT is_partial
+        WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING NOT skip_prefix
         """
