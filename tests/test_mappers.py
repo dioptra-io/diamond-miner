@@ -8,16 +8,9 @@ from diamond_miner.typing import FlowMapper
 
 
 def _test_mapper(mapper: FlowMapper, prefix: int, prefix_size: int):
-    offsets = []
-
-    # Ensure that there is a unique flow ID <-> address mapping
     for flow_id in range(prefix_size + 1024):
         addr_offset, port_offset = mapper.offset(flow_id, prefix=prefix)
         assert mapper.flow_id(addr_offset, port_offset, prefix) == flow_id
-        offsets.append((addr_offset, port_offset))
-
-    # Ensure that there are no duplicate offsets.
-    assert len(offsets) == len(set(offsets))
 
 
 def test_sequential_flow_mapper():

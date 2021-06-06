@@ -27,6 +27,7 @@ cdef class SequentialFlowMapper:
     cdef uint128_t prefix_size
 
     def __init__(self, uint128_t prefix_size = DEFAULT_PREFIX_SIZE_V4):
+        assert prefix_size > 0, "prefix_size must be positive."
         self.prefix_size = prefix_size
 
     cpdef uint128_t flow_id(self, uint128_t addr_offset, uint16_t port_offset, uint128_t prefix = 0):
@@ -50,7 +51,9 @@ cdef class IntervalFlowMapper:
     cdef uint128_t step
 
     def __init__(self, uint128_t prefix_size = DEFAULT_PREFIX_SIZE_V4, uint128_t step = 32):
+        assert prefix_size > 0, "prefix_size must be positive."
         assert prefix_size % 2 == 0, "prefix_size must be pair."
+        assert step > 0, "step must be positive."
         assert step % 2 == 0, "step must be pair."
         self.period = prefix_size // step
         self.prefix_size = prefix_size
@@ -113,6 +116,7 @@ cdef class RandomFlowMapper:
 
     def __init__(self, int seed, uint128_t prefix_size = DEFAULT_PREFIX_SIZE_V4):
         # We can generate a random permutation up to 2^64-1 only.
+        assert prefix_size > 0, "prefix_size must be positive."
         self.permutations = []
         self.prefix_size = min(prefix_size, (2 ** 64) - 1)
         random.seed(seed)
