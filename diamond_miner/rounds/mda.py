@@ -60,13 +60,11 @@ async def mda_probes(
         mapper = mapper_v4 if row.dst_prefix.ipv4_mapped else mapper_v6
 
         probe_specs = []
-        for ttl, n_to_send, prev_max_flow in zip(
-            row.ttls, row.probes, row.prev_max_flow
-        ):
+        for ttl, to_send, already_sent in zip(row.ttls, row.to_send, row.already_sent):
             if ttl in skipped_ttls:
                 continue
 
-            flow_ids = range(prev_max_flow, prev_max_flow + n_to_send)
+            flow_ids = range(already_sent, already_sent + to_send)
             for flow_id in flow_ids:
                 addr_offset, port_offset = mapper.offset(
                     flow_id=flow_id, prefix=dst_prefix_int

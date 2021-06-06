@@ -16,7 +16,7 @@ class GetNextRound(Query):
 
     Row = namedtuple(
         "Row",
-        "protocol,dst_prefix,prev_max_flow,probes,ttls",
+        "protocol,dst_prefix,already_sent,to_send,ttls",
     )
 
     def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
@@ -35,8 +35,8 @@ class GetNextRound(Query):
 
         if self.dminer_lite:
             dm_fragment = """
-            arrayMap(k -> toUInt32(ceil(ln(epsilon_curr / (k + 1)) / ln((k + 1 - 1) / (k + 1)))), links_per_ttl_curr) AS nkv_Dhv_curr,
-            arrayMap(k -> toUInt32(ceil(ln(epsilon_prev / (k + 1)) / ln((k + 1 - 1) / (k + 1)))), links_per_ttl_prev) AS nkv_Dhv_prev,
+            arrayMap(k -> toUInt32(ceil(ln(epsilon_curr / (k + 1)) / ln((k + 1 - 1) / (k + 1)))), links_per_ttl_curr) AS mda_flows_curr,
+            arrayMap(k -> toUInt32(ceil(ln(epsilon_prev / (k + 1)) / ln((k + 1 - 1) / (k + 1)))), links_per_ttl_prev) AS mda_flows_prev,
             """
         else:
             # TODO: Implement by computing Dh(v)
@@ -48,6 +48,7 @@ class GetNextRound(Query):
         return f"""
         WITH
             {self.round_leq} AS current_round,
+            {self.target_epsilon} AS target_epsilon,
             -- 1) Compute the links
             --  x.1       x.2        x.3
             -- (near_ttl, near_addr, far_addr)
@@ -70,31 +71,25 @@ class GetNextRound(Query):
             -- 1 if no new links and nodes have been discovered in the current round
             equals(links_per_ttl_curr, links_per_ttl_prev) AS skip_prefix,
             -- 4) Compute MDA stopping points
-            -- epsilon (MDA probability of missing links)
-            {self.target_epsilon} AS target_epsilon,
             {eps_fragment}
-            -- 6) Compute the number of probes to send during the next round
+            -- 5) Compute the number of probes to send during the next round
             {dm_fragment}
             -- compute the number of probes sent at previous round
             -- if round = 1: we known that we sent 6 probes
-            -- if round > 1 and TTL = 1: we use the DMiner formula with
-            -- the number of links discovered during the previous rounds
             -- if round > 1 and TTL > 1: we take the max of the DMiner formula
             -- over the links discovered during the previous rounds at TTL t and t-1
             if(
                 current_round == 1,
                 arrayMap(t -> 6, TTLs),
-                arrayMap(i -> arrayMax([nkv_Dhv_prev[i], nkv_Dhv_prev[i - 1]]), arrayEnumerate(TTLs))
-            ) AS prev_max_flow_per_ttl,
+                arrayMap(i -> arrayMax([mda_flows_prev[i], mda_flows_prev[i - 1]]), arrayEnumerate(TTLs))
+            ) AS already_sent,
             -- compute the number of probes to send during the next round
-            -- if TTL = 1: we use the DMiner formula and we substract the
-            -- number of probes sent during the previous rounds.
-            -- if TTL > 1: we take the max of probes to send over TTL t and t-1
+            -- => max of probes to send over TTL t and t-1
             arrayMap(i -> arrayMax([
                 0,
-                nkv_Dhv_curr[i] - prev_max_flow_per_ttl[i],
-                nkv_Dhv_curr[i - 1] - prev_max_flow_per_ttl[i - 1]
-            ]), arrayEnumerate(TTLs)) AS probes
+                mda_flows_curr[i] - already_sent[i],
+                mda_flows_curr[i - 1] - already_sent[i - 1]
+            ]), arrayEnumerate(TTLs)) AS to_send
             -- TODO: Cleanup/optimize/rewrite/... below
             -- do not send probes to TTLs where no replies have been received
             -- it is unlikely that we will discover more at this TTL if the first 6 flows have seen nothing
@@ -105,8 +100,8 @@ class GetNextRound(Query):
         SELECT
             probe_protocol,
             probe_dst_prefix,
-            prev_max_flow_per_ttl,
-            probes,
+            already_sent,
+            to_send,
             TTLs
         FROM {table}
         WHERE near_round <= current_round

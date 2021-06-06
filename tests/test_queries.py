@@ -51,9 +51,9 @@ def test_get_next_round_nsdi():
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3, 4]
-    >>> row.prev_max_flow
+    >>> row.already_sent
     [6, 6, 6, 6]
-    >>> row.probes
+    >>> row.to_send
     [5, 5, 5, 5]
 
     >>> rows = GetNextRound(round_leq=2, adaptive_eps=False).execute(client, 'test_nsdi_lite_links')
@@ -62,9 +62,9 @@ def test_get_next_round_nsdi():
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3, 4]
-    >>> row.prev_max_flow
+    >>> row.already_sent
     [11, 11, 11, 11]
-    >>> row.probes
+    >>> row.to_send
     [0, 5, 5, 5]
 
     >>> GetNextRound(round_leq=3, adaptive_eps=False).execute(client, 'test_nsdi_lite_links')
@@ -84,9 +84,9 @@ def test_get_next_round_star():
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3]
-    >>> row.prev_max_flow
+    >>> row.already_sent
     [6, 6, 6]
-    >>> row.probes
+    >>> row.to_send
     [0, 0, 5]
 
     >>> GetNextRound(round_leq=2, adaptive_eps=False).execute(client, 'test_star_node_star_links')
