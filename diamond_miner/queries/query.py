@@ -148,7 +148,7 @@ class LinksQuery(Query):
         """``WHERE`` clause common to all queries on the links table."""
         s = "1"
         if subset != UNIVERSE_SUBSET:
-            s += f"\n{ip_in('probe_dst_prefix', subset)}"
+            s += f"\nAND {ip_in('probe_dst_prefix', subset)}"
         if self.probe_src_addr:
             s += f"\nAND {ip_eq('probe_src_addr', self.probe_src_addr)}"
         if self.round_eq:
@@ -196,7 +196,7 @@ class ResultsQuery(Query):
         """``WHERE`` clause common to all queries on the results table."""
         s = "1"
         if subset != UNIVERSE_SUBSET:
-            s += f"\n{ip_in('probe_dst_prefix', subset)}"
+            s += f"\nAND {ip_in('probe_dst_prefix', subset)}"
         if self.probe_src_addr:
             s += f"\nAND {ip_eq('probe_src_addr', self.probe_src_addr)}"
         if self.round_eq:
