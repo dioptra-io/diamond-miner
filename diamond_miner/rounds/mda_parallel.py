@@ -55,6 +55,8 @@ async def mda_probes_parallel(
                 for i, subset in enumerate(subsets)
             ]
             done, pending = await asyncio.wait(futures)
+            for future in pending:
+                future.cancel()
             for future in done:
                 if e := future.exception():
                     raise e
