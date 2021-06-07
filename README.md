@@ -55,3 +55,4 @@ Name                                             | License                      
 [aioch](https://github.com/mymarilyn/aioch)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
 [clickhouse-driver](https://github.com/mymarilyn/clickhouse-driver)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
 [pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT) | Generating random permutations
+[python-zstandard](https://github.com/indygreg/python-zstandard) | [3-clause BSD](https://opensource.org/licenses/BSD-3-Clause) | Compression

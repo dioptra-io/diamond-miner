@@ -7,6 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from clickhouse_driver import Client
+from zstandard import ZstdCompressor
 
 from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_PORT
 from diamond_miner.format import format_probe
@@ -28,6 +29,7 @@ async def mda_probes_parallel(
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> None:
     # TODO: IPv6
+    # TODO: Better subsets based on the number of links.
     # NOTE: We create more subsets than workers in order to keep all the worker busy.
     subsets = list(
         ip_network("::ffff:0.0.0.0/96").subnets(prefixlen_diff=int(log2(n_workers * 4)))
@@ -54,7 +56,9 @@ async def mda_probes_parallel(
                 )
                 for i, subset in enumerate(subsets)
             ]
-            done, pending = await asyncio.wait(futures)
+            done, pending = await asyncio.wait(
+                futures, return_when=asyncio.FIRST_EXCEPTION
+            )
             for future in pending:
                 future.cancel()
             for future in done:
@@ -88,16 +92,18 @@ def worker(
     Execute the GetNextRound query on the specified subset,
     and write the probes to the specified file.
     """
-    with filepath.open("w") as f:
-        for probe in mda_probes(
-            client,
-            table,
-            round_,
-            mapper_v4,
-            mapper_v6,
-            probe_src_port,
-            probe_dst_port,
-            adaptive_eps,
-            (subset,),
-        ):
-            f.write(format_probe(*probe) + "\n")
+    ctx = ZstdCompressor(level=1)
+    with filepath.open("wb") as f:
+        with ctx.stream_writer(f) as compressor:
+            for probe in mda_probes(
+                client,
+                table,
+                round_,
+                mapper_v4,
+                mapper_v6,
+                probe_src_port,
+                probe_dst_port,
+                adaptive_eps,
+                (subset,),
+            ):
+                compressor.write(format_probe(*probe).encode("ascii") + b"\n")
