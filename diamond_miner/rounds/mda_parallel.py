@@ -65,9 +65,10 @@ async def mda_probes_parallel(
                 if e := future.exception():
                     raise e
 
+        # TODO: Directly output compressed + shuffled file?
         logger.info("mda_probes status=merging")
         proc = await asyncio.create_subprocess_shell(
-            f"cat {temp_dir}/subset_*.csv > {filepath}"
+            f"zstd -d --no-progress --stdout {temp_dir}/subset_*.csv > {filepath}"
         )
         await proc.wait()
 
