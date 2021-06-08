@@ -1,13 +1,12 @@
 import asyncio
 import os
 import random
-from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from ipaddress import ip_network
 from math import log2
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, List, Tuple
+from typing import List
 
 from clickhouse_driver import Client
 from zstandard import ZstdCompressor
@@ -40,7 +39,13 @@ async def mda_probes_parallel(
     subsets = list(
         ip_network("::ffff:0.0.0.0/96").subnets(prefixlen_diff=int(log2(n_workers * 4)))
     )
-    logger.info("mda_probes n_subsets=%s n_workers=%s", len(subsets), n_workers)
+    n_files_per_subset = 8192 // len(subsets)
+    logger.info(
+        "mda_probes n_workers=%s n_subsets=%s n_files_per_subset=%s",
+        n_workers,
+        len(subsets),
+        n_files_per_subset,
+    )
     loop = asyncio.get_running_loop()
 
     with TemporaryDirectory(dir=filepath.parent) as temp_dir:
@@ -59,6 +64,7 @@ async def mda_probes_parallel(
                     probe_dst_port,
                     adaptive_eps,
                     subset,
+                    n_files_per_subset,
                 )
                 for i, subset in enumerate(subsets)
             ]
@@ -94,14 +100,19 @@ def worker(
     probe_dst_port: int,
     adaptive_eps: bool,
     subset: IPNetwork,
+    n_files: int,
 ) -> None:
     """
     Execute the GetNextRound query on the specified subset, and write the probes to the specified file.
     """
-    # The larger `n_file`, the better the randomization.
-    n_files = 32
+    # TODO: random.shuffle is slow...
+    # A potentially simpler and better way would be to shuffle
+    # the result of the next round query, which is small (~10M rows),
+    # and to directly write the probes to a file depending on hash(flow_id).
+    # e.g. ORDER BY rand() in GetNextRound.
+
     # The larger `max_probes_in_memory`, the better the performance
-    # (less calls to `probes_by_flow.clear()`) and the more the memory usage.
+    # (less calls to `probes.clear()`) and the randomization but the more the memory usage.
     max_probes_in_memory = 1_000_000
 
     outputs = []
@@ -111,7 +122,7 @@ def worker(
         stream = ctx.stream_writer(file)
         outputs.append((ctx, file, stream))
 
-    probes_by_flow: Dict[Tuple[int, int, int], List[Probe]] = defaultdict(list)
+    probes_by_file: List[List[Probe]] = [[] for _ in range(n_files)]
 
     for i, probe in enumerate(
         mda_probes(
@@ -127,21 +138,24 @@ def worker(
         )
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
-        probes_by_flow[probe[:-2]].append(probe)
+        probes_by_file[hash(probe[:-2]) % n_files].append(probe)
 
         # Flush in-memory probes
         if (i + 1) % max_probes_in_memory == 0:
-            for probes in probes_by_flow.values():
-                ctx, file, stream = random.choice(outputs)
+            for file_id, probes in enumerate(probes_by_file):
+                ctx, file, stream = outputs[file_id]
+                random.shuffle(probes)
                 for probe_ in probes:
                     stream.write(format_probe(*probe_).encode("ascii") + b"\n")
-            probes_by_flow.clear()
+                probes.clear()
 
     # Flush remaining probes
-    for probes in probes_by_flow.values():
-        ctx, file, stream = random.choice(outputs)
+    for file_id, probes in enumerate(probes_by_file):
+        ctx, file, stream = outputs[file_id]
+        random.shuffle(probes)
         for probe_ in probes:
             stream.write(format_probe(*probe_).encode("ascii") + b"\n")
+        probes.clear()
 
     for ctx, file, stream in outputs:
         stream.close()
