@@ -1,12 +1,13 @@
 import asyncio
 import os
 import random
+from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from ipaddress import ip_network
 from math import log2
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List
+from typing import Dict, List, Tuple
 
 from clickhouse_driver import Client
 from zstandard import ZstdCompressor
@@ -30,6 +31,9 @@ async def mda_probes_parallel(
     adaptive_eps: bool = False,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> None:
+    """
+    https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
+    """
     # TODO: IPv6
     # TODO: Better subsets based on the number of links.
     # NOTE: We create more subsets than workers in order to keep all the worker busy.
@@ -68,10 +72,13 @@ async def mda_probes_parallel(
                     raise e
 
         logger.info("mda_probes status=merging")
-        files = [str(x) for x in Path(temp_dir).glob("subset_*.csv.zst")]
-        random.shuffle(files)
+        file_list = Path(temp_dir) / "files.txt"
         proc = await asyncio.create_subprocess_shell(
-            f"cat {' '.join(files)} > {filepath}"
+            f"find {temp_dir} -name 'subset_*.csv.zst' | shuf > {file_list}"
+        )
+        await proc.wait()
+        proc = await asyncio.create_subprocess_shell(
+            f"xargs cat < {file_list} > {filepath}"
         )
         await proc.wait()
 
@@ -89,31 +96,53 @@ def worker(
     subset: IPNetwork,
 ) -> None:
     """
-    Execute the GetNextRound query on the specified subset,
-    and write the probes to the specified file.
+    Execute the GetNextRound query on the specified subset, and write the probes to the specified file.
     """
-    # TODO: How to ensure that we will never run out of memory?
-    # => Get subsets based on number of links.
-    n_buckets = 16
-    buckets: List[List[Probe]] = [[] for _ in range(n_buckets)]
-    ctx = ZstdCompressor(level=1)
-    # https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
-    for probe in mda_probes(
-        client,
-        table,
-        round_,
-        mapper_v4,
-        mapper_v6,
-        probe_src_port,
-        probe_dst_port,
-        adaptive_eps,
-        (subset,),
+    # The larger `n_file`, the better the randomization.
+    n_files = 32
+    # The larger `max_probes_in_memory`, the better the performance
+    # (less calls to `probes_by_flow.clear()`) and the more the memory usage.
+    max_probes_in_memory = 1_000_000
+
+    outputs = []
+    for i in range(n_files):
+        ctx = ZstdCompressor(level=1)
+        file = prefix.with_suffix(f".{i}.csv.zst").open("wb")
+        stream = ctx.stream_writer(file)
+        outputs.append((ctx, file, stream))
+
+    probes_by_flow: Dict[Tuple[int, int, int], List[Probe]] = defaultdict(list)
+
+    for i, probe in enumerate(
+        mda_probes(
+            client,
+            table,
+            round_,
+            mapper_v4,
+            mapper_v6,
+            probe_src_port,
+            probe_dst_port,
+            adaptive_eps,
+            (subset,),
+        )
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
-        buckets[hash(probe[:-2]) % n_buckets].append(probe)
-    for i, bucket in enumerate(buckets):
-        random.shuffle(bucket)
-        with prefix.with_suffix(f".{i}.csv.zst").open("wb") as f:
-            with ctx.stream_writer(f) as compressor:
-                for probe in bucket:
-                    compressor.write(format_probe(*probe).encode("ascii") + b"\n")
+        probes_by_flow[probe[:-2]].append(probe)
+
+        # Flush in-memory probes
+        if (i + 1) % max_probes_in_memory == 0:
+            for probes in probes_by_flow.values():
+                ctx, file, stream = random.choice(outputs)
+                for probe_ in probes:
+                    stream.write(format_probe(*probe_).encode("ascii") + b"\n")
+            probes_by_flow.clear()
+
+    # Flush remaining probes
+    for probes in probes_by_flow.values():
+        ctx, file, stream = random.choice(outputs)
+        for probe_ in probes:
+            stream.write(format_probe(*probe_).encode("ascii") + b"\n")
+
+    for ctx, file, stream in outputs:
+        stream.close()
+        file.close()
