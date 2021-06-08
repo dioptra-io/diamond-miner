@@ -23,7 +23,7 @@ async def test_far_ttls_probes(async_client):
     probes = await collect(
         far_ttls_probes(
             client=async_client,
-            table=table,
+            measurement_id=table,
             round_=1,
             far_ttl_min=1,
             far_ttl_max=10,

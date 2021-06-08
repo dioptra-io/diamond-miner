@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import ResultsQuery
+from diamond_miner.queries.query import ResultsQuery, flows_table, results_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -11,13 +11,11 @@ class CreateFlowsView(ResultsQuery):
 
     PRIMARY_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
-    parent: str = ""
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
-        assert self.parent
         return f"""
-        CREATE MATERIALIZED VIEW IF NOT EXISTS {table}
+        CREATE MATERIALIZED VIEW IF NOT EXISTS {flows_table(measurement_id)}
         ENGINE = AggregatingMergeTree
         ORDER BY ({self.SORTING_KEY})
         PRIMARY KEY ({self.PRIMARY_KEY})
@@ -29,7 +27,7 @@ class CreateFlowsView(ResultsQuery):
             -- round information in the replies. This is useful for computing
             -- inter-round links.
             groupUniqArrayState((round, probe_ttl, reply_src_addr)) AS replies
-        FROM {self.parent}
+        FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (round, {self.SORTING_KEY})
         """

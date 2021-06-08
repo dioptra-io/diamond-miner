@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, LinksQuery
+from diamond_miner.queries.query import UNIVERSE_SUBSET, LinksQuery, links_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -13,10 +13,10 @@ class GetLinks(LinksQuery):
     single vantage point and a single protocol.
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         SELECT DISTINCT ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
-        FROM {table}
+        FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
         """
 
@@ -28,7 +28,7 @@ class GetLinksPerPrefix(LinksQuery):
     protocol, source address and destination prefix.
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         SELECT
             probe_protocol,
@@ -37,7 +37,7 @@ class GetLinksPerPrefix(LinksQuery):
             groupUniqArray(
                 ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
             )
-        FROM {table}
+        FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         """

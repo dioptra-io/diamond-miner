@@ -16,7 +16,7 @@ from diamond_miner.typing import IPNetwork, Probe
 
 async def far_ttls_probes(
     client: Client,
-    table: str,
+    measurement_id: str,
     round_: int,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
@@ -26,7 +26,7 @@ async def far_ttls_probes(
 ) -> AsyncIterator[List[Probe]]:
     """TODO"""
     query = GetMaxTTL(round_leq=round_)
-    rows = query.execute_iter_async(client, table, subsets)
+    rows = query.execute_iter_async(client, measurement_id, subsets)
 
     # Monitor time spent in the loop and in foreign code, excluding database code.
     loop_timer = Timer()

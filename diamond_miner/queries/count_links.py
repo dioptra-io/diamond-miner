@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, LinksQuery
+from diamond_miner.queries.query import UNIVERSE_SUBSET, LinksQuery, links_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -14,9 +14,9 @@ class CountLinks(LinksQuery):
               it assumes that the table contains the replies for a single vantage point and a single protocol.
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         SELECT uniqExact(near_addr, far_addr)
-        FROM {table}
+        FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
         """

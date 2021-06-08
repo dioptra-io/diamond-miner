@@ -22,6 +22,18 @@ CH_QUERY_SETTINGS = {
 }
 
 
+def flows_table(measurement_id: str) -> str:
+    return f"flows__{measurement_id}".replace("-", "_")
+
+
+def links_table(measurement_id: str) -> str:
+    return f"links__{measurement_id}".replace("-", "_")
+
+
+def results_table(measurement_id: str) -> str:
+    return f"results__{measurement_id}".replace("-", "_")
+
+
 class AddrType(str, Enum):
     """ClickHouse IPv6 type."""
 
@@ -58,35 +70,39 @@ class Query:
     def name(self) -> str:
         return self.__class__.__name__
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         raise NotImplementedError
 
     def execute(
         self,
         client: Client,
-        table: str,
+        measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> List:
-        return [row for row in self.execute_iter(client, table, subsets)]
+        return [row for row in self.execute_iter(client, measurement_id, subsets)]
 
     async def execute_async(
         self,
         client: AsyncClient,
-        table: str,
+        measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> List:
-        return [row async for row in self.execute_iter_async(client, table, subsets)]
+        return [
+            row
+            async for row in self.execute_iter_async(client, measurement_id, subsets)
+        ]
 
     def execute_iter(
         self,
         client: Client,
-        table: str,
+        measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator:
         for subset in subsets:
-            query = self.query(table, subset)
+            query = self.query(measurement_id, subset)
             with LoggingTimer(
-                logger, f"query={self.name} table={table} subset={subset}"
+                logger,
+                f"query={self.name} measurement_id={measurement_id} subset={subset}",
             ):
                 rows = client.execute_iter(query, settings=CH_QUERY_SETTINGS)
                 for row in rows:
@@ -95,13 +111,14 @@ class Query:
     async def execute_iter_async(
         self,
         client: AsyncClient,
-        table: str,
+        measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> AsyncIterator:
         for subset in subsets:
-            query = self.query(table, subset)
+            query = self.query(measurement_id, subset)
             with LoggingTimer(
-                logger, f"query={self.name} table={table} subset={subset}"
+                logger,
+                f"query={self.name} measurement_id={measurement_id} subset={subset}",
             ):
                 rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
                 async for row in rows:

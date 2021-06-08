@@ -14,7 +14,7 @@ from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 def mda_probes(
     client: Client,
-    table: str,
+    measurement_id: str,
     round_: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
@@ -31,7 +31,7 @@ def mda_probes(
         filter_virtual=True,
         filter_inter_round=True,
     )
-    rows = query.execute_iter(client, table, subsets)
+    rows = query.execute_iter(client, measurement_id, subsets)
     for row in rows:
         for probe in row_to_probes(
             GetNextRound.Row(*row), mapper_v4, mapper_v6, probe_src_port, probe_dst_port

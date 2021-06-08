@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import Query
+from diamond_miner.queries.query import Query, results_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -11,9 +11,9 @@ class CreateResultsTable(Query):
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
-        CREATE TABLE IF NOT EXISTS {table}
+        CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (
             probe_protocol         UInt8,
             probe_src_addr         IPv6,
@@ -49,5 +49,5 @@ class CreateResultsTable(Query):
             time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)
         )
         ENGINE MergeTree
-        ORDER BY ({self.SORTING_KEY});
+        ORDER BY ({self.SORTING_KEY})
         """

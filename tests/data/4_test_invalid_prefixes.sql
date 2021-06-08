@@ -3,7 +3,7 @@
 -- Prefix 201.0.0.0/24 is doing per-packet LB (2 nodes discovered)
 -- Prefix 202.0.0.0/24 is sending multiple replies per probe (3 replies)
 
-INSERT INTO test_invalid_prefixes
+INSERT INTO results__test_invalid_prefixes
 VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.0', 24000, 33434, 1, 1, '::ffff:150.0.0.1', 1, 11, 0, 250, 0, [], 0.0, 1),
        (1, '::ffff:100.0.0.1', '::ffff:200.0.0.0', 24000, 33434, 1, 1, '::ffff:150.0.0.1', 1, 11, 0, 250, 0, [], 0.0, 1),
        (1, '::ffff:100.0.0.1', '::ffff:201.0.0.0', 24000, 33434, 1, 1, '::ffff:150.0.0.1', 1, 11, 0, 250, 0, [], 0.0, 1),

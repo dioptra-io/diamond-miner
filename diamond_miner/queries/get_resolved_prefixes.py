@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, ResultsQuery
+from diamond_miner.queries.query import UNIVERSE_SUBSET, ResultsQuery, results_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -18,11 +18,11 @@ class GetResolvedPrefixes(ResultsQuery):
     [(1, '200.0.0.0')]
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         assert self.round_leq is not None
         return f"""
         SELECT DISTINCT probe_protocol, probe_dst_prefix
-        FROM {table}
+        FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING max(round) < {self.round_leq - 1}

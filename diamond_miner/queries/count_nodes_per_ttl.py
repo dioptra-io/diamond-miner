@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import LinksQuery
+from diamond_miner.queries.query import ResultsQuery, results_table
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class CountNodesPerTTL(LinksQuery):
+class CountNodesPerTTL(ResultsQuery):
     """
     Return the number of nodes discovered at each TTL.
     This query does not support the ``subset`` parameter.
@@ -16,11 +16,11 @@ class CountNodesPerTTL(LinksQuery):
     [(1, 1), (2, 2), (3, 3), (4, 1)]
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
         return f"""
         SELECT probe_ttl, uniqExact(reply_src_addr)
-        FROM {table}
+        FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY probe_ttl
         """

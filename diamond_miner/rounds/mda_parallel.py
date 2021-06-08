@@ -21,7 +21,7 @@ from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 async def mda_probes_parallel(
     filepath: Path,
     client: Client,
-    table: str,
+    measurement_id: str,
     round_: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
@@ -58,7 +58,7 @@ async def mda_probes_parallel(
                     worker,
                     Path(temp_dir) / f"subset_{i}",
                     client,
-                    table,
+                    measurement_id,
                     round_,
                     mapper_v4,
                     mapper_v6,
@@ -97,7 +97,7 @@ async def mda_probes_parallel(
 def worker(
     prefix: Path,
     client: Client,
-    table: str,
+    measurement_id: str,
     round_: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
@@ -132,7 +132,7 @@ def worker(
 
     for probe in mda_probes(
         client,
-        table,
+        measurement_id,
         round_,
         mapper_v4,
         mapper_v6,

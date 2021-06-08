@@ -9,6 +9,9 @@ from diamond_miner.queries import (
     CreateLinksTable,
     CreateResultsTable,
     GetLinksFromView,
+    flows_table,
+    links_table,
+    results_table,
 )
 
 
@@ -35,24 +38,25 @@ def get_statements(file: Path):
 
 
 def insert_file(client: Client, file: Path):
-    results_table = get_table_name(file)
-    flows_view = f"{results_table}_flows"
-    links_table = f"{results_table}_links"
-    print(f"Processing {file.name} -> {results_table}")
-    client.execute(f"DROP TABLE IF EXISTS {results_table}")
-    client.execute(f"DROP TABLE IF EXISTS {flows_view}")
-    client.execute(f"DROP TABLE IF EXISTS {links_table}")
+    measurement_id = get_table_name(file)
+    results_table_name = results_table(measurement_id)
+    flows_table_name = flows_table(measurement_id)
+    links_table_name = links_table(measurement_id)
+    print(f"Processing {file.name} -> {results_table_name}")
+    client.execute(f"DROP TABLE IF EXISTS {results_table_name}")
+    client.execute(f"DROP TABLE IF EXISTS {flows_table_name}")
+    client.execute(f"DROP TABLE IF EXISTS {links_table_name}")
     # Create results table + flows view
-    CreateResultsTable().execute(client, results_table)
-    CreateFlowsView(parent=results_table).execute(client, flows_view)
+    CreateResultsTable().execute(client, measurement_id)
+    CreateFlowsView().execute(client, measurement_id)
     for statement in get_statements(file):
         client.execute(statement)
     # Create links table from flows view
-    CreateLinksTable().execute(client, links_table)
+    CreateLinksTable().execute(client, measurement_id)
     client.execute(
         f"""
-        INSERT INTO {links_table}
-        SELECT * FROM ({GetLinksFromView().query(flows_view)})
+        INSERT INTO {links_table_name}
+        SELECT * FROM ({GetLinksFromView().query(measurement_id)})
         """
     )
 

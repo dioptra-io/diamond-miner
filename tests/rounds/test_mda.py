@@ -11,7 +11,7 @@ from diamond_miner.rounds.mda import mda_probes
 
 
 def test_mda_probes_lite(client):
-    table = "test_nsdi_lite_links"
+    table = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
     probe_src_port = 24000
@@ -21,7 +21,7 @@ def test_mda_probes_lite(client):
         return list(
             mda_probes(
                 client=client,
-                table=table,
+                measurement_id=table,
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
@@ -68,13 +68,13 @@ def test_mda_probes_lite(client):
 
 
 def test_mda_probes_lite_adaptive(client):
-    table = "test_nsdi_lite_links"
+    table = "test_nsdi_lite"
 
     def probes_for_round(round_):
         return list(
             mda_probes(
                 client=client,
-                table=table,
+                measurement_id=table,
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
@@ -88,7 +88,7 @@ def test_mda_probes_lite_adaptive(client):
 
 
 def test_mda_probes_lite_mappers(client):
-    table = "test_nsdi_lite_links"
+    table = "test_nsdi_lite"
 
     # In this test, we simplify verify that the next round works with
     # all the different flow mappers. We do not check the probes themselves.
@@ -113,7 +113,7 @@ def test_mda_probes_lite_mappers(client):
             list(
                 mda_probes(
                     client=client,
-                    table=table,
+                    measurement_id=table,
                     round_=1,
                     mapper_v4=mapper_v4,
                     mapper_v6=mapper_v6,
@@ -126,7 +126,7 @@ def test_mda_probes_lite_mappers(client):
 
 
 def test_next_round_probes_multi_protocol(client):
-    table = "test_multi_protocol_links"
+    table = "test_multi_protocol"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
     probe_src_port = 24000
@@ -136,7 +136,7 @@ def test_next_round_probes_multi_protocol(client):
         return list(
             mda_probes(
                 client=client,
-                table=table,
+                measurement_id=table,
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),

@@ -11,7 +11,7 @@ from .get_max_ttl import GetMaxTTL
 from .get_next_round import GetNextRound
 from .get_nodes import GetNodes
 from .get_resolved_prefixes import GetResolvedPrefixes
-from .query import AddrType, Query
+from .query import AddrType, Query, flows_table, links_table, results_table
 
 __all__ = (
     "AddrType",
@@ -30,4 +30,7 @@ __all__ = (
     "GetNodes",
     "GetResolvedPrefixes",
     "Query",
+    "flows_table",
+    "links_table",
+    "results_table",
 )

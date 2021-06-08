@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
-from diamond_miner.queries.query import Query
+from diamond_miner.queries.query import Query, links_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -12,10 +12,10 @@ class CreateLinksTable(Query):
 
     SORTING_KEY = CreateFlowsView.SORTING_KEY
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
         return f"""
-        CREATE TABLE IF NOT EXISTS {table}
+        CREATE TABLE IF NOT EXISTS {links_table(measurement_id)}
         (
             probe_protocol    UInt8,
             probe_src_addr    IPv6,

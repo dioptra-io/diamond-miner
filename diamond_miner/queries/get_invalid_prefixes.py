@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import ResultsQuery
+from diamond_miner.queries.query import ResultsQuery, results_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -19,12 +19,12 @@ class GetInvalidPrefixes(ResultsQuery):
     [(1, '201.0.0.0'), (1, '202.0.0.0')]
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
         WITH count(reply_src_addr)     AS n_replies,
              uniqExact(reply_src_addr) AS n_distinct_replies
         SELECT DISTINCT probe_protocol, probe_dst_prefix
-        FROM {table}
+        FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (
             probe_protocol,

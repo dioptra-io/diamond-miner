@@ -2,7 +2,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import LinksQuery
+from diamond_miner.queries.query import LinksQuery, links_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -19,7 +19,7 @@ class GetNextRound(LinksQuery):
         "protocol,dst_prefix,already_sent,to_send,ttls",
     )
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         if self.adaptive_eps:
             eps_fragment = """
             if(max_links_curr == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_curr))
@@ -103,7 +103,7 @@ class GetNextRound(LinksQuery):
             already_sent,
             to_send,
             TTLs
-        FROM {table}
+        FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING NOT skip_prefix

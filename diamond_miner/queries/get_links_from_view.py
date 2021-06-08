@@ -3,7 +3,7 @@ from typing import Optional
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
-from diamond_miner.queries.query import Query
+from diamond_miner.queries.query import Query, flows_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -25,7 +25,7 @@ class GetLinksFromView(Query):
     TODO: Assert this?
 
     >>> from diamond_miner.test import client
-    >>> links = GetLinksFromView().execute(client, "test_nsdi_example_flows")
+    >>> links = GetLinksFromView().execute(client, "test_nsdi_example")
     >>> len(links)
     58
     """
@@ -42,7 +42,7 @@ class GetLinksFromView(Query):
     such a table will contain only intra-round links but can be updated incrementally.
     """
 
-    def query(self, table: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         round_filter = "1"
         if self.round_eq:
             round_filter = f"round = {self.round_eq}"
@@ -68,7 +68,7 @@ class GetLinksFromView(Query):
             link.2 AS far_ttl,
             link.3.2 AS near_addr,
             link.4.2 AS far_addr
-        FROM {table}
+        FROM {flows_table(measurement_id)}
         WHERE {round_filter}
         GROUP BY ({CreateFlowsView.SORTING_KEY})
         SETTINGS optimize_aggregation_in_order = 1
