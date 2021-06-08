@@ -29,7 +29,7 @@ async def mda_probes_parallel(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
     n_workers: int = (os.cpu_count() or 2) // 2,
-) -> None:
+) -> int:
     """
     https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
     """
@@ -46,7 +46,9 @@ async def mda_probes_parallel(
         len(subsets),
         n_files_per_subset,
     )
+
     loop = asyncio.get_running_loop()
+    n_probes = 0
 
     with TemporaryDirectory(dir=filepath.parent) as temp_dir:
         with ProcessPoolExecutor(n_workers) as pool:
@@ -76,6 +78,7 @@ async def mda_probes_parallel(
             for future in done:
                 if e := future.exception():
                     raise e
+                n_probes += future.result()
 
         logger.info("mda_probes status=merging")
         file_list = Path(temp_dir) / "files.txt"
@@ -87,6 +90,8 @@ async def mda_probes_parallel(
             f"xargs cat < {file_list} > {filepath}"
         )
         await proc.wait()
+
+    return n_probes
 
 
 def worker(
@@ -101,7 +106,7 @@ def worker(
     adaptive_eps: bool,
     subset: IPNetwork,
     n_files: int,
-) -> None:
+) -> int:
     """
     Execute the GetNextRound query on the specified subset, and write the probes to the specified file.
     """
@@ -123,25 +128,25 @@ def worker(
         outputs.append((ctx, file, stream))
 
     probes_by_file: List[List[Probe]] = [[] for _ in range(n_files)]
+    n_probes = 0
 
-    for i, probe in enumerate(
-        mda_probes(
-            client,
-            table,
-            round_,
-            mapper_v4,
-            mapper_v6,
-            probe_src_port,
-            probe_dst_port,
-            adaptive_eps,
-            (subset,),
-        )
+    for probe in mda_probes(
+        client,
+        table,
+        round_,
+        mapper_v4,
+        mapper_v6,
+        probe_src_port,
+        probe_dst_port,
+        adaptive_eps,
+        (subset,),
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
         probes_by_file[hash(probe[:-2]) % n_files].append(probe)
+        n_probes += 1
 
         # Flush in-memory probes
-        if (i + 1) % max_probes_in_memory == 0:
+        if n_probes % max_probes_in_memory == 0:
             for file_id, probes in enumerate(probes_by_file):
                 ctx, file, stream = outputs[file_id]
                 random.shuffle(probes)
@@ -160,3 +165,5 @@ def worker(
     for ctx, file, stream in outputs:
         stream.close()
         file.close()
+
+    return n_probes
