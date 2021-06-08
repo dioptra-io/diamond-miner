@@ -1,10 +1,12 @@
 import asyncio
 import os
+import random
 from concurrent.futures import ProcessPoolExecutor
 from ipaddress import ip_network
 from math import log2
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import List
 
 from clickhouse_driver import Client
 from zstandard import ZstdCompressor
@@ -13,7 +15,7 @@ from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_POR
 from diamond_miner.format import format_probe
 from diamond_miner.logging import logger
 from diamond_miner.rounds.mda import mda_probes
-from diamond_miner.typing import FlowMapper, IPNetwork
+from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
 async def mda_probes_parallel(
@@ -28,13 +30,22 @@ async def mda_probes_parallel(
     adaptive_eps: bool = False,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> None:
+    """
+    https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
+    """
     # TODO: IPv6
     # TODO: Better subsets based on the number of links.
     # NOTE: We create more subsets than workers in order to keep all the worker busy.
     subsets = list(
         ip_network("::ffff:0.0.0.0/96").subnets(prefixlen_diff=int(log2(n_workers * 4)))
     )
-    logger.info("mda_probes n_subsets=%s n_workers=%s", len(subsets), n_workers)
+    n_files_per_subset = 8192 // len(subsets)
+    logger.info(
+        "mda_probes n_workers=%s n_subsets=%s n_files_per_subset=%s",
+        n_workers,
+        len(subsets),
+        n_files_per_subset,
+    )
     loop = asyncio.get_running_loop()
 
     with TemporaryDirectory(dir=filepath.parent) as temp_dir:
@@ -43,7 +54,7 @@ async def mda_probes_parallel(
                 loop.run_in_executor(
                     pool,
                     worker,
-                    Path(temp_dir) / f"subset_{i}.csv",
+                    Path(temp_dir) / f"subset_{i}",
                     client,
                     table,
                     round_,
@@ -53,6 +64,7 @@ async def mda_probes_parallel(
                     probe_dst_port,
                     adaptive_eps,
                     subset,
+                    n_files_per_subset,
                 )
                 for i, subset in enumerate(subsets)
             ]
@@ -65,20 +77,20 @@ async def mda_probes_parallel(
                 if e := future.exception():
                     raise e
 
-        # TODO: Directly output compressed + shuffled file?
         logger.info("mda_probes status=merging")
+        file_list = Path(temp_dir) / "files.txt"
         proc = await asyncio.create_subprocess_shell(
-            f"zstd -d --no-progress --stdout {temp_dir}/subset_*.csv > {filepath}"
+            f"find {temp_dir} -name 'subset_*.csv.zst' | shuf > {file_list}"
         )
         await proc.wait()
-
-        logger.info("mda_probes status=cleaning")
-        proc = await asyncio.create_subprocess_shell(f"rm {temp_dir}/subset_*.csv")
+        proc = await asyncio.create_subprocess_shell(
+            f"xargs cat < {file_list} > {filepath}"
+        )
         await proc.wait()
 
 
 def worker(
-    filepath: Path,
+    prefix: Path,
     client: Client,
     table: str,
     round_: int,
@@ -88,23 +100,63 @@ def worker(
     probe_dst_port: int,
     adaptive_eps: bool,
     subset: IPNetwork,
+    n_files: int,
 ) -> None:
     """
-    Execute the GetNextRound query on the specified subset,
-    and write the probes to the specified file.
+    Execute the GetNextRound query on the specified subset, and write the probes to the specified file.
     """
-    ctx = ZstdCompressor(level=1)
-    with filepath.open("wb") as f:
-        with ctx.stream_writer(f) as compressor:
-            for probe in mda_probes(
-                client,
-                table,
-                round_,
-                mapper_v4,
-                mapper_v6,
-                probe_src_port,
-                probe_dst_port,
-                adaptive_eps,
-                (subset,),
-            ):
-                compressor.write(format_probe(*probe).encode("ascii") + b"\n")
+    # TODO: random.shuffle is slow...
+    # A potentially simpler and better way would be to shuffle
+    # the result of the next round query, which is small (~10M rows),
+    # and to directly write the probes to a file depending on hash(flow_id).
+    # e.g. ORDER BY rand() in GetNextRound.
+
+    # The larger `max_probes_in_memory`, the better the performance
+    # (less calls to `probes.clear()`) and the randomization but the more the memory usage.
+    max_probes_in_memory = 1_000_000
+
+    outputs = []
+    for i in range(n_files):
+        ctx = ZstdCompressor(level=1)
+        file = prefix.with_suffix(f".{i}.csv.zst").open("wb")
+        stream = ctx.stream_writer(file)
+        outputs.append((ctx, file, stream))
+
+    probes_by_file: List[List[Probe]] = [[] for _ in range(n_files)]
+
+    for i, probe in enumerate(
+        mda_probes(
+            client,
+            table,
+            round_,
+            mapper_v4,
+            mapper_v6,
+            probe_src_port,
+            probe_dst_port,
+            adaptive_eps,
+            (subset,),
+        )
+    ):
+        # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
+        probes_by_file[hash(probe[:-2]) % n_files].append(probe)
+
+        # Flush in-memory probes
+        if (i + 1) % max_probes_in_memory == 0:
+            for file_id, probes in enumerate(probes_by_file):
+                ctx, file, stream = outputs[file_id]
+                random.shuffle(probes)
+                for probe_ in probes:
+                    stream.write(format_probe(*probe_).encode("ascii") + b"\n")
+                probes.clear()
+
+    # Flush remaining probes
+    for file_id, probes in enumerate(probes_by_file):
+        ctx, file, stream = outputs[file_id]
+        random.shuffle(probes)
+        for probe_ in probes:
+            stream.write(format_probe(*probe_).encode("ascii") + b"\n")
+        probes.clear()
+
+    for ctx, file, stream in outputs:
+        stream.close()
+        file.close()
