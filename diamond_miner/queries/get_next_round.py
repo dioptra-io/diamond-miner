@@ -2,7 +2,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import LinksQuery, links_table
+from diamond_miner.queries.query import LinksQuery, links_table, prefixes_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -12,6 +12,7 @@ class GetNextRound(LinksQuery):
 
     adaptive_eps: bool = True
     dminer_lite: bool = True
+    ignore_invalid_prefixes: bool = True
     target_epsilon: float = 0.05
 
     Row = namedtuple(
@@ -44,8 +45,17 @@ class GetNextRound(LinksQuery):
             # TODO: Implement by computing Dh(v)
             raise NotImplementedError
 
-        # TODO: Speed-up by ignoring resolved prefixes?
-        # (As we did with the old query)
+        if self.ignore_invalid_prefixes:
+            invalid_fragment = f"""
+            AND (probe_protocol, probe_src_addr, probe_dst_prefix)
+            NOT IN (
+                SELECT probe_protocol, probe_src_addr, probe_dst_prefix
+                FROM {prefixes_table(measurement_id)}
+                WHERE has_amplification OR has_loops
+            )
+            """
+        else:
+            invalid_fragment = ""
 
         return f"""
         WITH
@@ -107,6 +117,7 @@ class GetNextRound(LinksQuery):
             TTLs
         FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
+        {invalid_fragment}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
         HAVING NOT skip_prefix
         """
