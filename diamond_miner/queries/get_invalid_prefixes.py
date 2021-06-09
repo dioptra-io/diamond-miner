@@ -14,13 +14,16 @@ class GetPrefixesWithAmplification(ResultsQuery):
 
     >>> from diamond_miner.test import addr_to_string, client
     >>> rows = GetPrefixesWithAmplification().execute(client, "test_invalid_prefixes")
-    >>> [addr_to_string(x[0]) for x in rows]
+    >>> [addr_to_string(x[2]) for x in rows]
     ['201.0.0.0', '202.0.0.0']
     """
 
     def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
-        SELECT DISTINCT probe_dst_prefix
+        SELECT DISTINCT
+            probe_protocol,
+            probe_src_addr,
+            probe_dst_prefix
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (
@@ -46,13 +49,16 @@ class GetPrefixesWithLoops(ResultsQuery):
 
     >>> from diamond_miner.test import addr_to_string, client
     >>> rows = GetPrefixesWithLoops().execute(client, "test_invalid_prefixes")
-    >>> [addr_to_string(x[0]) for x in rows]
+    >>> [addr_to_string(x[2]) for x in rows]
     ['201.0.0.0']
     """
 
     def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
-        SELECT DISTINCT probe_dst_prefix
+        SELECT DISTINCT
+            probe_protocol,
+            probe_src_addr,
+            probe_dst_prefix
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (

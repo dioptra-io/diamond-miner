@@ -30,6 +30,10 @@ def links_table(measurement_id: str) -> str:
     return f"links__{measurement_id}".replace("-", "_")
 
 
+def prefixes_table(measurement_id: str) -> str:
+    return f"prefixes__{measurement_id}".replace("-", "_")
+
+
 def results_table(measurement_id: str) -> str:
     return f"results__{measurement_id}".replace("-", "_")
 
