@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 import asyncio
+import logging
 import re
 from pathlib import Path
 
 from aioch import Client
 
-from diamond_miner.database import create_tables, drop_tables, insert_links
+from diamond_miner.queries import InsertLinks
+from diamond_miner.queries.create_tables import CreateTables
+from diamond_miner.queries.drop_tables import DropTables
+from diamond_miner.queries.insert_prefixes import InsertPrefixes
 
 
 def get_rank(file: Path):
@@ -33,14 +37,16 @@ def get_statements(file: Path):
 async def insert_file(client: Client, file: Path):
     measurement_id = get_measurement_id(file)
     print(f"Processing {file.name} -> {measurement_id}")
-    await drop_tables(client, measurement_id)
-    await create_tables(client, measurement_id)
+    await DropTables().execute_async(client, measurement_id)
+    await CreateTables().execute_async(client, measurement_id)
     for statement in get_statements(file):
         await client.execute(statement)
-    await insert_links(client, measurement_id)
+    await InsertLinks().execute_async(client, measurement_id)
+    await InsertPrefixes().execute_async(client, measurement_id)
 
 
 async def main():
+    logging.basicConfig(level=logging.INFO)
     client = Client("127.0.0.1")
     files = Path(__file__).parent.glob("*.sql")
     files = sorted(files, key=get_rank)

@@ -42,7 +42,9 @@ class GetLinksFromView(Query):
     such a table will contain only intra-round links but can be updated incrementally.
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         round_filter = "1"
         if self.round_eq:
             round_filter = f"round = {self.round_eq}"

@@ -14,7 +14,9 @@ class CountLinks(LinksQuery):
               it assumes that the table contains the replies for a single vantage point and a single protocol.
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT uniqExact(near_addr, far_addr)
         FROM {links_table(measurement_id)}

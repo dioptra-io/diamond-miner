@@ -18,12 +18,16 @@ class GetPrefixesWithAmplification(ResultsQuery):
     ['201.0.0.0', '202.0.0.0']
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT DISTINCT
             probe_protocol,
             probe_src_addr,
-            probe_dst_prefix
+            probe_dst_prefix,
+            -- This column is to simplify the InsertPrefixes query.
+            1 AS has_amplification
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (
@@ -53,12 +57,16 @@ class GetPrefixesWithLoops(ResultsQuery):
     ['201.0.0.0']
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT DISTINCT
             probe_protocol,
             probe_src_addr,
-            probe_dst_prefix
+            probe_dst_prefix,
+            -- This column is to simplify the InsertPrefixes query.
+            1 AS has_loops
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (

@@ -11,7 +11,9 @@ class CreateResultsTable(Query):
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (

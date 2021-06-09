@@ -15,7 +15,9 @@ class GetMaxTTL(ResultsQuery):
     [(1, '200.0.0.0', 3), (1, '201.0.0.0', 2)]
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT probe_protocol, probe_dst_addr, max(probe_ttl) AS max_ttl
         FROM {results_table(measurement_id)}

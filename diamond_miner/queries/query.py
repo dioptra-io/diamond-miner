@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import AsyncIterator, Iterable, Iterator, List, Optional
+from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence
 
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
@@ -74,8 +74,16 @@ class Query:
     def name(self) -> str:
         return self.__class__.__name__
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         raise NotImplementedError
+
+    def statements(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> Sequence[str]:
+        # Override this method if you want your query to return multiple statements.
+        return (self.statement(measurement_id, subset),)
 
     def execute(
         self,
@@ -103,14 +111,14 @@ class Query:
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator:
         for subset in subsets:
-            query = self.query(measurement_id, subset)
-            with LoggingTimer(
-                logger,
-                f"query={self.name} measurement_id={measurement_id} subset={subset}",
-            ):
-                rows = client.execute_iter(query, settings=CH_QUERY_SETTINGS)
-                for row in rows:
-                    yield row
+            for i, statement in enumerate(self.statements(measurement_id, subset)):
+                with LoggingTimer(
+                    logger,
+                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
+                ):
+                    rows = client.execute_iter(statement, settings=CH_QUERY_SETTINGS)
+                    for row in rows:
+                        yield row
 
     async def execute_iter_async(
         self,
@@ -119,14 +127,16 @@ class Query:
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> AsyncIterator:
         for subset in subsets:
-            query = self.query(measurement_id, subset)
-            with LoggingTimer(
-                logger,
-                f"query={self.name} measurement_id={measurement_id} subset={subset}",
-            ):
-                rows = await client.execute_iter(query, settings=CH_QUERY_SETTINGS)
-                async for row in rows:
-                    yield row
+            for i, statement in enumerate(self.statements(measurement_id, subset)):
+                with LoggingTimer(
+                    logger,
+                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
+                ):
+                    rows = await client.execute_iter(
+                        statement, settings=CH_QUERY_SETTINGS
+                    )
+                    async for row in rows:
+                        yield row
 
     def addr_cast(self, column: str) -> str:
         """Returns the column casted to the specified address type."""

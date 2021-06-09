@@ -19,7 +19,9 @@ class GetNextRound(LinksQuery):
         "protocol,dst_prefix,already_sent,to_send,ttls",
     )
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         if self.adaptive_eps:
             eps_fragment = """
             if(max_links_curr == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_curr))

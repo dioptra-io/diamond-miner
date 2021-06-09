@@ -12,7 +12,9 @@ class CreateLinksTable(Query):
 
     SORTING_KEY = CreateFlowsView.SORTING_KEY
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
         return f"""
         CREATE TABLE IF NOT EXISTS {links_table(measurement_id)}

@@ -11,7 +11,9 @@ class CreatePrefixesTable(Query):
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         CREATE TABLE IF NOT EXISTS {prefixes_table(measurement_id)}
         (

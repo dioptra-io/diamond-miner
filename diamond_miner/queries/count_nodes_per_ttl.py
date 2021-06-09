@@ -16,7 +16,9 @@ class CountNodesPerTTL(ResultsQuery):
     [(1, 1), (2, 2), (3, 3), (4, 1)]
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         assert subset == UNIVERSE_SUBSET, "subset not allowed for this query"
         return f"""
         SELECT probe_ttl, uniqExact(reply_src_addr)

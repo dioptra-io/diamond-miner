@@ -21,7 +21,9 @@ class GetNodesFromResults(ResultsQuery):
     [(1, '150.0.1.1'), (1, '150.0.2.1'), (1, '150.0.3.1'), (1, '150.0.4.1'), (1, '150.0.5.1'), (1, '150.0.6.1'), (1, '150.0.7.1')]
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT DISTINCT probe_protocol, {self.addr_cast('reply_src_addr')}
         FROM {results_table(measurement_id)}
@@ -34,7 +36,9 @@ class GetNodes(LinksQuery):
     # NOTE: It counts the node '::'
     # Does not group by probe_protocol and probe_src_addr
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT
             arrayJoin(
@@ -54,7 +58,9 @@ class GetNodes(LinksQuery):
 class GetNodesPerPrefix(LinksQuery):
     # NOTE: It counts the links ('::', a), (a, '::') and ('::', '::')
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT
             probe_protocol,

@@ -13,7 +13,9 @@ class GetLinks(LinksQuery):
     single vantage point and a single protocol.
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT DISTINCT ({self.addr_cast('near_addr')}, {self.addr_cast('far_addr')})
         FROM {links_table(measurement_id)}
@@ -28,7 +30,9 @@ class GetLinksPerPrefix(LinksQuery):
     protocol, source address and destination prefix.
     """
 
-    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
         return f"""
         SELECT
             probe_protocol,
