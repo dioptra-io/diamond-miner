@@ -6,24 +6,21 @@ from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetInvalidPrefixes(ResultsQuery):
+class GetPrefixesWithAmplification(ResultsQuery):
     """
-    Return the prefixes with per-packet LB or that sends more replies than probes.
+    Return the prefixes for which we have more than one reply per (flow ID, TTL).
 
+    .. important:: This query assumes that a single probe is sent per (flow ID, TTL) pair.
 
     >>> from diamond_miner.test import addr_to_string, client
-    >>> GetInvalidPrefixes().execute(client, 'test_nsdi_example')
-    []
-    >>> prefixes = GetInvalidPrefixes().execute(client, 'test_invalid_prefixes')
-    >>> sorted((x[0], addr_to_string(x[1])) for x in prefixes)
-    [(1, '201.0.0.0'), (1, '202.0.0.0')]
+    >>> rows = GetPrefixesWithAmplification().execute(client, "test_invalid_prefixes")
+    >>> [addr_to_string(x[0]) for x in rows]
+    ['201.0.0.0', '202.0.0.0']
     """
 
     def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
         return f"""
-        WITH count(reply_src_addr)     AS n_replies,
-             uniqExact(reply_src_addr) AS n_distinct_replies
-        SELECT DISTINCT probe_protocol, probe_dst_prefix
+        SELECT DISTINCT probe_dst_prefix
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY (
@@ -35,5 +32,36 @@ class GetInvalidPrefixes(ResultsQuery):
             probe_dst_port,
             probe_ttl
         )
-        HAVING (n_replies > 2) OR (n_distinct_replies > 1)
+        HAVING count() > 1
+        """
+
+
+@dataclass(frozen=True)
+class GetPrefixesWithLoops(ResultsQuery):
+    """
+    Return the prefixes for which an IP address appears multiple time for a single flow ID.
+
+    .. note:: Prefixes with amplification (multiple replies per probe) may trigger a false positive
+              for this query, since we do not check that the IP appears at two *different* TTLs.
+
+    >>> from diamond_miner.test import addr_to_string, client
+    >>> rows = GetPrefixesWithLoops().execute(client, "test_invalid_prefixes")
+    >>> [addr_to_string(x[0]) for x in rows]
+    ['201.0.0.0']
+    """
+
+    def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
+        return f"""
+        SELECT DISTINCT probe_dst_prefix
+        FROM {results_table(measurement_id)}
+        WHERE {self.filters(subset)}
+        GROUP BY (
+            probe_protocol,
+            probe_src_addr,
+            probe_dst_prefix,
+            probe_dst_addr,
+            probe_src_port,
+            probe_dst_port
+        )
+        HAVING uniqExact(reply_src_addr) < count()
         """

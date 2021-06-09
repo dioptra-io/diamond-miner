@@ -1,7 +1,5 @@
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
-from diamond_miner.queries.get_invalid_prefixes import GetInvalidPrefixes
-from diamond_miner.queries.get_resolved_prefixes import GetResolvedPrefixes
 from diamond_miner.queries.query import UNIVERSE_SUBSET, ResultsQuery, results_table
 from diamond_miner.typing import IPNetwork
 
@@ -18,18 +16,9 @@ class GetMaxTTL(ResultsQuery):
     """
 
     def query(self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET) -> str:
-        invalid_prefixes_query = GetInvalidPrefixes(**asdict(self)).query(
-            measurement_id, subset
-        )
-        resolved_prefixes_query = GetResolvedPrefixes(**asdict(self)).query(
-            measurement_id, subset
-        )
-
         return f"""
         SELECT probe_protocol, probe_dst_addr, max(probe_ttl) AS max_ttl
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
-        AND (probe_protocol, probe_dst_prefix) NOT IN ({invalid_prefixes_query})
-        AND (probe_protocol, probe_dst_prefix) NOT IN ({resolved_prefixes_query})
         GROUP BY (probe_protocol, probe_dst_addr)
         """
