@@ -23,6 +23,7 @@ def mda_probes(
     subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> Iterator[Probe]:
     # TODO: filter_partial is temporary.
+    # TODO: filter_inter_round?
     query = GetNextRound(
         adaptive_eps=adaptive_eps,
         round_leq=round_,

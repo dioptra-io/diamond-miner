@@ -11,8 +11,9 @@ from zstandard import ZstdCompressor
 from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_PORT
 from diamond_miner.format import format_probe
 from diamond_miner.logging import logger
+from diamond_miner.queries import GetNextRound
 from diamond_miner.rounds.mda import mda_probes
-from diamond_miner.subsets import links_subsets
+from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
@@ -33,8 +34,17 @@ async def mda_probes_parallel(
     """
     loop = asyncio.get_running_loop()
 
-    subsets = await links_subsets(
-        url, measurement_id, round_leq=round_, filter_virtual=True
+    # NOTE: Make sure that the parameter of GetNextRound are equal to the
+    # ones defines in mda_probes, in order to guarantee optimal subsets.
+    subsets = await subsets_for(
+        GetNextRound(
+            adaptive_eps=adaptive_eps,
+            round_leq=round_,
+            filter_virtual=True,
+            filter_inter_round=True,
+        ),
+        url,
+        measurement_id,
     )
     n_files_per_subset = 8192 // len(subsets)
 

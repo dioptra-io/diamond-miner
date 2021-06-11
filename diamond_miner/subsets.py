@@ -1,42 +1,40 @@
+from dataclasses import asdict, fields
 from ipaddress import IPv6Address, IPv6Network, ip_network
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 from diamond_miner.queries import CountLinksPerPrefix, CountResultsPerPrefix
+from diamond_miner.queries.count_rows import CountFlowsPerPrefix
+from diamond_miner.queries.query import FlowsQuery, LinksQuery, ResultsQuery
 
 Counts = Dict[IPv6Network, int]
 
 
-async def links_subsets(
+async def subsets_for(
+    query: Union[FlowsQuery, LinksQuery, ResultsQuery],
     url: str,
     measurement_id: str,
     max_rows_per_subset: int = 8_000_000,
-    **kwargs: Any,
 ) -> List[IPv6Network]:
-    return await generic_subsets(
-        CountLinksPerPrefix(**kwargs), url, measurement_id, max_rows_per_subset
-    )
-
-
-async def results_subsets(
-    url: str,
-    measurement_id: str,
-    max_rows_per_subset: int = 8_000_000,
-    **kwargs: Any,
-) -> List[IPv6Network]:
-    return await generic_subsets(
-        CountResultsPerPrefix(**kwargs), url, measurement_id, max_rows_per_subset
-    )
-
-
-async def generic_subsets(
-    query: Union[CountLinksPerPrefix, CountResultsPerPrefix],
-    url: str,
-    measurement_id: str,
-    max_rows_per_subset: int,
-) -> List[IPv6Network]:
-    counts: Counts = {
-        addr_to_network(addr, query.prefix_len_v4, query.prefix_len_v6): count
-        for addr, count in await query.execute_async(url, measurement_id)
+    attrs = asdict(query)
+    if isinstance(query, FlowsQuery):
+        count_query = CountFlowsPerPrefix(
+            **{x.name: attrs[x.name] for x in fields(FlowsQuery)}
+        )
+    elif isinstance(query, LinksQuery):
+        count_query = CountLinksPerPrefix(
+            **{x.name: attrs[x.name] for x in fields(LinksQuery)}
+        )  # type: ignore
+    elif isinstance(query, ResultsQuery):
+        count_query = CountResultsPerPrefix(
+            **{x.name: attrs[x.name] for x in fields(ResultsQuery)}
+        )  # type: ignore
+    else:
+        raise NotImplementedError
+    counts = {
+        addr_to_network(
+            addr, count_query.prefix_len_v4, count_query.prefix_len_v6
+        ): count
+        for addr, count in await count_query.execute_async(url, measurement_id)
     }
     return split(counts, max_rows_per_subset)
 
