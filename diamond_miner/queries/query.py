@@ -7,6 +7,7 @@ from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence
 
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
+from clickhouse_driver.errors import ServerException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logging import logger
@@ -157,9 +158,15 @@ class Query:
 
         async def do(subset: IPNetwork) -> None:
             async with semaphore:
-                await self.execute_async(url, measurement_id, (subset,))
+                try:
+                    await self.execute_async(url, measurement_id, (subset,))
+                except ServerException as e:
+                    logger.error(
+                        "query=%s subset=%s exception=%s", self.name, subset, e
+                    )
+                    raise e
 
-        logger.info(f"query={self.name} concurrent_requests={concurrent_requests}")
+        logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
         await asyncio.gather(*[do(subset) for subset in subsets])
 
     def addr_cast(self, column: str) -> str:
