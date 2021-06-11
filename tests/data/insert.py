@@ -42,8 +42,8 @@ async def insert_file(url: str, file: Path):
     await CreateTables().execute_async(url, measurement_id)
     for statement in get_statements(file):
         await client.execute(statement)
-    await InsertLinks().execute_async(url, measurement_id)
     await InsertPrefixes().execute_async(url, measurement_id)
+    await InsertLinks().execute_async(url, measurement_id)
 
 
 async def main():
