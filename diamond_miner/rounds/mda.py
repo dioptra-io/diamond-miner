@@ -6,6 +6,7 @@ from diamond_miner.defaults import (
     PROTOCOLS,
     UNIVERSE_SUBSET,
 )
+from diamond_miner.logging import logger
 from diamond_miner.queries import GetNextRound
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
@@ -34,6 +35,10 @@ def mda_probes(
         for probe in row_to_probes(
             GetNextRound.Row(*row), mapper_v4, mapper_v6, probe_src_port, probe_dst_port
         ):
+            # TEMP: Log prefixes that overflows the port number.
+            if probe[1] > (2 ** 16 - 1):
+                logger.warning("Port overflow for %s", GetNextRound.Row(*row))
+                break
             yield probe
 
 
