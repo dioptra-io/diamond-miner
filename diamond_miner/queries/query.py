@@ -177,6 +177,21 @@ class Query:
 
 
 @dataclass(frozen=True)
+class FlowsQuery(Query):
+    round_eq: Optional[int] = None
+    "If specified, keep only the flows from this round."
+
+    def filters(self, subset: IPNetwork) -> str:
+        """``WHERE`` clause common to all queries on the flows table."""
+        s = "1"
+        if subset != UNIVERSE_SUBSET:
+            s += f"\nAND {ip_in('probe_dst_prefix', subset)}"
+        if self.round_eq:
+            s += f"\nAND {eq('round', self.round_eq)}"
+        return s
+
+
+@dataclass(frozen=True)
 class LinksQuery(Query):
     filter_inter_round: bool = False
     "If true, exclude links inferred across rounds."

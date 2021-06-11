@@ -19,5 +19,5 @@ class InsertLinks(Query):
     ) -> str:
         return f"""
         INSERT INTO {links_table(measurement_id)}
-        SELECT * FROM ({GetLinksFromView(round_eq=self.round_eq).statement(measurement_id)})
+        SELECT * FROM ({GetLinksFromView(round_eq=self.round_eq).statement(measurement_id, subset)})
         """

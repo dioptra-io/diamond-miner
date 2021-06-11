@@ -1,14 +1,13 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
-from diamond_miner.queries.query import Query, flows_table, prefixes_table
+from diamond_miner.queries.query import FlowsQuery, flows_table, prefixes_table
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetLinksFromView(Query):
+class GetLinksFromView(FlowsQuery):
     """
     Compute the links from the flows view.
     This returns one line per ``(flow, link)`` pair.
@@ -24,6 +23,11 @@ class GetLinksFromView(Query):
     We assume that there exists a single (flow, ttl) pair over all rounds.
     TODO: Assert this?
 
+    If ``round_eq`` is none, compute the links per flow, across all rounds.
+    Otherwise, compute the links per flow, for the specified round.
+    This is useful if you want to update a `links` table round-by-round:
+    such a table will contain only intra-round links but can be updated incrementally.
+
     >>> from diamond_miner.test import url
     >>> links = GetLinksFromView().execute(url, "test_nsdi_example")
     >>> len(links)
@@ -35,14 +39,6 @@ class GetLinksFromView(Query):
     optimize_aggregation_in_order: bool = False
     """
     Necessary to avoid excessive memory usage when inserting all the links in one batch.
-    """
-
-    round_eq: Optional[int] = None
-    """
-    If none, compute the links per flow, across all rounds.
-    Otherwise, compute the links per flow, for the specified round.
-    This is useful if you want to update a `links` table round-by-round:
-    such a table will contain only intra-round links but can be updated incrementally.
     """
 
     def statement(
@@ -64,11 +60,6 @@ class GetLinksFromView(Query):
             optimize_fragment = "SETTINGS optimize_aggregation_in_order = 1"
         else:
             optimize_fragment = ""
-
-        if self.round_eq:
-            round_filter = f"round = {self.round_eq}"
-        else:
-            round_filter = "1"
 
         return f"""
         WITH
@@ -93,9 +84,8 @@ class GetLinksFromView(Query):
             link.3.2 AS near_addr,
             link.4.2 AS far_addr
         FROM {flows_table(measurement_id)}
-        WHERE
-            {round_filter}
-            {invalid_filter}
+        WHERE {self.filters(subset)}
+        {invalid_filter}
         GROUP BY ({CreateFlowsView.SORTING_KEY})
         {optimize_fragment}
         """

@@ -10,6 +10,8 @@ from diamond_miner.typing import IPNetwork
 class InsertPrefixes(ResultsQuery):
     """Insert (invalid) prefixes into the prefixes table."""
 
+    # TODO: Deduplicate/filter NULL values?
+
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
