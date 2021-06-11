@@ -9,7 +9,7 @@ Counts = Dict[IPv6Network, int]
 async def links_subsets(
     url: str,
     measurement_id: str,
-    max_rows_per_subset: int = 64_000_000,
+    max_rows_per_subset: int = 8_000_000,
     **kwargs: Any,
 ) -> List[IPv6Network]:
     return await generic_subsets(
@@ -20,7 +20,7 @@ async def links_subsets(
 async def results_subsets(
     url: str,
     measurement_id: str,
-    max_rows_per_subset: int = 64_000_000,
+    max_rows_per_subset: int = 8_000_000,
     **kwargs: Any,
 ) -> List[IPv6Network]:
     return await generic_subsets(

@@ -33,7 +33,9 @@ async def mda_probes_parallel(
     """
     loop = asyncio.get_running_loop()
 
-    subsets = await links_subsets(url, measurement_id, round_leq=round_)
+    subsets = await links_subsets(
+        url, measurement_id, round_leq=round_, filter_virtual=True
+    )
     n_files_per_subset = 8192 // len(subsets)
 
     logger.info(
@@ -44,7 +46,7 @@ async def mda_probes_parallel(
     )
 
     with TemporaryDirectory(dir=filepath.parent) as temp_dir:
-        with ProcessPoolExecutor(1) as pool:
+        with ProcessPoolExecutor(n_workers) as pool:
             futures = [
                 loop.run_in_executor(
                     pool,
