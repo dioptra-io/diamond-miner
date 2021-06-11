@@ -159,6 +159,7 @@ class Query:
             async with semaphore:
                 await self.execute_async(url, measurement_id, (subset,))
 
+        logger.info(f"query={self.name} concurrent_requests={concurrent_requests}")
         await asyncio.gather(*[do(subset) for subset in subsets])
 
     def addr_cast(self, column: str) -> str:
