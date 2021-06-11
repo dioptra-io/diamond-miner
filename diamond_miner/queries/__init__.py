@@ -14,6 +14,7 @@ from .get_links_from_view import GetLinksFromView
 from .get_max_ttl import GetMaxTTL
 from .get_next_round import GetNextRound
 from .get_nodes import GetNodes
+from .get_sliding_prefixes import GetSlidingPrefixes
 from .insert_links import InsertLinks
 from .insert_prefixes import InsertPrefixes
 from .query import (
@@ -44,6 +45,7 @@ __all__ = (
     "GetMaxTTL",
     "GetNextRound",
     "GetNodes",
+    "GetSlidingPrefixes",
     "GetPrefixesWithAmplification",
     "GetPrefixesWithLoops",
     "InsertLinks",
