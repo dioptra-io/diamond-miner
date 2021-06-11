@@ -34,24 +34,25 @@ def get_statements(file: Path):
     return file.read_text().split(";")[:-1]
 
 
-async def insert_file(client: Client, file: Path):
+async def insert_file(url: str, file: Path):
+    client = Client.from_url(url)
     measurement_id = get_measurement_id(file)
     print(f"Processing {file.name} -> {measurement_id}")
-    await DropTables().execute_async(client, measurement_id)
-    await CreateTables().execute_async(client, measurement_id)
+    await DropTables().execute_async(url, measurement_id)
+    await CreateTables().execute_async(url, measurement_id)
     for statement in get_statements(file):
         await client.execute(statement)
-    await InsertLinks().execute_async(client, measurement_id)
-    await InsertPrefixes().execute_async(client, measurement_id)
+    await InsertLinks().execute_async(url, measurement_id)
+    await InsertPrefixes().execute_async(url, measurement_id)
 
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    client = Client("127.0.0.1")
     files = Path(__file__).parent.glob("*.sql")
     files = sorted(files, key=get_rank)
+    url = "clickhouse://"
     for file in files:
-        await insert_file(client, file)
+        await insert_file(url, file)
 
 
 if __name__ == "__main__":

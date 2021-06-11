@@ -15,8 +15,8 @@ class GetNodesFromResults(ResultsQuery):
     """
     Return all the discovered nodes.
 
-    >>> from diamond_miner.test import addr_to_string, client
-    >>> nodes = GetNodesFromResults().execute(client, 'test_nsdi_example')
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> nodes = GetNodesFromResults().execute(url, 'test_nsdi_example')
     >>> sorted((x[0], addr_to_string(x[1])) for x in nodes)
     [(1, '150.0.1.1'), (1, '150.0.2.1'), (1, '150.0.3.1'), (1, '150.0.4.1'), (1, '150.0.5.1'), (1, '150.0.6.1'), (1, '150.0.7.1')]
     """

@@ -13,7 +13,7 @@ async def collect(f):
 
 
 @pytest.mark.asyncio
-async def test_far_ttls_probes(async_client):
+async def test_far_ttls_probes(url):
     table = "test_nsdi_lite"
 
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
@@ -22,7 +22,7 @@ async def test_far_ttls_probes(async_client):
 
     probes = await collect(
         far_ttls_probes(
-            client=async_client,
+            url=url,
             measurement_id=table,
             round_=1,
             far_ttl_min=1,

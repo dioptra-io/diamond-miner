@@ -1,11 +1,11 @@
 from diamond_miner.queries import GetNextRound  # noqa
 from diamond_miner.queries.get_links import GetLinksPerPrefix  # noqa
-from diamond_miner.test import addr_to_string, client  # noqa
+from diamond_miner.test import addr_to_string, url  # noqa
 
 
 def test_get_links_nsdi():
     """
-    >>> row = GetLinksPerPrefix().execute(client, 'test_nsdi_example')[0]
+    >>> row = GetLinksPerPrefix().execute(url, 'test_nsdi_example')[0]
     >>> row[0]
     1
     >>> addr_to_string(row[1])
@@ -24,7 +24,7 @@ def test_get_links_nsdi():
 
 def test_get_links_multi_protocol():
     """
-    >>> rows = GetLinksPerPrefix().execute(client, 'test_multi_protocol')
+    >>> rows = GetLinksPerPrefix().execute(url, 'test_multi_protocol')
     >>> rows = sorted(rows)
     >>> rows[0][0]
     1
@@ -45,7 +45,7 @@ def test_get_links_multi_protocol():
 
 def test_get_next_round_nsdi():
     """
-    >>> rows = GetNextRound(round_leq=1, adaptive_eps=False).execute(client, 'test_nsdi_lite')
+    >>> rows = GetNextRound(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
@@ -56,7 +56,7 @@ def test_get_next_round_nsdi():
     >>> row.to_send
     [5, 5, 5, 5]
 
-    >>> rows = GetNextRound(round_leq=2, adaptive_eps=False).execute(client, 'test_nsdi_lite')
+    >>> rows = GetNextRound(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
@@ -67,7 +67,7 @@ def test_get_next_round_nsdi():
     >>> row.to_send
     [0, 5, 5, 5]
 
-    >>> GetNextRound(round_leq=3, adaptive_eps=False).execute(client, 'test_nsdi_lite')
+    >>> GetNextRound(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')
     []
     """
 
@@ -78,7 +78,7 @@ def test_get_next_round_star():
     in the case of *single* reply in a traceroute. For example: * * node * *, does
     not generate a link. In this case this means that we never see a link including V_7.
 
-    >>> rows = GetNextRound(round_leq=1, adaptive_eps=False).execute(client, 'test_star_node_star')
+    >>> rows = GetNextRound(round_leq=1, adaptive_eps=False).execute(url, 'test_star_node_star')
     >>> row = GetNextRound.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
@@ -89,6 +89,6 @@ def test_get_next_round_star():
     >>> row.to_send
     [0, 0, 5]
 
-    >>> GetNextRound(round_leq=2, adaptive_eps=False).execute(client, 'test_star_node_star')
+    >>> GetNextRound(round_leq=2, adaptive_eps=False).execute(url, 'test_star_node_star')
     []
     """

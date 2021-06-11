@@ -18,8 +18,8 @@ class CountNodes(LinksQuery):
     .. note:: This query doesn't group replies by probe protocol and probe source address:
               it assumes that the table contains the replies for a single vantage point and a single protocol.
 
-    >>> from diamond_miner.test import client
-    >>> CountNodes().execute(client, 'test_nsdi_example')[0][0]
+    >>> from diamond_miner.test import url
+    >>> CountNodes().execute(url, 'test_nsdi_example')[0][0]
     7
     """
 
@@ -44,8 +44,8 @@ class CountNodesFromResults(ResultsQuery):
     Count the distinct nodes from the results table.
     This query does not support the ``subset`` parameter.
 
-    >>> from diamond_miner.test import client
-    >>> CountNodesFromResults().execute(client, 'test_nsdi_example')[0][0]
+    >>> from diamond_miner.test import url
+    >>> CountNodesFromResults().execute(url, 'test_nsdi_example')[0][0]
     7
     """
 

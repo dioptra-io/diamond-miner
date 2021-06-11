@@ -9,8 +9,8 @@ class GetMaxTTL(ResultsQuery):
     """
     Return the maximum TTL for each dst_addr.
 
-    >>> from diamond_miner.test import addr_to_string, client
-    >>> rows = GetMaxTTL(round_leq=1).execute(client, 'test_max_ttl')
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> rows = GetMaxTTL(round_leq=1).execute(url, 'test_max_ttl')
     >>> sorted((a, addr_to_string(b), c) for a, b, c in rows)
     [(1, '200.0.0.0', 3), (1, '201.0.0.0', 2)]
     """

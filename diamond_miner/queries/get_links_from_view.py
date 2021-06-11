@@ -3,7 +3,7 @@ from typing import Optional
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
-from diamond_miner.queries.query import Query, flows_table
+from diamond_miner.queries.query import Query, flows_table, prefixes_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -24,15 +24,18 @@ class GetLinksFromView(Query):
     We assume that there exists a single (flow, ttl) pair over all rounds.
     TODO: Assert this?
 
-    >>> from diamond_miner.test import client
-    >>> links = GetLinksFromView().execute(client, "test_nsdi_example")
+    >>> from diamond_miner.test import url
+    >>> links = GetLinksFromView().execute(url, "test_nsdi_example")
     >>> len(links)
     58
     """
 
-    # TODO: Ignore invalid prefixes
-    # => modify the GetInvalidPrefixes to work on the FlowsView?
-    # count replies_per_ttl and HAVING max(replies_per_ttl) = 1
+    ignore_invalid_prefixes: bool = True
+
+    optimize_aggregation_in_order: bool = False
+    """
+    Necessary to avoid excessive memory usage when inserting all the links in one batch.
+    """
 
     round_eq: Optional[int] = None
     """
@@ -45,9 +48,28 @@ class GetLinksFromView(Query):
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
-        round_filter = "1"
+        if self.ignore_invalid_prefixes:
+            invalid_filter = f"""
+            AND (probe_protocol, probe_src_addr, probe_dst_prefix)
+            NOT IN (
+                SELECT probe_protocol, probe_src_addr, probe_dst_prefix
+                FROM {prefixes_table(measurement_id)}
+                WHERE has_amplification OR has_loops
+            )
+            """
+        else:
+            invalid_filter = ""
+
+        if self.optimize_aggregation_in_order:
+            optimize_fragment = "SETTINGS optimize_aggregation_in_order = 1"
+        else:
+            optimize_fragment = ""
+
         if self.round_eq:
             round_filter = f"round = {self.round_eq}"
+        else:
+            round_filter = "1"
+
         return f"""
         WITH
             -- (round, ttl, addr)
@@ -71,7 +93,9 @@ class GetLinksFromView(Query):
             link.3.2 AS near_addr,
             link.4.2 AS far_addr
         FROM {flows_table(measurement_id)}
-        WHERE {round_filter}
+        WHERE
+            {round_filter}
+            {invalid_filter}
         GROUP BY ({CreateFlowsView.SORTING_KEY})
-        SETTINGS optimize_aggregation_in_order = 1
+        {optimize_fragment}
         """

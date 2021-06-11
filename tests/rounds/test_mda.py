@@ -10,7 +10,7 @@ from diamond_miner.mappers import (
 from diamond_miner.rounds.mda import mda_probes
 
 
-def test_mda_probes_lite(client):
+def test_mda_probes_lite(url):
     table = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
@@ -20,7 +20,7 @@ def test_mda_probes_lite(client):
     def probes_for_round(round_):
         return list(
             mda_probes(
-                client=client,
+                url=url,
                 measurement_id=table,
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
@@ -67,13 +67,13 @@ def test_mda_probes_lite(client):
     assert probes_for_round(3) == []
 
 
-def test_mda_probes_lite_adaptive(client):
+def test_mda_probes_lite_adaptive(url):
     table = "test_nsdi_lite"
 
     def probes_for_round(round_):
         return list(
             mda_probes(
-                client=client,
+                url=url,
                 measurement_id=table,
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
@@ -87,7 +87,7 @@ def test_mda_probes_lite_adaptive(client):
     assert len(probes_for_round(1)) > 20
 
 
-def test_mda_probes_lite_mappers(client):
+def test_mda_probes_lite_mappers(url):
     table = "test_nsdi_lite"
 
     # In this test, we simplify verify that the next round works with
@@ -112,7 +112,7 @@ def test_mda_probes_lite_mappers(client):
         all_probes.append(
             list(
                 mda_probes(
-                    client=client,
+                    url=url,
                     measurement_id=table,
                     round_=1,
                     mapper_v4=mapper_v4,
@@ -125,7 +125,7 @@ def test_mda_probes_lite_mappers(client):
     assert len(set(len(probes) for probes in all_probes)) == 1
 
 
-def test_next_round_probes_multi_protocol(client):
+def test_next_round_probes_multi_protocol(url):
     table = "test_multi_protocol"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
 
@@ -135,7 +135,7 @@ def test_next_round_probes_multi_protocol(client):
     def probes_for_round(round_):
         return list(
             mda_probes(
-                client=client,
+                url=url,
                 measurement_id=table,
                 round_=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),

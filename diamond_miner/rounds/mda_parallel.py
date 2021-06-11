@@ -2,25 +2,23 @@ import asyncio
 import os
 import random
 from concurrent.futures import ProcessPoolExecutor
-from ipaddress import ip_network
-from math import log2
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List
+from typing import List, Tuple
 
-from clickhouse_driver import Client
 from zstandard import ZstdCompressor
 
 from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_PORT
 from diamond_miner.format import format_probe
 from diamond_miner.logging import logger
 from diamond_miner.rounds.mda import mda_probes
+from diamond_miner.subsets import links_subsets
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
 async def mda_probes_parallel(
     filepath: Path,
-    client: Client,
+    url: str,
     measurement_id: str,
     round_: int,
     mapper_v4: FlowMapper,
@@ -33,13 +31,11 @@ async def mda_probes_parallel(
     """
     https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
     """
-    # TODO: IPv6
-    # TODO: Better subsets based on the number of links.
-    # NOTE: We create more subsets than workers in order to keep all the worker busy.
-    subsets = list(
-        ip_network("::ffff:0.0.0.0/96").subnets(prefixlen_diff=int(log2(n_workers * 4)))
-    )
+    loop = asyncio.get_running_loop()
+
+    subsets = await links_subsets(url, measurement_id, round_leq=round_)
     n_files_per_subset = 8192 // len(subsets)
+
     logger.info(
         "mda_probes n_workers=%s n_subsets=%s n_files_per_subset=%s",
         n_workers,
@@ -47,17 +43,14 @@ async def mda_probes_parallel(
         n_files_per_subset,
     )
 
-    loop = asyncio.get_running_loop()
-    n_probes = 0
-
     with TemporaryDirectory(dir=filepath.parent) as temp_dir:
-        with ProcessPoolExecutor(n_workers) as pool:
+        with ProcessPoolExecutor(1) as pool:
             futures = [
                 loop.run_in_executor(
                     pool,
                     worker,
                     Path(temp_dir) / f"subset_{i}",
-                    client,
+                    url,
                     measurement_id,
                     round_,
                     mapper_v4,
@@ -70,15 +63,7 @@ async def mda_probes_parallel(
                 )
                 for i, subset in enumerate(subsets)
             ]
-            done, pending = await asyncio.wait(
-                futures, return_when=asyncio.FIRST_EXCEPTION
-            )
-            for future in pending:
-                future.cancel()
-            for future in done:
-                if e := future.exception():
-                    raise e
-                n_probes += future.result()
+            n_probes = sum(await asyncio.gather(*futures))
 
         logger.info("mda_probes status=merging")
         file_list = Path(temp_dir) / "files.txt"
@@ -96,7 +81,7 @@ async def mda_probes_parallel(
 
 def worker(
     prefix: Path,
-    client: Client,
+    url: str,
     measurement_id: str,
     round_: int,
     mapper_v4: FlowMapper,
@@ -120,7 +105,7 @@ def worker(
     # (less calls to `probes.clear()`) and the randomization but the more the memory usage.
     max_probes_in_memory = 1_000_000
 
-    outputs = []
+    outputs: List[Tuple] = []
     for i in range(n_files):
         ctx = ZstdCompressor(level=1)
         file = prefix.with_suffix(f".{i}.csv.zst").open("wb")
@@ -131,7 +116,7 @@ def worker(
     n_probes = 0
 
     for probe in mda_probes(
-        client,
+        url,
         measurement_id,
         round_,
         mapper_v4,
@@ -144,26 +129,22 @@ def worker(
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
         probes_by_file[hash(probe[:-2]) % n_files].append(probe)
         n_probes += 1
-
-        # Flush in-memory probes
         if n_probes % max_probes_in_memory == 0:
-            for file_id, probes in enumerate(probes_by_file):
-                ctx, file, stream = outputs[file_id]
-                random.shuffle(probes)
-                for probe_ in probes:
-                    stream.write(format_probe(*probe_).encode("ascii") + b"\n")
-                probes.clear()
+            flush(probes_by_file, outputs)
 
-    # Flush remaining probes
-    for file_id, probes in enumerate(probes_by_file):
-        ctx, file, stream = outputs[file_id]
-        random.shuffle(probes)
-        for probe_ in probes:
-            stream.write(format_probe(*probe_).encode("ascii") + b"\n")
-        probes.clear()
+    flush(probes_by_file, outputs)
 
     for ctx, file, stream in outputs:
         stream.close()
         file.close()
 
     return n_probes
+
+
+def flush(probes_by_file: List[List[Probe]], outputs: List[Tuple]) -> None:
+    for file_id, probes in enumerate(probes_by_file):
+        _, _, stream = outputs[file_id]
+        random.shuffle(probes)
+        for probe in probes:
+            stream.write(format_probe(*probe).encode("ascii") + b"\n")
+        probes.clear()

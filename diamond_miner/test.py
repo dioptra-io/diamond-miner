@@ -1,8 +1,6 @@
 from ipaddress import IPv6Address
 
-from clickhouse_driver import Client
-
-client = Client(host="127.0.0.1")
+url = "clickhouse://localhost"
 
 
 def addr_to_string(addr: IPv6Address) -> str:

@@ -1,3 +1,6 @@
+import asyncio
+import os
+from asyncio import Semaphore
 from dataclasses import dataclass
 from enum import Enum
 from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence
@@ -91,29 +94,29 @@ class Query:
 
     def execute(
         self,
-        client: Client,
+        url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> List:
-        return [row for row in self.execute_iter(client, measurement_id, subsets)]
+        return [row for row in self.execute_iter(url, measurement_id, subsets)]
 
     async def execute_async(
         self,
-        client: AsyncClient,
+        url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> List:
         return [
-            row
-            async for row in self.execute_iter_async(client, measurement_id, subsets)
+            row async for row in self.execute_iter_async(url, measurement_id, subsets)
         ]
 
     def execute_iter(
         self,
-        client: Client,
+        url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator:
+        client = Client.from_url(url)
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
                 with LoggingTimer(
@@ -126,10 +129,11 @@ class Query:
 
     async def execute_iter_async(
         self,
-        client: AsyncClient,
+        url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> AsyncIterator:
+        client = AsyncClient.from_url(url)
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
                 with LoggingTimer(
@@ -141,6 +145,21 @@ class Query:
                     )
                     async for row in rows:
                         yield row
+
+    async def execute_concurrent(
+        self,
+        url: str,
+        measurement_id: str,
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        concurrent_requests: int = (os.cpu_count() or 2) // 2,
+    ) -> None:
+        semaphore = Semaphore(concurrent_requests)
+
+        async def do(subset: IPNetwork) -> None:
+            async with semaphore:
+                await self.execute_async(url, measurement_id, (subset,))
+
+        await asyncio.gather(*[do(subset) for subset in subsets])
 
     def addr_cast(self, column: str) -> str:
         """Returns the column casted to the specified address type."""

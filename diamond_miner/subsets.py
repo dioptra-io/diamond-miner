@@ -1,44 +1,42 @@
 from ipaddress import IPv6Address, IPv6Network, ip_network
 from typing import Any, Dict, List, Union
 
-from aioch import Client
-
 from diamond_miner.queries import CountLinksPerPrefix, CountResultsPerPrefix
 
 Counts = Dict[IPv6Network, int]
 
 
 async def links_subsets(
-    client: Client,
+    url: str,
     measurement_id: str,
-    max_rows_per_subset: int = 256_000_000,
+    max_rows_per_subset: int = 64_000_000,
     **kwargs: Any,
 ) -> List[IPv6Network]:
     return await generic_subsets(
-        CountLinksPerPrefix(**kwargs), client, measurement_id, max_rows_per_subset
+        CountLinksPerPrefix(**kwargs), url, measurement_id, max_rows_per_subset
     )
 
 
 async def results_subsets(
-    client: Client,
+    url: str,
     measurement_id: str,
-    max_rows_per_subset: int = 256_000_000,
+    max_rows_per_subset: int = 64_000_000,
     **kwargs: Any,
 ) -> List[IPv6Network]:
     return await generic_subsets(
-        CountResultsPerPrefix(**kwargs), client, measurement_id, max_rows_per_subset
+        CountResultsPerPrefix(**kwargs), url, measurement_id, max_rows_per_subset
     )
 
 
 async def generic_subsets(
     query: Union[CountLinksPerPrefix, CountResultsPerPrefix],
-    client: Client,
+    url: str,
     measurement_id: str,
     max_rows_per_subset: int,
 ) -> List[IPv6Network]:
     counts: Counts = {
         addr_to_network(addr, query.prefix_len_v4, query.prefix_len_v6): count
-        for addr, count in await query.execute_async(client, measurement_id)
+        for addr, count in await query.execute_async(url, measurement_id)
     }
     return split(counts, max_rows_per_subset)
 

@@ -12,8 +12,8 @@ class GetPrefixesWithAmplification(ResultsQuery):
 
     .. important:: This query assumes that a single probe is sent per (flow ID, TTL) pair.
 
-    >>> from diamond_miner.test import addr_to_string, client
-    >>> rows = GetPrefixesWithAmplification().execute(client, "test_invalid_prefixes")
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> rows = GetPrefixesWithAmplification().execute(url, "test_invalid_prefixes")
     >>> [addr_to_string(x[2]) for x in rows]
     ['201.0.0.0', '202.0.0.0']
     """
@@ -51,8 +51,8 @@ class GetPrefixesWithLoops(ResultsQuery):
     .. note:: Prefixes with amplification (multiple replies per probe) may trigger a false positive
               for this query, since we do not check that the IP appears at two *different* TTLs.
 
-    >>> from diamond_miner.test import addr_to_string, client
-    >>> rows = GetPrefixesWithLoops().execute(client, "test_invalid_prefixes")
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> rows = GetPrefixesWithLoops().execute(url, "test_invalid_prefixes")
     >>> [addr_to_string(x[2]) for x in rows]
     ['201.0.0.0']
     """
