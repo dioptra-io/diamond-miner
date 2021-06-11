@@ -1,6 +1,7 @@
 from .count_links import CountLinks
 from .count_nodes import CountNodes, CountNodesFromResults
 from .count_nodes_per_ttl import CountNodesPerTTL
+from .count_rows import CountLinksPerPrefix, CountResultsPerPrefix
 from .create_flows_view import CreateFlowsView
 from .create_links_table import CreateLinksTable
 from .create_prefixes_table import CreatePrefixesTable
@@ -27,6 +28,8 @@ from .query import (
 __all__ = (
     "AddrType",
     "CountLinks",
+    "CountLinksPerPrefix",
+    "CountResultsPerPrefix",
     "CountNodes",
     "CountNodesFromResults",
     "CountNodesPerTTL",
