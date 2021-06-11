@@ -77,6 +77,10 @@ class Query:
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
+        """
+        As a query user, prefer calling ``statements`` instead of ``statement`` as there
+        is no guarantees that the query will implement this method and return a single statement.
+        """
         raise NotImplementedError
 
     def statements(
