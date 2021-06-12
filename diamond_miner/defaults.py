@@ -11,5 +11,5 @@ DEFAULT_PROBE_DST_PORT = 33434
 
 UNIVERSE_SUBSET = IPv6Network("::/0")
 
-# Mapping of IP protocol number to caracal protocol string
 PROTOCOLS = {1: "icmp", 17: "udp", 58: "icmp6"}
+"Mapping of IP protocol numbers to caracal protocol strings."

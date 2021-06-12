@@ -22,8 +22,8 @@ class GetSlidingPrefixes(ResultsQuery):
         return f"""
         SELECT
             probe_protocol,
-            probe_src_addr,
-            probe_dst_prefix
+            {self.addr_cast('probe_src_addr')},
+            {self.addr_cast('probe_dst_prefix')}
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         AND probe_ttl > {self.window_max_ttl - self.stopping_condition}
