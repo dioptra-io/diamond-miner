@@ -46,6 +46,10 @@ async def mda_probes_parallel(
         url,
         measurement_id,
     )
+
+    if not subsets:
+        return 0
+
     n_files_per_subset = 8192 // len(subsets)
 
     logger.info(
