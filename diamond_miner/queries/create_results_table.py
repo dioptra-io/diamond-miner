@@ -35,6 +35,7 @@ class CreateResultsTable(Query):
             round                  UInt8,
             -- Materialized columns
             probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
+            -- https://en.wikipedia.org/wiki/Reserved_IP_addresses
             private_probe_dst_prefix UInt8 MATERIALIZED
                 (probe_dst_prefix >= toIPv6('0.0.0.0')      AND probe_dst_prefix <= toIPv6('0.255.255.255'))   OR
                 (probe_dst_prefix >= toIPv6('10.0.0.0')     AND probe_dst_prefix <= toIPv6('10.255.255.255'))  OR
