@@ -7,18 +7,19 @@ from diamond_miner.typing import IPNetwork
 @dataclass(frozen=True)
 class CountLinks(LinksQuery):
     """
-    Count the distinct links in the links table, including
-    ``('::', node)``, ``(node, '::')`` and ``('::', '::')``.
+    Count the distinct links in the links table.
 
-    .. note:: This query doesn't group replies by probe protocol and probe source address:
-              it assumes that the table contains the replies for a single vantage point and a single protocol.
+    >>> from diamond_miner.test import url
+    >>> CountLinks().execute(url, 'test_nsdi_example')[0][2]
+    8
     """
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
         return f"""
-        SELECT uniqExact(near_addr, far_addr)
+        SELECT probe_protocol, probe_src_addr, uniqExact(near_addr, far_addr)
         FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
+        GROUP BY (probe_protocol, probe_src_addr)
         """

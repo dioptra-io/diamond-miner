@@ -8,9 +8,15 @@ from diamond_miner.typing import IPNetwork
 class GetLinks(LinksQuery):
     """
     Return the links pre-computed in the links table.
-    This doesn't group replies by probe protocol and probe source address,
+
+    .. note:: This doesn't group replies by probe protocol and probe source address,
     in other words, it assumes that the table contains the replies for a
     single vantage point and a single protocol.
+
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> nodes = GetLinks().execute(url, 'test_nsdi_example')
+    >>> len(nodes)
+    8
     """
 
     def statement(
@@ -28,6 +34,11 @@ class GetLinksPerPrefix(LinksQuery):
     """
     Return the links pre-computed in the links table, grouped by
     protocol, source address and destination prefix.
+
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> nodes = GetLinksPerPrefix().execute(url, 'test_nsdi_example')[0][3]
+    >>> len(nodes)
+    8
     """
 
     def statement(
