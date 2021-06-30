@@ -35,6 +35,7 @@ class CreateResultsTable(Query):
             round                  UInt8,
             -- Materialized columns
             probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
+            reply_src_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(reply_src_addr, 8, 1)),
             -- https://en.wikipedia.org/wiki/Reserved_IP_addresses
             private_probe_dst_prefix UInt8 MATERIALIZED
                 (probe_dst_prefix >= toIPv6('0.0.0.0')      AND probe_dst_prefix <= toIPv6('0.255.255.255'))   OR
@@ -70,7 +71,8 @@ class CreateResultsTable(Query):
                 (reply_src_addr >= toIPv6('233.252.0.0')    AND reply_src_addr <= toIPv6('233.252.0.255'))     OR
                 (reply_src_addr >= toIPv6('240.0.0.0')      AND reply_src_addr <= toIPv6('255.255.255.255'))   OR
                 (reply_src_addr >= toIPv6('fd00::')         AND reply_src_addr <= toIPv6('fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')),
-            destination_reply     UInt8 MATERIALIZED probe_dst_addr = reply_src_addr,
+            destination_host_reply   UInt8 MATERIALIZED probe_dst_addr = reply_src_addr,
+            destination_prefix_reply UInt8 MATERIALIZED probe_dst_prefix = reply_src_prefix,
             -- ICMP: protocol 1, UDP: protocol 17, ICMPv6: protocol 58
             valid_probe_protocol   UInt8 MATERIALIZED probe_protocol IN [1, 17, 58],
             time_exceeded_reply    UInt8 MATERIALIZED (reply_protocol = 1 AND reply_icmp_type = 11) OR (reply_protocol = 58 AND reply_icmp_type = 3)

@@ -245,8 +245,11 @@ class LinksQuery(Query):
 
 @dataclass(frozen=True)
 class ResultsQuery(Query):
-    filter_destination: bool = True
-    "If true, ignore the replies from the destination."
+    filter_destination_host: bool = True
+    "If true, ignore the replies from the destination host."
+
+    filter_destination_prefix: bool = True
+    "If true, ignore the replies from the destination prefix."
 
     filter_private: bool = True
     "If true, ignore the replies from private IP addresses."
@@ -280,8 +283,10 @@ class ResultsQuery(Query):
             s += f"\nAND {eq('round', self.round_eq)}"
         if self.round_leq:
             s += f"\nAND {leq('round', self.round_leq)}"
-        if self.filter_destination:
-            s += "\nAND NOT destination_reply"
+        if self.filter_destination_host:
+            s += "\nAND NOT destination_host_reply"
+        if self.filter_destination_prefix:
+            s += "\nAND NOT destination_prefix_reply"
         if self.filter_private:
             s += "\nAND NOT private_probe_dst_prefix"
             s += "\nAND NOT private_reply_src_addr"
