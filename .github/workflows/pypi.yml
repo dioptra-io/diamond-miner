@@ -27,7 +27,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.10.0
+        uses: joerick/cibuildwheel@v1.12.0
         env:
           # arm64 macos wheels are broken as of 10/05/2020
           CIBW_ARCHS_MACOS: x86_64
