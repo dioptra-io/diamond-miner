@@ -33,7 +33,7 @@ black = { version = "^21.4b1", allow-prereleases = true }
 Cython = "^0.29.22"
 flake8 = "^3.8.4"
 hypothesis = "^6.13.14"
-mypy = "^0.812"
+mypy = "^0.910"
 pylint = "^2.8"
 pytest = "^6.2"
 pytest-asyncio = "^0.15.1"
