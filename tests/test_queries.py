@@ -1,18 +1,12 @@
 from diamond_miner.queries import GetNextRound  # noqa
-from diamond_miner.queries.get_links import GetLinksPerPrefix  # noqa
+from diamond_miner.queries.get_links import GetLinks  # noqa
 from diamond_miner.test import addr_to_string, url  # noqa
 
 
 def test_get_links_nsdi():
     """
-    >>> row = GetLinksPerPrefix().execute(url, 'test_nsdi_example')[0]
-    >>> row[0]
-    1
-    >>> addr_to_string(row[1])
-    '100.0.0.1'
-    >>> addr_to_string(row[2])
-    '200.0.0.0'
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in row[3]]
+    >>> rows = GetLinks().execute(url, 'test_nsdi_example')
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for (a, b), in rows]
     >>> sorted(links)[:3]
     [('150.0.1.1', '150.0.2.1'), ('150.0.1.1', '150.0.3.1'), ('150.0.2.1', '150.0.4.1')]
     >>> sorted(links)[3:6]
@@ -24,20 +18,12 @@ def test_get_links_nsdi():
 
 def test_get_links_multi_protocol():
     """
-    >>> rows = GetLinksPerPrefix().execute(url, 'test_multi_protocol')
-    >>> rows = sorted(rows)
-    >>> rows[0][0]
-    1
-    >>> addr_to_string(rows[0][2])
-    '200.0.0.0'
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows[0][3]]
+    >>> rows = GetLinks(probe_protocol=1).execute(url, 'test_multi_protocol')
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for (a, b), in rows]
     >>> sorted(links)
     [('150.0.0.1', '150.0.1.1'), ('150.0.0.2', '150.0.1.1')]
-    >>> rows[1][0]
-    17
-    >>> addr_to_string(rows[1][2])
-    '200.0.0.0'
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows[1][3]]
+    >>> rows = GetLinks(probe_protocol=17).execute(url, 'test_multi_protocol')
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for (a, b), in rows]
     >>> sorted(links)
     [('150.0.0.1', '150.0.1.1')]
     """

@@ -11,7 +11,7 @@ from clickhouse_driver.errors import ServerException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import eq, ip_eq, ip_in, leq
+from diamond_miner.queries.fragments import eq, ip_eq, ip_in, leq, not_
 from diamond_miner.timer import LoggingTimer
 from diamond_miner.typing import IPNetwork
 
@@ -190,12 +190,12 @@ class FlowsQuery(Query):
 
     def filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries on the flows table."""
-        s = "1"
+        s = []
         if subset != UNIVERSE_SUBSET:
-            s += f"\nAND {ip_in('probe_dst_prefix', subset)}"
+            s += [ip_in("probe_dst_prefix", subset)]
         if self.round_eq:
-            s += f"\nAND {eq('round', self.round_eq)}"
-        return s
+            s += [eq("round", self.round_eq)]
+        return "\nAND ".join(s or ["1"])
 
 
 @dataclass(frozen=True)
@@ -208,6 +208,9 @@ class LinksQuery(Query):
 
     filter_virtual: bool = False
     "If true, exclude virtual links: ``('::', '::')``."
+
+    probe_protocol: Optional[int] = None
+    "If specified, keep only the links inferred from probes sent with this protocol."
 
     probe_src_addr: Optional[str] = None
     """
@@ -223,24 +226,24 @@ class LinksQuery(Query):
 
     def filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries on the links table."""
-        s = "1"
+        s = []
         if subset != UNIVERSE_SUBSET:
-            s += f"\nAND {ip_in('probe_dst_prefix', subset)}"
+            s += [ip_in("probe_dst_prefix", subset)]
+        if self.probe_protocol:
+            s += [eq("probe_protocol", self.probe_protocol)]
         if self.probe_src_addr:
-            s += f"\nAND {ip_eq('probe_src_addr', self.probe_src_addr)}"
+            s += [ip_eq("probe_src_addr", self.probe_src_addr)]
         if self.round_eq:
-            s += f"\nAND near_round = {self.round_eq}"
-            s += f"\nAND far_round = {self.round_eq}"
+            s += [eq("near_round", self.round_eq), eq("far_round", self.round_eq)]
         if self.round_leq:
-            s += f"\nAND near_round <= {self.round_leq}"
-            s += f"\nAND far_round <= {self.round_leq}"
+            s += [leq("near_round", self.round_leq), leq("far_round", self.round_leq)]
         if self.filter_inter_round:
-            s += "\nAND NOT is_inter_round"
+            s += [not_("is_inter_round")]
         if self.filter_partial:
-            s += "\nAND NOT is_partial"
+            s += [not_("is_partial")]
         if self.filter_virtual:
-            s += "\nAND NOT is_virtual"
-        return s
+            s += [not_("is_virtual")]
+        return "\nAND ".join(s or ["1"])
 
 
 @dataclass(frozen=True)
@@ -260,6 +263,9 @@ class ResultsQuery(Query):
     time_exceeded_only: bool = True
     "If true, ignore non ICMP time exceeded replies."
 
+    probe_protocol: Optional[int] = None
+    "If specified, keep only the replies to probes sent with this protocol."
+
     probe_src_addr: Optional[str] = None
     """
     If specified, keep only the replies to probes sent by this address.
@@ -274,24 +280,25 @@ class ResultsQuery(Query):
 
     def filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries on the results table."""
-        s = "1"
+        s = []
         if subset != UNIVERSE_SUBSET:
-            s += f"\nAND {ip_in('probe_dst_prefix', subset)}"
+            s += [ip_in("probe_dst_prefix", subset)]
+        if self.probe_protocol:
+            s += [eq("probe_protocol", self.probe_protocol)]
         if self.probe_src_addr:
-            s += f"\nAND {ip_eq('probe_src_addr', self.probe_src_addr)}"
+            s += [ip_eq("probe_src_addr", self.probe_src_addr)]
         if self.round_eq:
-            s += f"\nAND {eq('round', self.round_eq)}"
+            s += [eq("round", self.round_eq)]
         if self.round_leq:
-            s += f"\nAND {leq('round', self.round_leq)}"
+            s += [leq("round", self.round_leq)]
         if self.filter_destination_host:
-            s += "\nAND NOT destination_host_reply"
+            s += [not_("destination_host_reply")]
         if self.filter_destination_prefix:
-            s += "\nAND NOT destination_prefix_reply"
+            s += [not_("destination_prefix_reply")]
         if self.filter_private:
-            s += "\nAND NOT private_probe_dst_prefix"
-            s += "\nAND NOT private_reply_src_addr"
+            s += [not_("private_probe_dst_prefix"), not_("private_reply_src_addr")]
         if self.time_exceeded_only:
-            s += "\nAND time_exceeded_reply"
+            s += ["time_exceeded_reply"]
         if self.filter_invalid_probe_protocol:
-            s += "\nAND valid_probe_protocol"
-        return s
+            s += ["valid_probe_protocol"]
+        return "\nAND ".join(s or ["1"])

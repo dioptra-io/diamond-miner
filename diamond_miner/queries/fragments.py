@@ -46,6 +46,14 @@ def leq(column: str, value: Optional[Any]) -> str:
     return f"{column} <= {value}"
 
 
+def not_(column: str) -> str:
+    """
+    >>> not_("col")
+    'NOT col'
+    """
+    return f"NOT {column}"
+
+
 def in_(column: str, values: Iterable[Any]) -> str:
     """
     >>> in_("col", [])
