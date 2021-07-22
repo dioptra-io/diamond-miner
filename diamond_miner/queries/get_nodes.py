@@ -11,18 +11,18 @@ class GetNodes(ResultsQuery):
     Return all the discovered nodes.
 
     >>> from diamond_miner.test import addr_to_string, url
-    >>> nodes = GetNodes().execute(url, 'test_nsdi_example')
-    >>> sorted(addr_to_string(x[0]) for x in nodes)
-    ['150.0.1.1', '150.0.2.1', '150.0.3.1', '150.0.4.1', '150.0.5.1', '150.0.6.1', '150.0.7.1']
+    >>> nodes = GetNodes(include_probe_ttl=True).execute(url, 'test_nsdi_example')
+    >>> sorted((x[0], addr_to_string(x[1])) for x in nodes)
+    [(1, '150.0.1.1'), (2, '150.0.2.1'), (2, '150.0.3.1'), (3, '150.0.4.1'), (3, '150.0.5.1'), (3, '150.0.7.1'), (4, '150.0.6.1')]
     """
 
-    include_reply_ttl: bool = False
+    include_probe_ttl: bool = False
     "If true, include the TTL at which `reply_src_addr` was seen."
 
     def columns(self) -> List[str]:
         columns = [self.addr_cast("reply_src_addr")]
-        if self.include_reply_ttl:
-            columns.insert(0, "reply_ttl")
+        if self.include_probe_ttl:
+            columns.insert(0, "probe_ttl")
         return columns
 
     def statement(
