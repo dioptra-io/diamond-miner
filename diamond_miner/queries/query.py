@@ -259,6 +259,29 @@ class LinksQuery(Query):
 
 
 @dataclass(frozen=True)
+class PrefixQuery(Query):
+    probe_protocol: Optional[int] = None
+    "If specified, keep only the links inferred from probes sent with this protocol."
+
+    probe_src_addr: Optional[str] = None
+    """
+    If specified, keep only the links inferred from probes sent by this address.
+    This filter is relatively costly (IPv6 comparison on each row).
+    """
+
+    def filters(self, subset: IPNetwork) -> str:
+        """``WHERE`` clause common to all queries on the prefixes table."""
+        s = []
+        if subset != UNIVERSE_SUBSET:
+            s += [ip_in("probe_dst_prefix", subset)]
+        if self.probe_protocol:
+            s += [eq("probe_protocol", self.probe_protocol)]
+        if self.probe_src_addr:
+            s += [ip_eq("probe_src_addr", self.probe_src_addr)]
+        return "\nAND ".join(s or ["1"])
+
+
+@dataclass(frozen=True)
 class ResultsQuery(Query):
     filter_destination_host: bool = True
     "If true, ignore the replies from the destination host."

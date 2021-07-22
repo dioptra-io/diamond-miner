@@ -6,7 +6,7 @@ from diamond_miner.test import addr_to_string, url  # noqa
 def test_get_links_nsdi():
     """
     >>> rows = GetLinks().execute(url, 'test_nsdi_example')
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for (a, b), in rows]
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows]
     >>> sorted(links)[:3]
     [('150.0.1.1', '150.0.2.1'), ('150.0.1.1', '150.0.3.1'), ('150.0.2.1', '150.0.4.1')]
     >>> sorted(links)[3:6]
@@ -19,11 +19,11 @@ def test_get_links_nsdi():
 def test_get_links_multi_protocol():
     """
     >>> rows = GetLinks(probe_protocol=1).execute(url, 'test_multi_protocol')
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for (a, b), in rows]
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows]
     >>> sorted(links)
     [('150.0.0.1', '150.0.1.1'), ('150.0.0.2', '150.0.1.1')]
     >>> rows = GetLinks(probe_protocol=17).execute(url, 'test_multi_protocol')
-    >>> links = [(addr_to_string(a), addr_to_string(b)) for (a, b), in rows]
+    >>> links = [(addr_to_string(a), addr_to_string(b)) for a, b in rows]
     >>> sorted(links)
     [('150.0.0.1', '150.0.1.1')]
     """
