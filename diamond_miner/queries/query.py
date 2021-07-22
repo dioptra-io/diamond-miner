@@ -3,7 +3,7 @@ import os
 from asyncio import Semaphore
 from dataclasses import dataclass
 from enum import Enum
-from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence
+from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence, Tuple
 
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
@@ -98,17 +98,22 @@ class Query:
         url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
     ) -> List:
-        return [row for row in self.execute_iter(url, measurement_id, subsets)]
+        return [row for row in self.execute_iter(url, measurement_id, subsets, limit)]
 
     async def execute_async(
         self,
         url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
     ) -> List:
         return [
-            row async for row in self.execute_iter_async(url, measurement_id, subsets)
+            row
+            async for row in self.execute_iter_async(
+                url, measurement_id, subsets, limit
+            )
         ]
 
     def execute_iter(
@@ -116,10 +121,13 @@ class Query:
         url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
     ) -> Iterator:
         client = Client.from_url(url)
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
+                if limit:
+                    statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
                 with LoggingTimer(
                     logger,
                     f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
@@ -133,13 +141,16 @@ class Query:
         url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
     ) -> AsyncIterator:
         client = AsyncClient.from_url(url)
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
+                if limit:
+                    statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
                 with LoggingTimer(
                     logger,
-                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
+                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
                 ):
                     rows = await client.execute_iter(
                         statement, settings=CH_QUERY_SETTINGS
@@ -152,6 +163,7 @@ class Query:
         url: str,
         measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
         concurrent_requests: int = (os.cpu_count() or 2) // 2,
     ) -> None:
         semaphore = Semaphore(concurrent_requests)
@@ -159,7 +171,7 @@ class Query:
         async def do(subset: IPNetwork) -> None:
             async with semaphore:
                 try:
-                    await self.execute_async(url, measurement_id, (subset,))
+                    await self.execute_async(url, measurement_id, (subset,), limit)
                 except ServerException as e:
                     logger.error(
                         "query=%s subset=%s exception=%s", self.name, subset, e
