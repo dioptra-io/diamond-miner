@@ -11,11 +11,11 @@ class GetLinks(LinksQuery):
     Return the links pre-computed in the links table.
 
     >>> from diamond_miner.test import addr_to_string, url
-    >>> nodes = GetLinks(include_near_ttl=False).execute(url, 'test_nsdi_example')
-    >>> len(nodes)
+    >>> links = GetLinks(include_near_ttl=False).execute(url, 'test_nsdi_example')
+    >>> len(links)
     8
-    >>> nodes = GetLinks(include_near_ttl=True).execute(url, 'test_nsdi_example')
-    >>> len(nodes)
+    >>> links = GetLinks(include_near_ttl=True).execute(url, 'test_nsdi_example')
+    >>> len(links)
     8
     """
 
@@ -32,7 +32,7 @@ class GetLinks(LinksQuery):
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
         return f"""
-        SELECT DISTINCT ({','.join(self.columns())})
+        SELECT DISTINCT {','.join(self.columns())}
         FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
         """
