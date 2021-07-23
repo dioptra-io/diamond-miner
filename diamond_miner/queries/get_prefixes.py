@@ -32,28 +32,26 @@ class GetPrefixes(ResultsQuery):
 
     reply_src_addr_in: Optional[IPNetwork] = None
 
-    def additional_filters(self) -> str:
-        s = []
-        if self.reply_src_addr_in is not None:
-            s += [ip_in("reply_src_addr", self.reply_src_addr_in)]
-        return "\nAND ".join(s or ["1"])
-
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
         # The prefixes table doesn't contains network information, so we
         # need to join the results table for these filters.
+        join_fragment = ""
+        if self.reply_src_addr_in:
+            join_fragment = f"""
+            INNER JOIN (
+                SELECT DISTINCT probe_protocol, probe_src_addr, probe_dst_prefix
+                FROM {results_table(measurement_id)}
+                WHERE {self.filters(subset)} AND {ip_in('reply_src_addr', self.reply_src_addr_in)}
+            ) AS results
+            ON  prefixes.probe_protocol   = results.probe_protocol
+            AND prefixes.probe_src_addr   = results.probe_src_addr
+            AND prefixes.probe_dst_prefix = results.probe_dst_prefix
+            """
         return f"""
         SELECT probe_dst_prefix, has_amplification, has_loops
-        FROM (
-            SELECT DISTINCT probe_protocol, probe_src_addr, probe_dst_prefix
-            FROM {results_table(measurement_id)}
-            WHERE {self.filters(subset)}
-            AND {self.additional_filters()}
-        ) AS results
-        INNER JOIN {prefixes_table(measurement_id)} AS prefixes
-        ON  results.probe_protocol   = prefixes.probe_protocol
-        AND results.probe_src_addr   = prefixes.probe_src_addr
-        AND results.probe_dst_prefix = prefixes.probe_dst_prefix
+        FROM {prefixes_table(measurement_id)} AS prefixes
+        {join_fragment}
         ORDER BY {CreatePrefixesTable.SORTING_KEY}
         """
