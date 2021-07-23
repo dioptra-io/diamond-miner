@@ -11,21 +11,21 @@ class GetLinks(LinksQuery):
     Return the links pre-computed in the links table.
 
     >>> from diamond_miner.test import addr_to_string, url
-    >>> links = GetLinks(include_near_ttl=False).execute(url, 'test_nsdi_example')
+    >>> links = GetLinks(include_metadata=False).execute(url, 'test_nsdi_example')
     >>> len(links)
     8
-    >>> links = GetLinks(include_near_ttl=True).execute(url, 'test_nsdi_example')
+    >>> links = GetLinks(include_metadata=True).execute(url, 'test_nsdi_example')
     >>> len(links)
     8
     """
 
-    include_near_ttl: bool = False
-    "If true, include the TTL at which `near_addr` was seen."
+    include_metadata: bool = False
+    "If true, include the TTLs at which `near_addr` and `far_addr` were seen."
 
     def columns(self) -> List[str]:
         columns = [self.addr_cast("near_addr"), self.addr_cast("far_addr")]
-        if self.include_near_ttl:
-            columns.insert(0, "near_ttl")
+        if self.include_metadata:
+            columns = ["near_ttl", "far_ttl", *columns]
         return columns
 
     def statement(
