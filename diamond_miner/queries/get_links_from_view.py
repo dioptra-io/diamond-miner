@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
+from diamond_miner.queries.fragments import ip_in
 from diamond_miner.queries.query import FlowsQuery, flows_table, prefixes_table
 from diamond_miner.typing import IPNetwork
 
@@ -50,9 +51,14 @@ class GetLinksFromView(FlowsQuery):
             NOT IN (
                 SELECT probe_protocol, probe_src_addr, probe_dst_prefix
                 FROM {prefixes_table(measurement_id)}
-                WHERE has_amplification OR has_loops
+                WHERE {ip_in('probe_dst_prefix', subset)}
+                AND has_amplification
             )
             """
+            # TODO: We currently do not drop prefixes with loops as this considerably
+            # reduces the number of discoveries. As such, we send more probe than necessary.
+            # A better way would be to detect the min/max TTL of a loop, and to ignore it
+            # in the next round query.
         else:
             invalid_filter = ""
 
