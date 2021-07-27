@@ -20,7 +20,7 @@ pip install diamond-miner
 
 Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
 Since then, the code has been refactored and separated in the [diamond-miner](https://github.com/dioptra-io/diamond-miner) and [caracal](https://github.com/dioptra-io/caracal) repositories.
-The code as it was at the time of the publication is available in the [`nsdi2020`](https://github.com/dioptra-io/diamond-miner/releases/tag/nsdi2020) tag.
+The code as it was at the time of the publication is available in the [diamond-miner-cpp](https://github.com/dioptra-io/diamond-miner-cpp) and [diamond-miner-wrapper](https://github.com/dioptra-io/diamond-miner-wrapper) repositories.
 
 ```bibtex
 @inproceedings {DiamondMiner2020,
