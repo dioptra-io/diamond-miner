@@ -17,6 +17,9 @@ class GetLinks(LinksQuery):
     >>> links = GetLinks(include_metadata=True).execute(url, 'test_nsdi_example')
     >>> len(links)
     8
+    >>> links = GetLinks(near_or_far_addr="150.0.6.1").execute(url, 'test_nsdi_example')
+    >>> len(links)
+    3
     """
 
     include_metadata: bool = False

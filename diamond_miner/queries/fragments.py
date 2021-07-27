@@ -117,3 +117,19 @@ def ip_not_private(column: str) -> str:
     AND {ip_not_in(column, ip_network('192.168.0.0/16'))}
     AND {ip_not_in(column, ip_network('fd00::/8'))}
     """
+
+
+def and_(a: str, b: str) -> str:
+    """
+    >>> and_("0", "1")
+    '(0 AND 1)'
+    """
+    return f"({a} AND {b})"
+
+
+def or_(a: str, b: str) -> str:
+    """
+    >>> or_("0", "1")
+    '(0 OR 1)'
+    """
+    return f"({a} OR {b})"

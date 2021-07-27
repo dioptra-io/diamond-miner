@@ -3,6 +3,7 @@ import os
 from asyncio import Semaphore
 from dataclasses import dataclass
 from enum import Enum
+from functools import reduce
 from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence, Tuple
 
 from aioch import Client as AsyncClient
@@ -11,7 +12,7 @@ from clickhouse_driver.errors import ServerException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import eq, ip_eq, ip_in, leq, not_
+from diamond_miner.queries.fragments import and_, eq, ip_eq, ip_in, leq, not_, or_
 from diamond_miner.timer import LoggingTimer
 from diamond_miner.typing import IPNetwork
 
@@ -207,7 +208,7 @@ class FlowsQuery(Query):
             s += [ip_in("probe_dst_prefix", subset)]
         if self.round_eq:
             s += [eq("round", self.round_eq)]
-        return "\nAND ".join(s or ["1"])
+        return reduce(and_, s or ["1"])
 
 
 @dataclass(frozen=True)
@@ -220,6 +221,9 @@ class LinksQuery(Query):
 
     filter_virtual: bool = False
     "If true, exclude virtual links: ``('::', '::')``."
+
+    near_or_far_addr: Optional[str] = None
+    "If specified, keep only the links that contains this IP address."
 
     probe_protocol: Optional[int] = None
     "If specified, keep only the links inferred from probes sent with this protocol."
@@ -249,13 +253,20 @@ class LinksQuery(Query):
             s += [eq("near_round", self.round_eq), eq("far_round", self.round_eq)]
         if self.round_leq:
             s += [leq("near_round", self.round_leq), leq("far_round", self.round_leq)]
+        if self.near_or_far_addr:
+            s += [
+                or_(
+                    ip_eq("near_addr", self.near_or_far_addr),
+                    ip_eq("far_addr", self.near_or_far_addr),
+                )
+            ]
         if self.filter_inter_round:
             s += [not_("is_inter_round")]
         if self.filter_partial:
             s += [not_("is_partial")]
         if self.filter_virtual:
             s += [not_("is_virtual")]
-        return "\nAND ".join(s or ["1"])
+        return reduce(and_, s or ["1"])
 
 
 @dataclass(frozen=True)
@@ -278,7 +289,7 @@ class PrefixQuery(Query):
             s += [eq("probe_protocol", self.probe_protocol)]
         if self.probe_src_addr:
             s += [ip_eq("probe_src_addr", self.probe_src_addr)]
-        return "\nAND ".join(s or ["1"])
+        return reduce(and_, s or ["1"])
 
 
 @dataclass(frozen=True)
@@ -336,4 +347,4 @@ class ResultsQuery(Query):
             s += ["time_exceeded_reply"]
         if self.filter_invalid_probe_protocol:
             s += ["valid_probe_protocol"]
-        return "\nAND ".join(s or ["1"])
+        return reduce(and_, s or ["1"])
