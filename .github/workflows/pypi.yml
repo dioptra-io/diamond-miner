@@ -2,8 +2,10 @@ name: PyPI
 
 on:
   push:
-    tags:
-      - "*"
+    branches: [ main ]
+    tags: [ 'v*' ]
+    paths-ignore: ['**.md']
+  pull_request:
 
 jobs:
   build_wheels:
@@ -27,18 +29,19 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0
         env:
-          # arm64 macos wheels are broken as of 10/05/2020
+          # macos arm64 wheels are currently broken
           CIBW_ARCHS_MACOS: x86_64
           CIBW_ARCHS_LINUX: x86_64 aarch64
 
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-          TWINE_REPOSITORY_URL: ${{ secrets.PYPI_REPOSITORY_URL }}
+        # Publish only when the current ref. is a tag.
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           python3 -m pip install --upgrade poetry twine
           python3 -m poetry build --format sdist
           python3 -m twine upload --skip-existing dist/*.tar.gz wheelhouse/*.whl
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
