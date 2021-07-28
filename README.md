@@ -3,7 +3,7 @@
 [![Tests](https://img.shields.io/github/workflow/status/dioptra-io/diamond-miner/Tests?logo=github)](https://github.com/dioptra-io/diamond-miner/actions/workflows/tests.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/dioptra-io/diamond-miner?logo=codecov&logoColor=white&token=RKZSQ2CL4J)](https://app.codecov.io/gh/dioptra-io/diamond-miner)
 [![Documentation](https://img.shields.io/badge/documentation-online-blue.svg?logo=read-the-docs&logoColor=white)](https://dioptra-io.github.io/diamond-miner/)
-![PyPI](https://img.shields.io/pypi/v/diamond-miner?logo=pypi&logoColor=white)
+[![PyPI](https://img.shields.io/pypi/v/diamond-miner?logo=pypi&logoColor=white)](https://pypi.org/project/diamond-miner/)
 
 > D-Miner is the first Internet-scale system that captures a multipath view of the topology.
 > By combining and adapting state-of-the-art multipath detection and high speed randomized topology discovery techniques,
