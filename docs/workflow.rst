@@ -86,8 +86,8 @@ Refer to the reference section of the documentation to learn more about the diff
     for round_ in range(1, 10):
         bulk_insert_results("default", "localhost", measurement_id, f"round_{round_}.csv")
         # See `execute_concurrent` and `subsets_for` to insert replies in parallel.
-        InsertPrefixes(round_eq=1).execute(database_url, measurement_id)
-        InsertLinks(round_eq=1).execute(database_url, measurement_id)
+        InsertPrefixes(round_eq=round_).execute(database_url, measurement_id)
+        InsertLinks(round_eq=round_).execute(database_url, measurement_id)
 
         # Generate round n+1 probes from round n replies.
         probes = list(
