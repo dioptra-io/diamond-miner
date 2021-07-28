@@ -1,6 +1,6 @@
 from ipaddress import ip_address
 
-from diamond_miner.generator import probe_generator, probe_generator_by_flow
+from diamond_miner.generators import probe_generator, probe_generator_by_flow
 from diamond_miner.mappers import SequentialFlowMapper
 
 

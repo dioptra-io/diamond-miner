@@ -22,6 +22,9 @@ def mda_probes(
     adaptive_eps: bool = False,
     subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> Iterator[Probe]:
+    """
+    Compute the probes to send given the previously discovered links.
+    """
     # TODO: filter_partial is temporary.
     # TODO: filter_inter_round?
     query = GetNextRound(

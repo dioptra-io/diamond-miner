@@ -26,7 +26,7 @@ class GetLinks(LinksQuery):
     "If true, include the TTLs at which `near_addr` and `far_addr` were seen."
 
     def columns(self) -> List[str]:
-        columns = [self.addr_cast("near_addr"), self.addr_cast("far_addr")]
+        columns = [self._addr_cast("near_addr"), self._addr_cast("far_addr")]
         if self.include_metadata:
             columns = ["near_ttl", "far_ttl", *columns]
         return columns

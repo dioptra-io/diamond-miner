@@ -30,6 +30,8 @@ async def mda_probes_parallel(
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
+    Compute the probes to send given the previously discovered links.
+    This function shuffle the probes on-disk using the following algorithm:
     https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
     """
     loop = asyncio.get_running_loop()
@@ -109,7 +111,7 @@ def worker(
     n_files: int,
 ) -> int:
     """
-    Execute the GetNextRound query on the specified subset, and write the probes to the specified file.
+    Execute the :class:`diamond_miner.queries.GetNextRound` query on the specified subset, and write the probes to the specified file.
     """
     # TODO: random.shuffle is slow...
     # A potentially simpler and better way would be to shuffle

@@ -20,7 +20,7 @@ def count_prefixes(
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
 ) -> int:
     """
-    Count the number of prefixes yielded by a prefix list.
+    Count the number of prefixes yielded by a list of prefixes.
 
     :param prefixes: A list of IPv4/v6 prefixes.
     :param prefix_len_v4: The target prefix length for v4 prefixes.
@@ -103,7 +103,7 @@ def probe_generator(
     seed: Optional[int] = None,
 ) -> Iterator[Probe]:
     """
-    Generate a probe for each prefix, flow_id and TTL, in a random order.
+    Generate a probe for each prefix, flow ID and TTL, in a random order.
 
     :param prefixes: A list of (prefix, protocol) tuples. The protocol can be ``icmp``, ``icmp6`` or ``udp``.
     :param flow_ids: The flow IDs to probe.
@@ -116,7 +116,8 @@ def probe_generator(
     :param mapper_v6: The flow mapper for IPv6 probes.
     :param seed: The seed of the random permutation (two calls with the same seed will yield the probes in the same order).
 
-    This function is very versatile, it can generate (Tokyo-)ping, (Paris-)traceroute or Yarrp-like probes.
+    This function is very versatile, it can generate Tokyo-Ping :cite:`pelsser2013paris`,
+    Paris-Traceroute :cite:`augustin2006avoiding` or Yarrp-like :cite:`beverly2016yarrp` probes.
 
     For ICMP probes, the source port is encoded by caracal in the checksum field of the ICMP header
     which is generally used by routers for per-flow load-balancing.

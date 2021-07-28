@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "diamond-miner"
-copyright = "2021, Dioptra"
-author = "Dioptra"
+copyright = "2021, dioptra.io"
+author = "dioptra.io"
 
 # Managed by bumpversion
 version = "0.1.0"
@@ -59,6 +59,13 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+html_context = {
+    "display_github": True,
+    "github_user": "dioptra-io",
+    "github_repo": "diamond-miner",
+    "github_version": "main/docs/",
+}
+
 # -- Options for intersphinx -------------------------------------------------
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
@@ -66,3 +73,6 @@ intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 # -- Options for sphinxcontrib-bibtex ----------------------------------------
 
 bibtex_bibfiles = ["bibliography.bib"]
+
+# -- Options for autodoc -----------------------------------------------------
+# autodoc_default_options = {}

@@ -20,7 +20,7 @@ class GetNodes(ResultsQuery):
     "If true, include the TTL at which `reply_src_addr` was seen."
 
     def columns(self) -> List[str]:
-        columns = [self.addr_cast("reply_src_addr")]
+        columns = [self._addr_cast("reply_src_addr")]
         if self.include_probe_ttl:
             columns.insert(0, "probe_ttl")
         return columns

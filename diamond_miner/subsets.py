@@ -41,7 +41,7 @@ async def subsets_for(
 
 def split(counts: Counts, max_rows_per_subset: int) -> List[IPv6Network]:
     """
-    Return the IP prefixes such that there are no more than `max_replies_per_subset`
+    Return the IP networks such that there are no more than `max_rows_per_subset`
     replies per prefix.
 
     :param counts: Number of replies per prefix in the database table.

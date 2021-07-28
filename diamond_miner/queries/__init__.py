@@ -18,7 +18,11 @@ from .insert_links import InsertLinks
 from .insert_prefixes import InsertPrefixes
 from .query import (
     AddrType,
+    FlowsQuery,
+    LinksQuery,
+    PrefixesQuery,
     Query,
+    ResultsQuery,
     flows_table,
     links_table,
     prefixes_table,
@@ -48,6 +52,10 @@ __all__ = (
     "InsertLinks",
     "InsertPrefixes",
     "Query",
+    "FlowsQuery",
+    "LinksQuery",
+    "PrefixesQuery",
+    "ResultsQuery",
     "flows_table",
     "links_table",
     "prefixes_table",

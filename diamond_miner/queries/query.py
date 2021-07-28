@@ -82,10 +82,8 @@ class Query:
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
-        """
-        As a query user, prefer calling ``statements`` instead of ``statement`` as there
-        is no guarantees that the query will implement this method and return a single statement.
-        """
+        # As a query user, prefer calling ``statements`` instead of ``statement`` as there
+        # is no guarantees that the query will implement this method and return a single statement.
         raise NotImplementedError
 
     def statements(
@@ -182,7 +180,7 @@ class Query:
         logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
         await asyncio.gather(*[do(subset) for subset in subsets])
 
-    def addr_cast(self, column: str) -> str:
+    def _addr_cast(self, column: str) -> str:
         """Returns the column casted to the specified address type."""
         if self.addr_type == AddrType.IPv6:
             return column
@@ -270,7 +268,7 @@ class LinksQuery(Query):
 
 
 @dataclass(frozen=True)
-class PrefixQuery(Query):
+class PrefixesQuery(Query):
     probe_protocol: Optional[int] = None
     "If specified, keep only the links inferred from probes sent with this protocol."
 

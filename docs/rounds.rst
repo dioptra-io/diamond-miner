@@ -1,8 +1,8 @@
-Rounds
-======
-
-.. automodule:: diamond_miner.rounds.far_ttls
-   :members:
+MDA
+===
 
 .. automodule:: diamond_miner.rounds.mda
+   :members:
+
+.. automodule:: diamond_miner.rounds.mda_parallel
    :members:

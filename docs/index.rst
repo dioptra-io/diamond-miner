@@ -1,20 +1,27 @@
-.. diamond-miner documentation master file, created by
-   sphinx-quickstart on Tue Apr 27 18:26:26 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Diamond-Miner
+=============
 
-Welcome to diamond-miner's documentation!
-=========================================
+.. automodule:: diamond_miner
+   :members:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Overview
 
-   generator
-   mappers
+   installation
+   workflow
+   development
+   bibliography
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   defaults
    queries
+   mappers
+   generators
    rounds
-   references
 
 
 Indices and tables

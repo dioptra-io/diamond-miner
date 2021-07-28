@@ -1,5 +1,5 @@
-Queries
-=======
+Database Queries
+================
 
 .. automodule:: diamond_miner.queries
    :members:
