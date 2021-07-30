@@ -30,17 +30,13 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.0.0
-        env:
-          # macos arm64 wheels are currently broken
-          CIBW_ARCHS_MACOS: x86_64
-          CIBW_ARCHS_LINUX: x86_64 aarch64
 
       - name: Publish to PyPI
         # Publish only when the current ref. is a tag.
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          python3 -m pip install --upgrade poetry twine
-          python3 -m poetry build --format sdist
+          python3 -m pip install --upgrade build twine
+          python3 -m build --sdist
           python3 -m twine upload --skip-existing dist/*.tar.gz wheelhouse/*.whl
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
