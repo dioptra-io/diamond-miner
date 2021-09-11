@@ -1,5 +1,7 @@
 import time
 from logging import Logger
+from types import TracebackType
+from typing import Optional, Type
 
 
 class Timer:
@@ -24,10 +26,15 @@ class Timer:
     def total_ms(self) -> float:
         return self.total_time / 10 ** 6
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.start()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         self.stop()
 
 
@@ -39,11 +46,16 @@ class LoggingTimer:
         self.prefix = prefix
         self.timer = Timer()
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.logger.info(self.prefix)
         self.timer.clear()
         self.timer.start()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         self.timer.stop()
         self.logger.info("%s time_ms=%s", self.prefix, self.timer.total_ms)

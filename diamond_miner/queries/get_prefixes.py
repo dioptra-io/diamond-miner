@@ -1,14 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreatePrefixesTable
 from diamond_miner.queries.fragments import ip_in
-from diamond_miner.queries.query import (
-    UNIVERSE_SUBSET,
-    ResultsQuery,
-    prefixes_table,
-    results_table,
-)
+from diamond_miner.queries.query import ResultsQuery, prefixes_table, results_table
 from diamond_miner.typing import IPNetwork
 
 

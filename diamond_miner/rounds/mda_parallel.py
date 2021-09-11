@@ -153,7 +153,7 @@ def worker(
     flush(probes_by_file, outputs)
 
     for ctx, file, stream in outputs:
-        stream.close()
+        stream.close()  # type: ignore
         file.close()
 
     return n_probes

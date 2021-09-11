@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, LinksQuery, links_table
+from diamond_miner.defaults import UNIVERSE_SUBSET
+from diamond_miner.queries.query import LinksQuery, links_table
 from diamond_miner.typing import IPNetwork
 
 

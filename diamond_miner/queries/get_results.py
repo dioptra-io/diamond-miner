@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from diamond_miner.queries.query import UNIVERSE_SUBSET, ResultsQuery, results_table
+from diamond_miner.defaults import UNIVERSE_SUBSET
+from diamond_miner.queries.query import ResultsQuery, results_table
 from diamond_miner.typing import IPNetwork
 
 

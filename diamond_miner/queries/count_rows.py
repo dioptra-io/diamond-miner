@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
+from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.fragments import cut_ipv6
 from diamond_miner.queries.query import (
-    UNIVERSE_SUBSET,
     FlowsQuery,
     LinksQuery,
     ResultsQuery,
