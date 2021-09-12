@@ -1,6 +1,11 @@
 from dataclasses import dataclass
 
-from diamond_miner.defaults import UNIVERSE_SUBSET
+from diamond_miner.defaults import (
+    DEFAULT_PREFIX_LEN_V4,
+    DEFAULT_PREFIX_LEN_V6,
+    UNIVERSE_SUBSET,
+)
+from diamond_miner.queries.fragments import cut_ipv6
 from diamond_miner.queries.query import Query, results_table
 from diamond_miner.typing import IPNetwork
 
@@ -10,6 +15,9 @@ class CreateResultsTable(Query):
     """Create the table used to store the measurement results from the prober."""
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
+
+    prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
+    prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
@@ -37,8 +45,8 @@ class CreateResultsTable(Query):
             rtt                    UInt16 CODEC(T64, ZSTD(1)),
             round                  UInt8,
             -- Materialized columns
-            probe_dst_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(probe_dst_addr, 8, 1)),
-            reply_src_prefix       IPv6 MATERIALIZED toIPv6(cutIPv6(reply_src_addr, 8, 1)),
+            probe_dst_prefix       IPv6 MATERIALIZED {cut_ipv6('probe_dst_addr', self.prefix_len_v4, self.prefix_len_v6)},
+            reply_src_prefix       IPv6 MATERIALIZED {cut_ipv6('reply_src_addr', self.prefix_len_v4, self.prefix_len_v6)},
             -- https://en.wikipedia.org/wiki/Reserved_IP_addresses
             private_probe_dst_prefix UInt8 MATERIALIZED
                 (probe_dst_prefix >= toIPv6('0.0.0.0')      AND probe_dst_prefix <= toIPv6('0.255.255.255'))   OR
