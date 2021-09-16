@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>diamond_miner.queries.get_next_round &mdash; diamond-miner 0.1.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> diamond-miner
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bibliography.html">Bibliography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaults.html">Default Values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../queries.html">Database Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mappers.html">Flow Mappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../generators.html">Probe Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rounds.html">MDA</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">diamond-miner</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>diamond_miner.queries.get_next_round</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for diamond_miner.queries.get_next_round</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">diamond_miner.defaults</span> <span class="kn">import</span> <span class="n">UNIVERSE_SUBSET</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries.query</span> <span class="kn">import</span> <span class="n">LinksQuery</span><span class="p">,</span> <span class="n">links_table</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.typing</span> <span class="kn">import</span> <span class="n">IPNetwork</span>
+
+
+<div class="viewcode-block" id="GetNextRound"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.GetNextRound">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GetNextRound</span><span class="p">(</span><span class="n">LinksQuery</span><span class="p">):</span>
+    <span class="c1"># This query is tested in test_queries.py due to its complexity.</span>
+
+    <span class="n">adaptive_eps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">dminer_lite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">target_epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+    <span class="n">Row</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+        <span class="s2">&quot;Row&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;protocol,dst_prefix,already_sent,to_send,ttls&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">statement</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span> <span class="o">=</span> <span class="n">UNIVERSE_SUBSET</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_eps</span><span class="p">:</span>
+            <span class="n">eps_fragment</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            if(max_links_curr == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_curr))</span>
+<span class="s2">                AS epsilon_curr,</span>
+<span class="s2">            if(max_links_prev == 0, target_epsilon, 1 - exp(log(1 - target_epsilon) / max_links_prev))</span>
+<span class="s2">                AS epsilon_prev,</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">eps_fragment</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            target_epsilon AS epsilon_curr,</span>
+<span class="s2">            target_epsilon AS epsilon_prev,</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dminer_lite</span><span class="p">:</span>
+            <span class="n">dm_fragment</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            arrayMap(k -&gt; toUInt32(ceil(ln(epsilon_curr / (k + 1)) / ln((k + 1 - 1) / (k + 1)))), links_per_ttl_curr) AS mda_flows_curr,</span>
+<span class="s2">            arrayMap(k -&gt; toUInt32(ceil(ln(epsilon_prev / (k + 1)) / ln((k + 1 - 1) / (k + 1)))), links_per_ttl_prev) AS mda_flows_prev,</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Implement by computing Dh(v)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        WITH</span>
+<span class="s2">            </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">round_leq</span><span class="si">}</span><span class="s2"> AS current_round,</span>
+<span class="s2">            </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target_epsilon</span><span class="si">}</span><span class="s2"> AS target_epsilon,</span>
+<span class="s2">            -- 1) Compute the links</span>
+<span class="s2">            --  x.1       x.2        x.3</span>
+<span class="s2">            -- (near_ttl, near_addr, far_addr)</span>
+<span class="s2">            groupUniqArray((near_ttl, near_addr, far_addr)) AS links_curr,</span>
+<span class="s2">            groupUniqArrayIf((near_ttl, near_addr, far_addr), near_round &lt; current_round) AS links_prev,</span>
+<span class="s2">            -- 2) Count the number of links per TTL</span>
+<span class="s2">            -- extract only the TTLs, this greatly speeds-up arrayCount</span>
+<span class="s2">            arrayMap(x -&gt; x.1, links_curr) AS TTLs_curr,</span>
+<span class="s2">            arrayMap(x -&gt; x.1, links_prev) AS TTLs_prev,</span>
+<span class="s2">            -- find the min/max TTLs</span>
+<span class="s2">            -- we add +2 since range() is exclusive and that we compute the max over the *near* TTL</span>
+<span class="s2">            range(arrayMin(TTLs_curr), arrayMax(TTLs_curr) + 2) AS TTLs,</span>
+<span class="s2">            -- count distinct links per TTL</span>
+<span class="s2">            arrayMap(t -&gt; countEqual(TTLs_curr, t), TTLs) AS links_per_ttl_curr,</span>
+<span class="s2">            arrayMap(t -&gt; countEqual(TTLs_prev, t), TTLs) AS links_per_ttl_prev,</span>
+<span class="s2">            -- find the maximum number of links over all TTLs</span>
+<span class="s2">            arrayMax(links_per_ttl_curr) AS max_links_curr,</span>
+<span class="s2">            arrayMax(links_per_ttl_prev) AS max_links_prev,</span>
+<span class="s2">            -- 3) Determine if the prefix can be skipped at the next round</span>
+<span class="s2">            -- 1 if no new links and nodes have been discovered in the current round</span>
+<span class="s2">            equals(links_per_ttl_curr, links_per_ttl_prev) AS skip_prefix,</span>
+<span class="s2">            -- 4) Compute MDA stopping points</span>
+<span class="s2">            </span><span class="si">{</span><span class="n">eps_fragment</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">            -- 5) Compute the number of probes to send during the next round</span>
+<span class="s2">            </span><span class="si">{</span><span class="n">dm_fragment</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">            -- compute the number of probes sent at previous round</span>
+<span class="s2">            -- if round = 1: we known that we sent 6 probes</span>
+<span class="s2">            -- if round &gt; 1 and TTL &gt; 1: we take the max of the DMiner formula</span>
+<span class="s2">            -- over the links discovered during the previous rounds at TTL t and t-1</span>
+<span class="s2">            if(</span>
+<span class="s2">                current_round == 1,</span>
+<span class="s2">                arrayMap(t -&gt; 6, TTLs),</span>
+<span class="s2">                arrayMap(i -&gt; arrayMax([mda_flows_prev[i], mda_flows_prev[i - 1]]), arrayEnumerate(TTLs))</span>
+<span class="s2">            ) AS already_sent,</span>
+<span class="s2">            -- compute the number of probes to send during the next round</span>
+<span class="s2">            -- =&gt; max of probes to send over TTL t and t-1</span>
+<span class="s2">            arrayMap(i -&gt; arrayMax([</span>
+<span class="s2">                0,</span>
+<span class="s2">                mda_flows_curr[i] - already_sent[i],</span>
+<span class="s2">                mda_flows_curr[i - 1] - already_sent[i - 1]</span>
+<span class="s2">            ]), arrayEnumerate(TTLs)) AS to_send</span>
+<span class="s2">            -- TODO: Cleanup/optimize/rewrite/... below</span>
+<span class="s2">            -- do not send probes to TTLs where no replies have been received</span>
+<span class="s2">            -- it is unlikely that we will discover more at this TTL if the first 6 flows have seen nothing</span>
+<span class="s2">            -- arrayMap(t -&gt; arrayUniq(arrayFilter(x -&gt; x != toIPv6(&#39;::&#39;), arrayMap(x -&gt; x.2, arrayFilter(x -&gt; x.1 == t, links_curr)))), TTLs) AS nodes_per_ttl_near,</span>
+<span class="s2">            -- arrayMap(t -&gt; arrayUniq(arrayFilter(x -&gt; x != toIPv6(&#39;::&#39;), arrayMap(x -&gt; x.3, arrayFilter(x -&gt; x.1 + 1 == t, links_curr)))), TTLs) AS nodes_per_ttl_far,</span>
+<span class="s2">            -- arrayMap(t -&gt; arrayMax([nodes_per_ttl_near[t], nodes_per_ttl_far[t]]), TTLs) AS nodes_per_ttl,</span>
+<span class="s2">            -- arrayMap(t -&gt; if(nodes_per_ttl[t] &gt; 0, probes[t], 0), TTLs) AS probes_final</span>
+<span class="s2">        SELECT</span>
+<span class="s2">            probe_protocol,</span>
+<span class="s2">            probe_dst_prefix,</span>
+<span class="s2">            already_sent,</span>
+<span class="s2">            to_send,</span>
+<span class="s2">            TTLs</span>
+<span class="s2">        FROM </span><span class="si">{</span><span class="n">links_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        WHERE </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)</span>
+<span class="s2">        HAVING NOT skip_prefix</span>
+<span class="s2">        &quot;&quot;&quot;</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, dioptra.io.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

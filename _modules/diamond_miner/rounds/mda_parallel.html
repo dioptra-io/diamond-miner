@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>diamond_miner.rounds.mda_parallel &mdash; diamond-miner 0.1.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> diamond-miner
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bibliography.html">Bibliography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaults.html">Default Values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../queries.html">Database Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mappers.html">Flow Mappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../generators.html">Probe Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rounds.html">MDA</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">diamond-miner</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>diamond_miner.rounds.mda_parallel</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for diamond_miner.rounds.mda_parallel</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">zstandard</span> <span class="kn">import</span> <span class="n">ZstdCompressor</span>
+
+<span class="kn">from</span> <span class="nn">diamond_miner.defaults</span> <span class="kn">import</span> <span class="n">DEFAULT_PROBE_DST_PORT</span><span class="p">,</span> <span class="n">DEFAULT_PROBE_SRC_PORT</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.format</span> <span class="kn">import</span> <span class="n">format_probe</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries</span> <span class="kn">import</span> <span class="n">GetNextRound</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.rounds.mda</span> <span class="kn">import</span> <span class="n">mda_probes</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.subsets</span> <span class="kn">import</span> <span class="n">subsets_for</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.typing</span> <span class="kn">import</span> <span class="n">FlowMapper</span><span class="p">,</span> <span class="n">IPNetwork</span><span class="p">,</span> <span class="n">Probe</span>
+
+
+<div class="viewcode-block" id="mda_probes_parallel"><a class="viewcode-back" href="../../../rounds.html#diamond_miner.rounds.mda_parallel.mda_probes_parallel">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">mda_probes_parallel</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">round_</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">mapper_v4</span><span class="p">:</span> <span class="n">FlowMapper</span><span class="p">,</span>
+    <span class="n">mapper_v6</span><span class="p">:</span> <span class="n">FlowMapper</span><span class="p">,</span>
+    <span class="n">probe_src_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PROBE_SRC_PORT</span><span class="p">,</span>
+    <span class="n">probe_dst_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PROBE_DST_PORT</span><span class="p">,</span>
+    <span class="n">adaptive_eps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">n_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the probes to send given the previously discovered links.</span>
+<span class="sd">    This function shuffle the probes on-disk using the following algorithm:</span>
+<span class="sd">    https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
+
+    <span class="c1"># NOTE: Make sure that the parameter of GetNextRound are equal to the</span>
+    <span class="c1"># ones defines in mda_probes, in order to guarantee optimal subsets.</span>
+    <span class="n">subsets</span> <span class="o">=</span> <span class="k">await</span> <span class="n">subsets_for</span><span class="p">(</span>
+        <span class="n">GetNextRound</span><span class="p">(</span>
+            <span class="n">adaptive_eps</span><span class="o">=</span><span class="n">adaptive_eps</span><span class="p">,</span>
+            <span class="n">round_leq</span><span class="o">=</span><span class="n">round_</span><span class="p">,</span>
+            <span class="n">filter_virtual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">filter_inter_round</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">url</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subsets</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">n_files_per_subset</span> <span class="o">=</span> <span class="mi">8192</span> <span class="o">//</span> <span class="nb">len</span><span class="p">(</span><span class="n">subsets</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;mda_probes n_workers=</span><span class="si">%s</span><span class="s2"> n_subsets=</span><span class="si">%s</span><span class="s2"> n_files_per_subset=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">n_workers</span><span class="p">,</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">subsets</span><span class="p">),</span>
+        <span class="n">n_files_per_subset</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">filepath</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp_dir</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">n_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span>
+                    <span class="n">pool</span><span class="p">,</span>
+                    <span class="n">worker</span><span class="p">,</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;subset_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">url</span><span class="p">,</span>
+                    <span class="n">measurement_id</span><span class="p">,</span>
+                    <span class="n">round_</span><span class="p">,</span>
+                    <span class="n">mapper_v4</span><span class="p">,</span>
+                    <span class="n">mapper_v6</span><span class="p">,</span>
+                    <span class="n">probe_src_port</span><span class="p">,</span>
+                    <span class="n">probe_dst_port</span><span class="p">,</span>
+                    <span class="n">adaptive_eps</span><span class="p">,</span>
+                    <span class="n">subset</span><span class="p">,</span>
+                    <span class="n">n_files_per_subset</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">subset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">subsets</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">n_probes</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">futures</span><span class="p">))</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;mda_probes status=merging&quot;</span><span class="p">)</span>
+        <span class="n">file_list</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;files.txt&quot;</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_subprocess_shell</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;find </span><span class="si">{</span><span class="n">temp_dir</span><span class="si">}</span><span class="s2"> -name &#39;subset_*.csv.zst&#39; | shuf &gt; </span><span class="si">{</span><span class="n">file_list</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">proc</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_subprocess_shell</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;xargs cat &lt; </span><span class="si">{</span><span class="n">file_list</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">proc</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">n_probes</span></div>
+
+
+<div class="viewcode-block" id="worker"><a class="viewcode-back" href="../../../rounds.html#diamond_miner.rounds.mda_parallel.worker">[docs]</a><span class="k">def</span> <span class="nf">worker</span><span class="p">(</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">round_</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">mapper_v4</span><span class="p">:</span> <span class="n">FlowMapper</span><span class="p">,</span>
+    <span class="n">mapper_v6</span><span class="p">:</span> <span class="n">FlowMapper</span><span class="p">,</span>
+    <span class="n">probe_src_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">probe_dst_port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">adaptive_eps</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span><span class="p">,</span>
+    <span class="n">n_files</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute the :class:`diamond_miner.queries.GetNextRound` query on the specified subset, and write the probes to the specified file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: random.shuffle is slow...</span>
+    <span class="c1"># A potentially simpler and better way would be to shuffle</span>
+    <span class="c1"># the result of the next round query, which is small (~10M rows),</span>
+    <span class="c1"># and to directly write the probes to a file depending on hash(flow_id).</span>
+    <span class="c1"># e.g. ORDER BY rand() in GetNextRound.</span>
+
+    <span class="c1"># The larger `max_probes_in_memory`, the better the performance</span>
+    <span class="c1"># (less calls to `probes.clear()`) and the randomization but the more the memory usage.</span>
+    <span class="n">max_probes_in_memory</span> <span class="o">=</span> <span class="mi">1_000_000</span>
+
+    <span class="n">outputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">):</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">ZstdCompressor</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.csv.zst&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stream_writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ctx</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">stream</span><span class="p">))</span>
+
+    <span class="n">probes_by_file</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Probe</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">)]</span>
+    <span class="n">n_probes</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">probe</span> <span class="ow">in</span> <span class="n">mda_probes</span><span class="p">(</span>
+        <span class="n">url</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">,</span>
+        <span class="n">round_</span><span class="p">,</span>
+        <span class="n">mapper_v4</span><span class="p">,</span>
+        <span class="n">mapper_v6</span><span class="p">,</span>
+        <span class="n">probe_src_port</span><span class="p">,</span>
+        <span class="n">probe_dst_port</span><span class="p">,</span>
+        <span class="n">adaptive_eps</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">subset</span><span class="p">,),</span>
+    <span class="p">):</span>
+        <span class="c1"># probe[:-2] =&gt; (probe_dst_addr, probe_src_port, probe_dst_port)</span>
+        <span class="n">probes_by_file</span><span class="p">[</span><span class="nb">hash</span><span class="p">(</span><span class="n">probe</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">%</span> <span class="n">n_files</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probe</span><span class="p">)</span>
+        <span class="n">n_probes</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">n_probes</span> <span class="o">%</span> <span class="n">max_probes_in_memory</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">flush</span><span class="p">(</span><span class="n">probes_by_file</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+
+    <span class="n">flush</span><span class="p">(</span><span class="n">probes_by_file</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">n_probes</span></div>
+
+
+<span class="k">def</span> <span class="nf">flush</span><span class="p">(</span><span class="n">probes_by_file</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Probe</span><span class="p">]],</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">file_id</span><span class="p">,</span> <span class="n">probes</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">probes_by_file</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">stream</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="n">file_id</span><span class="p">]</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">probes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">probe</span> <span class="ow">in</span> <span class="n">probes</span><span class="p">:</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">format_probe</span><span class="p">(</span><span class="o">*</span><span class="n">probe</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">probes</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, dioptra.io.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

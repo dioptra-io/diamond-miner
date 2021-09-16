@@ -1,0 +1,584 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>diamond_miner.queries.query &mdash; diamond-miner 0.1.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> diamond-miner
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bibliography.html">Bibliography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaults.html">Default Values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../queries.html">Database Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mappers.html">Flow Mappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../generators.html">Probe Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rounds.html">MDA</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">diamond-miner</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>diamond_miner.queries.query</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for diamond_miner.queries.query</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">asyncio</span> <span class="kn">import</span> <span class="n">Semaphore</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">asynccontextmanager</span><span class="p">,</span> <span class="n">contextmanager</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">aioch</span> <span class="kn">import</span> <span class="n">Client</span> <span class="k">as</span> <span class="n">AsyncClient</span>
+<span class="kn">from</span> <span class="nn">clickhouse_driver</span> <span class="kn">import</span> <span class="n">Client</span>
+<span class="kn">from</span> <span class="nn">clickhouse_driver.errors</span> <span class="kn">import</span> <span class="n">ServerException</span>
+
+<span class="kn">from</span> <span class="nn">diamond_miner.defaults</span> <span class="kn">import</span> <span class="n">UNIVERSE_SUBSET</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.logging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries.fragments</span> <span class="kn">import</span> <span class="n">and_</span><span class="p">,</span> <span class="n">eq</span><span class="p">,</span> <span class="n">ip_eq</span><span class="p">,</span> <span class="n">ip_in</span><span class="p">,</span> <span class="n">leq</span><span class="p">,</span> <span class="n">not_</span><span class="p">,</span> <span class="n">or_</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.timer</span> <span class="kn">import</span> <span class="n">LoggingTimer</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.typing</span> <span class="kn">import</span> <span class="n">IPNetwork</span>
+
+<span class="n">CH_QUERY_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;max_block_size&quot;</span><span class="p">:</span> <span class="mi">128_000</span><span class="p">,</span>
+    <span class="c1"># Avoid timeout in case of a slow connection</span>
+    <span class="s2">&quot;connect_timeout&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="s2">&quot;send_timeout&quot;</span><span class="p">:</span> <span class="mi">6000</span><span class="p">,</span>
+    <span class="s2">&quot;receive_timeout&quot;</span><span class="p">:</span> <span class="mi">6000</span><span class="p">,</span>
+    <span class="c1"># https://github.com/ClickHouse/ClickHouse/issues/18406</span>
+    <span class="s2">&quot;read_backoff_min_latency_ms&quot;</span><span class="p">:</span> <span class="mi">100_000</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="nd">@asynccontextmanager</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">async_client</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">AsyncClient</span><span class="o">.</span><span class="n">from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">c</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">c</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span> <span class="nf">client</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">Client</span><span class="o">.</span><span class="n">from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">c</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">flows_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;flows__</span><span class="si">{</span><span class="n">measurement_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">links_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;links__</span><span class="si">{</span><span class="n">measurement_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">prefixes_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;prefixes__</span><span class="si">{</span><span class="n">measurement_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">results_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;results__</span><span class="si">{</span><span class="n">measurement_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AddrType"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.AddrType">[docs]</a><span class="k">class</span> <span class="nc">AddrType</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ClickHouse IPv6 type.&quot;&quot;&quot;</span>
+
+    <span class="n">IPv6</span> <span class="o">=</span> <span class="s2">&quot;IPv6&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    IPv6 stored as FixedString(16) internally.</span>
+<span class="sd">    Slow with clickhouse-driver as it will call :func:`ipaddress.IPv6Address` on each address.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">String</span> <span class="o">=</span> <span class="s2">&quot;String&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    String representation of the internal FixedString.</span>
+<span class="sd">    With clickhouse-driver each address will be decoded as Python string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">FixedString</span> <span class="o">=</span> <span class="s2">&quot;FixedString&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Native FixedString(16) representation.</span>
+<span class="sd">    Fastest with clickhouse-driver as it will return directly a byte string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">IPv6NumToString</span> <span class="o">=</span> <span class="s2">&quot;IPv6NumToString&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Human string representation of the IPv6.</span>
+<span class="sd">    With clickhouse-driver each address will be decoded as Python string.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="Query"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.Query">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Query</span><span class="p">:</span>
+    <span class="n">addr_type</span><span class="p">:</span> <span class="n">AddrType</span> <span class="o">=</span> <span class="n">AddrType</span><span class="o">.</span><span class="n">IPv6</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="k">def</span> <span class="nf">statement</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span> <span class="o">=</span> <span class="n">UNIVERSE_SUBSET</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># As a query user, prefer calling ``statements`` instead of ``statement`` as there</span>
+        <span class="c1"># is no guarantees that the query will implement this method and return a single statement.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">statements</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span> <span class="o">=</span> <span class="n">UNIVERSE_SUBSET</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="c1"># Override this method if you want your query to return multiple statements.</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">statement</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">,</span> <span class="n">subset</span><span class="p">),)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subsets</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IPNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">UNIVERSE_SUBSET</span><span class="p">,),</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_iter</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">,</span> <span class="n">subsets</span><span class="p">,</span> <span class="n">limit</span><span class="p">)]</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute_async</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subsets</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IPNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">UNIVERSE_SUBSET</span><span class="p">,),</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">row</span>
+            <span class="k">async</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_iter_async</span><span class="p">(</span>
+                <span class="n">url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">,</span> <span class="n">subsets</span><span class="p">,</span> <span class="n">limit</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">execute_iter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subsets</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IPNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">UNIVERSE_SUBSET</span><span class="p">,),</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">client</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">statements</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">,</span> <span class="n">subset</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">limit</span><span class="p">:</span>
+                        <span class="n">statement</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">LIMIT </span><span class="si">{</span><span class="n">limit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> OFFSET </span><span class="si">{</span><span class="n">limit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">with</span> <span class="n">LoggingTimer</span><span class="p">(</span>
+                        <span class="n">logger</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;query=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">#</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> measurement_id=</span><span class="si">{</span><span class="n">measurement_id</span><span class="si">}</span><span class="s2"> subset=</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">):</span>
+                        <span class="n">rows</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">execute_iter</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">CH_QUERY_SETTINGS</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                            <span class="k">yield</span> <span class="n">row</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute_iter_async</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subsets</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IPNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">UNIVERSE_SUBSET</span><span class="p">,),</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">async_client</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">statements</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">,</span> <span class="n">subset</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">limit</span><span class="p">:</span>
+                        <span class="n">statement</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">LIMIT </span><span class="si">{</span><span class="n">limit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> OFFSET </span><span class="si">{</span><span class="n">limit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">with</span> <span class="n">LoggingTimer</span><span class="p">(</span>
+                        <span class="n">logger</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">&quot;query=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">#</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> measurement_id=</span><span class="si">{</span><span class="n">measurement_id</span><span class="si">}</span><span class="s2"> subset=</span><span class="si">{</span><span class="n">subset</span><span class="si">}</span><span class="s2"> limit=</span><span class="si">{</span><span class="n">limit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">):</span>
+                        <span class="n">rows</span> <span class="o">=</span> <span class="k">await</span> <span class="n">c</span><span class="o">.</span><span class="n">execute_iter</span><span class="p">(</span>
+                            <span class="n">statement</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">CH_QUERY_SETTINGS</span>
+                        <span class="p">)</span>
+                        <span class="k">async</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                            <span class="k">yield</span> <span class="n">row</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute_concurrent</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">subsets</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">IPNetwork</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">UNIVERSE_SUBSET</span><span class="p">,),</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">concurrent_requests</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">semaphore</span> <span class="o">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="n">concurrent_requests</span><span class="p">)</span>
+
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">do</span><span class="p">(</span><span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">semaphore</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute_async</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">,</span> <span class="p">(</span><span class="n">subset</span><span class="p">,),</span> <span class="n">limit</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">ServerException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;query=</span><span class="si">%s</span><span class="s2"> subset=</span><span class="si">%s</span><span class="s2"> exception=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subset</span><span class="p">,</span> <span class="n">e</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;query=</span><span class="si">%s</span><span class="s2"> concurrent_requests=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">concurrent_requests</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">do</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">subsets</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_addr_cast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the column casted to the specified address type.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">addr_type</span> <span class="o">==</span> <span class="n">AddrType</span><span class="o">.</span><span class="n">IPv6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">column</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">addr_type</span> <span class="o">==</span> <span class="n">AddrType</span><span class="o">.</span><span class="n">String</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;CAST(</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2"> AS String)&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">addr_type</span> <span class="o">==</span> <span class="n">AddrType</span><span class="o">.</span><span class="n">FixedString</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;CAST(</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2"> AS FixedString(16))&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">addr_type</span> <span class="o">==</span> <span class="n">AddrType</span><span class="o">.</span><span class="n">IPv6NumToString</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;IPv6NumToString(</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;`addr_type` must be `AddrType` type&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FlowsQuery"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.FlowsQuery">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FlowsQuery</span><span class="p">(</span><span class="n">Query</span><span class="p">):</span>
+    <span class="n">round_eq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the flows from this round.&quot;</span>
+
+<div class="viewcode-block" id="FlowsQuery.filters"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.FlowsQuery.filters">[docs]</a>    <span class="k">def</span> <span class="nf">filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;``WHERE`` clause common to all queries on the flows table.&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">!=</span> <span class="n">UNIVERSE_SUBSET</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_in</span><span class="p">(</span><span class="s2">&quot;probe_dst_prefix&quot;</span><span class="p">,</span> <span class="n">subset</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">and_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="LinksQuery"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.LinksQuery">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">LinksQuery</span><span class="p">(</span><span class="n">Query</span><span class="p">):</span>
+    <span class="n">filter_inter_round</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="s2">&quot;If true, exclude links inferred across rounds.&quot;</span>
+
+    <span class="n">filter_partial</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="s2">&quot;If true, exclude partial links: ``(&#39;::&#39;, node)`` and ``(node, &#39;::&#39;)``.&quot;</span>
+
+    <span class="n">filter_virtual</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="s2">&quot;If true, exclude virtual links: ``(&#39;::&#39;, &#39;::&#39;)``.&quot;</span>
+
+    <span class="n">near_or_far_addr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the links that contains this IP address.&quot;</span>
+
+    <span class="n">probe_protocol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the links inferred from probes sent with this protocol.&quot;</span>
+
+    <span class="n">probe_src_addr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If specified, keep only the links inferred from probes sent by this address.</span>
+<span class="sd">    This filter is relatively costly (IPv6 comparison on each row).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">round_eq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the links from this round.&quot;</span>
+
+    <span class="n">round_leq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the links from this round or before.&quot;</span>
+
+<div class="viewcode-block" id="LinksQuery.filters"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.LinksQuery.filters">[docs]</a>    <span class="k">def</span> <span class="nf">filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;``WHERE`` clause common to all queries on the links table.&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">!=</span> <span class="n">UNIVERSE_SUBSET</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_in</span><span class="p">(</span><span class="s2">&quot;probe_dst_prefix&quot;</span><span class="p">,</span> <span class="n">subset</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_protocol</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;probe_protocol&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_protocol</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_src_addr</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_eq</span><span class="p">(</span><span class="s2">&quot;probe_src_addr&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_src_addr</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;near_round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">),</span> <span class="n">eq</span><span class="p">(</span><span class="s2">&quot;far_round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_leq</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">leq</span><span class="p">(</span><span class="s2">&quot;near_round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_leq</span><span class="p">),</span> <span class="n">leq</span><span class="p">(</span><span class="s2">&quot;far_round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_leq</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">near_or_far_addr</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">or_</span><span class="p">(</span>
+                    <span class="n">ip_eq</span><span class="p">(</span><span class="s2">&quot;near_addr&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">near_or_far_addr</span><span class="p">),</span>
+                    <span class="n">ip_eq</span><span class="p">(</span><span class="s2">&quot;far_addr&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">near_or_far_addr</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_inter_round</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">not_</span><span class="p">(</span><span class="s2">&quot;is_inter_round&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_partial</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">not_</span><span class="p">(</span><span class="s2">&quot;is_partial&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_virtual</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">not_</span><span class="p">(</span><span class="s2">&quot;is_virtual&quot;</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">and_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="PrefixesQuery"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.PrefixesQuery">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PrefixesQuery</span><span class="p">(</span><span class="n">Query</span><span class="p">):</span>
+    <span class="n">probe_protocol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the links inferred from probes sent with this protocol.&quot;</span>
+
+    <span class="n">probe_src_addr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If specified, keep only the links inferred from probes sent by this address.</span>
+<span class="sd">    This filter is relatively costly (IPv6 comparison on each row).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PrefixesQuery.filters"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.PrefixesQuery.filters">[docs]</a>    <span class="k">def</span> <span class="nf">filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;``WHERE`` clause common to all queries on the prefixes table.&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">!=</span> <span class="n">UNIVERSE_SUBSET</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_in</span><span class="p">(</span><span class="s2">&quot;probe_dst_prefix&quot;</span><span class="p">,</span> <span class="n">subset</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_protocol</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;probe_protocol&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_protocol</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_src_addr</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_eq</span><span class="p">(</span><span class="s2">&quot;probe_src_addr&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_src_addr</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">and_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="ResultsQuery"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.ResultsQuery">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ResultsQuery</span><span class="p">(</span><span class="n">Query</span><span class="p">):</span>
+    <span class="n">filter_destination_host</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="s2">&quot;If true, ignore the replies from the destination host.&quot;</span>
+
+    <span class="n">filter_destination_prefix</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="s2">&quot;If true, ignore the replies from the destination prefix.&quot;</span>
+
+    <span class="n">filter_private</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="s2">&quot;If true, ignore the replies from private IP addresses.&quot;</span>
+
+    <span class="n">filter_invalid_probe_protocol</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="s2">&quot;If true, ignore the replies with probe protocol ≠ ICMP, ICMPv6 or UDP.&quot;</span>
+
+    <span class="n">time_exceeded_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="s2">&quot;If true, ignore non ICMP time exceeded replies.&quot;</span>
+
+    <span class="n">probe_protocol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the replies to probes sent with this protocol.&quot;</span>
+
+    <span class="n">probe_src_addr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If specified, keep only the replies to probes sent by this address.</span>
+<span class="sd">    This filter is relatively costly (IPv6 comparison on each row).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">round_eq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the replies from this round.&quot;</span>
+
+    <span class="n">round_leq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="s2">&quot;If specified, keep only the replies from this round or before.&quot;</span>
+
+<div class="viewcode-block" id="ResultsQuery.filters"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.ResultsQuery.filters">[docs]</a>    <span class="k">def</span> <span class="nf">filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;``WHERE`` clause common to all queries on the results table.&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">subset</span> <span class="o">!=</span> <span class="n">UNIVERSE_SUBSET</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_in</span><span class="p">(</span><span class="s2">&quot;probe_dst_prefix&quot;</span><span class="p">,</span> <span class="n">subset</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_protocol</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;probe_protocol&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_protocol</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_src_addr</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ip_eq</span><span class="p">(</span><span class="s2">&quot;probe_src_addr&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_src_addr</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_eq</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_leq</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">leq</span><span class="p">(</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">round_leq</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_destination_host</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">not_</span><span class="p">(</span><span class="s2">&quot;destination_host_reply&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_destination_prefix</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">not_</span><span class="p">(</span><span class="s2">&quot;destination_prefix_reply&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_private</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="n">not_</span><span class="p">(</span><span class="s2">&quot;private_probe_dst_prefix&quot;</span><span class="p">),</span> <span class="n">not_</span><span class="p">(</span><span class="s2">&quot;private_reply_src_addr&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_exceeded_only</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;time_exceeded_reply&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_invalid_probe_protocol</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;valid_probe_protocol&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">and_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">])</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, dioptra.io.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

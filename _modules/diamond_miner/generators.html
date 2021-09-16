@@ -1,0 +1,432 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>diamond_miner.generators &mdash; diamond-miner 0.1.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> diamond-miner
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bibliography.html">Bibliography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../defaults.html">Default Values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../queries.html">Database Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mappers.html">Flow Mappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../generators.html">Probe Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rounds.html">MDA</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">diamond-miner</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>diamond_miner.generators</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for diamond_miner.generators</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">ipaddress</span> <span class="kn">import</span> <span class="n">IPv4Network</span><span class="p">,</span> <span class="n">IPv6Network</span><span class="p">,</span> <span class="n">ip_network</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">diamond_miner.defaults</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_PREFIX_LEN_V4</span><span class="p">,</span>
+    <span class="n">DEFAULT_PREFIX_LEN_V6</span><span class="p">,</span>
+    <span class="n">DEFAULT_PREFIX_SIZE_V4</span><span class="p">,</span>
+    <span class="n">DEFAULT_PREFIX_SIZE_V6</span><span class="p">,</span>
+    <span class="n">DEFAULT_PROBE_DST_PORT</span><span class="p">,</span>
+    <span class="n">DEFAULT_PROBE_SRC_PORT</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.grid</span> <span class="kn">import</span> <span class="n">ParameterGrid</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.mappers</span> <span class="kn">import</span> <span class="n">SequentialFlowMapper</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.typing</span> <span class="kn">import</span> <span class="n">FlowMapper</span><span class="p">,</span> <span class="n">Probe</span>
+
+
+<div class="viewcode-block" id="count_prefixes"><a class="viewcode-back" href="../../generators.html#diamond_miner.generators.count_prefixes">[docs]</a><span class="k">def</span> <span class="nf">count_prefixes</span><span class="p">(</span>
+    <span class="n">prefixes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">prefix_len_v4</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PREFIX_LEN_V4</span><span class="p">,</span>
+    <span class="n">prefix_len_v6</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PREFIX_LEN_V6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Count the number of prefixes yielded by a list of prefixes.</span>
+
+<span class="sd">    :param prefixes: A list of IPv4/v6 prefixes.</span>
+<span class="sd">    :param prefix_len_v4: The target prefix length for v4 prefixes.</span>
+<span class="sd">    :param prefix_len_v6: The target prefix length for v6 prefixes.</span>
+<span class="sd">    :return: The number of prefixes yielded by the prefix list.</span>
+
+<span class="sd">    &gt;&gt;&gt; count_prefixes([&quot;8.8.4.0/24&quot;, &quot;8.8.8.0/24&quot;])</span>
+<span class="sd">    2</span>
+<span class="sd">    &gt;&gt;&gt; count_prefixes([&quot;0.0.0.0/22&quot;])</span>
+<span class="sd">    4</span>
+<span class="sd">    &gt;&gt;&gt; count_prefixes([&quot;0.0.0.0/0&quot;])</span>
+<span class="sd">    16777216</span>
+<span class="sd">    &gt;&gt;&gt; count_prefixes([&quot;2001::/48&quot;])</span>
+<span class="sd">    65536</span>
+<span class="sd">    &gt;&gt;&gt; count_prefixes([&quot;0.0.0.0/32&quot;], prefix_len_v4=24)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ValueError: prefix length must be &lt;= 24</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="n">ip_network</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">IPv4Network</span><span class="p">):</span>
+            <span class="n">prefix_len</span> <span class="o">=</span> <span class="n">prefix_len_v4</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix_len</span> <span class="o">=</span> <span class="n">prefix_len_v6</span>
+        <span class="k">if</span> <span class="n">network</span><span class="o">.</span><span class="n">prefixlen</span> <span class="o">&gt;</span> <span class="n">prefix_len</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;prefix length must be &lt;= </span><span class="si">{</span><span class="n">prefix_len</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">prefix_len</span> <span class="o">-</span> <span class="n">network</span><span class="o">.</span><span class="n">prefixlen</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">count</span></div>
+
+
+<span class="k">def</span> <span class="nf">split_prefix</span><span class="p">(</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix_len_v4</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">prefix_len_v6</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="n">ip_network</span><span class="p">(</span><span class="n">prefix</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">IPv4Network</span><span class="p">):</span>
+        <span class="c1"># We add 0xFFFF00000000 to convert the network address</span>
+        <span class="c1"># to an IPv4-mapped IPv6 address.</span>
+        <span class="n">prefix_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="mi">32</span> <span class="o">-</span> <span class="n">prefix_len_v4</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">subnets</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">prefix_len_v4</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="mi">4</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mh">0xFFFF00000000</span><span class="p">,</span> <span class="n">prefix_size</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prefix_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="mi">128</span> <span class="o">-</span> <span class="n">prefix_len_v6</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">subnets</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">prefix_len_v6</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="mi">6</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">prefix_size</span>
+
+
+<div class="viewcode-block" id="subnets"><a class="viewcode-back" href="../../generators.html#diamond_miner.generators.subnets">[docs]</a><span class="k">def</span> <span class="nf">subnets</span><span class="p">(</span><span class="n">network</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">IPv4Network</span><span class="p">,</span> <span class="n">IPv6Network</span><span class="p">],</span> <span class="n">new_prefix</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Faster version of :py:meth:`ipaddress.IPv4Network.subnets`.</span>
+<span class="sd">    Returns only the network address as an integer.</span>
+
+<span class="sd">    &gt;&gt;&gt; from ipaddress import ip_network</span>
+<span class="sd">    &gt;&gt;&gt; list(subnets(ip_network(&quot;0.0.0.0/0&quot;), new_prefix=2))</span>
+<span class="sd">    [0, 1073741824, 2147483648, 3221225472]</span>
+<span class="sd">    &gt;&gt;&gt; subnets(ip_network(&quot;0.0.0.0/32&quot;), new_prefix=24)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ValueError: new prefix must be longer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">new_prefix</span> <span class="o">&lt;</span> <span class="n">network</span><span class="o">.</span><span class="n">prefixlen</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;new prefix must be longer&quot;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">network_address</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">broadcast_address</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">hostmask</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="n">new_prefix</span> <span class="o">-</span> <span class="n">network</span><span class="o">.</span><span class="n">prefixlen</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="probe_generator"><a class="viewcode-back" href="../../generators.html#diamond_miner.generators.probe_generator">[docs]</a><span class="k">def</span> <span class="nf">probe_generator</span><span class="p">(</span>
+    <span class="n">prefixes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>  <span class="c1"># /32 or / 128 if nothing specified</span>
+    <span class="n">flow_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span>
+    <span class="n">ttls</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span>
+    <span class="n">prefix_len_v4</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PREFIX_LEN_V4</span><span class="p">,</span>
+    <span class="n">prefix_len_v6</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PREFIX_LEN_V6</span><span class="p">,</span>
+    <span class="n">probe_src_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PROBE_SRC_PORT</span><span class="p">,</span>
+    <span class="n">probe_dst_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PROBE_DST_PORT</span><span class="p">,</span>
+    <span class="n">mapper_v4</span><span class="p">:</span> <span class="n">FlowMapper</span> <span class="o">=</span> <span class="n">SequentialFlowMapper</span><span class="p">(</span><span class="n">DEFAULT_PREFIX_SIZE_V4</span><span class="p">),</span>
+    <span class="n">mapper_v6</span><span class="p">:</span> <span class="n">FlowMapper</span> <span class="o">=</span> <span class="n">SequentialFlowMapper</span><span class="p">(</span><span class="n">DEFAULT_PREFIX_SIZE_V6</span><span class="p">),</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Probe</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a probe for each prefix, flow ID and TTL, in a random order.</span>
+
+<span class="sd">    :param prefixes: A list of (prefix, protocol) tuples. The protocol can be ``icmp``, ``icmp6`` or ``udp``.</span>
+<span class="sd">    :param flow_ids: The flow IDs to probe.</span>
+<span class="sd">    :param ttls: The TTLs to probe.</span>
+<span class="sd">    :param prefix_len_v4: The prefix length to which the IPv4 prefixes will be split to.</span>
+<span class="sd">    :param prefix_len_v6: The prefix length to which the IPv6 prefixes will be split to.</span>
+<span class="sd">    :param probe_src_port: The minimum source port of the probes (can be incremented by the flow mapper).</span>
+<span class="sd">    :param probe_dst_port: The destination port of the probes (constant).</span>
+<span class="sd">    :param mapper_v4: The flow mapper for IPv4 probes.</span>
+<span class="sd">    :param mapper_v6: The flow mapper for IPv6 probes.</span>
+<span class="sd">    :param seed: The seed of the random permutation (two calls with the same seed will yield the probes in the same order).</span>
+
+<span class="sd">    This function is very versatile, it can generate Tokyo-Ping :cite:`pelsser2013paris`,</span>
+<span class="sd">    Paris-Traceroute :cite:`augustin2006avoiding` or Yarrp-like :cite:`beverly2016yarrp` probes.</span>
+
+<span class="sd">    For ICMP probes, the source port is encoded by caracal in the checksum field of the ICMP header</span>
+<span class="sd">    which is generally used by routers for per-flow load-balancing.</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        # Example: ICMP ping towards Google DNS servers with 2 flows per address and a TTL of 32.</span>
+<span class="sd">        prefixes = [(&quot;8.8.8.8/32&quot;, &quot;icmp&quot;), (&quot;2001:4860:4860::8888/128&quot;, &quot;icmp6&quot;)]</span>
+<span class="sd">        prefix_len_v4 = 32</span>
+<span class="sd">        prefix_len_v6 = 128</span>
+<span class="sd">        flow_ids = range(2)</span>
+<span class="sd">        ttls = [32]</span>
+
+<span class="sd">        # When given a prefix size of 1, the sequential flow mapper will only vary the port.</span>
+<span class="sd">        mapper_v4 = SequentialFlowMapper(prefix_size=1)</span>
+<span class="sd">        mapper_v6 = SequentialFlowMapper(prefix_size=1)</span>
+
+<span class="sd">        # Example: ICMP ping towards 1.0.0.0/24 with 1 flow per address and a TTL of 32.</span>
+<span class="sd">        prefixes = [(&quot;1.0.0.0/24&quot;, &quot;icmp&quot;)]</span>
+<span class="sd">        prefix_len_v4 = 32 # The generator will cut the /24 in 256 /32.</span>
+<span class="sd">        flow_ids = range(1)</span>
+<span class="sd">        ttls = [32]</span>
+<span class="sd">        # Same flow mappers as above.</span>
+
+<span class="sd">        # Example: UDP traceroute towards 1.0.0.0/24 with 2 flows per address.</span>
+<span class="sd">        # 256 addresses * 2 flows * 30 TTLs = 15,360 probes.</span>
+<span class="sd">        prefixes = [(&quot;1.0.0.0/24&quot;, &quot;udp&quot;)]</span>
+<span class="sd">        prefix_len_v4 = 32 # The generator will cut the /24 in 256 /32.</span>
+<span class="sd">        flow_ids = range(2)</span>
+<span class="sd">        ttls = range(2, 32)</span>
+<span class="sd">        # Same flow mappers as above.</span>
+
+<span class="sd">        # Example: UDP traceroute towards 1.0.0.0/24 with 6 flows **per prefix**.</span>
+<span class="sd">        # 1 prefix * 6 flows * 30 TTLs = 180 probes.</span>
+<span class="sd">        prefixes = [(&quot;1.0.0.0/24&quot;, &quot;udp&quot;)]</span>
+<span class="sd">        prefix_len_v4 = 24 # We want to target the prefix, not its individual addresses.</span>
+<span class="sd">        flow_ids = range(6)</span>
+<span class="sd">        ttls = range(2, 32)</span>
+
+<span class="sd">        # The random flow mapper will assign a random destination (in the /24) to each flow.</span>
+<span class="sd">        mapper_v4 = RandomFlowMapper(prefix_size=256)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prefixes_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">af</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">subprefix_size</span> <span class="ow">in</span> <span class="n">split_prefix</span><span class="p">(</span>
+            <span class="n">prefix</span><span class="p">,</span> <span class="n">prefix_len_v4</span><span class="p">,</span> <span class="n">prefix_len_v6</span>
+        <span class="p">):</span>
+            <span class="n">prefixes_</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">af</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">subprefix_size</span><span class="p">,</span> <span class="n">protocol</span><span class="p">))</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">ParameterGrid</span><span class="p">(</span><span class="n">prefixes_</span><span class="p">,</span> <span class="n">ttls</span><span class="p">,</span> <span class="n">flow_ids</span><span class="p">)</span><span class="o">.</span><span class="n">shuffled</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">af</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">subprefix_size</span><span class="p">,</span> <span class="n">protocol</span><span class="p">),</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">flow_id</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">:</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">mapper_v4</span> <span class="k">if</span> <span class="n">af</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">mapper_v6</span>
+        <span class="n">addr_offset</span><span class="p">,</span> <span class="n">port_offset</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">offset</span><span class="p">(</span><span class="n">flow_id</span><span class="o">=</span><span class="n">flow_id</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">subprefix</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">subprefix</span> <span class="o">+</span> <span class="n">addr_offset</span><span class="p">,</span> <span class="n">probe_src_port</span> <span class="o">+</span> <span class="n">port_offset</span><span class="p">,</span> <span class="n">probe_dst_port</span><span class="p">,</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">protocol</span></div>
+
+
+<div class="viewcode-block" id="probe_generator_by_flow"><a class="viewcode-back" href="../../generators.html#diamond_miner.generators.probe_generator_by_flow">[docs]</a><span class="k">def</span> <span class="nf">probe_generator_by_flow</span><span class="p">(</span>
+    <span class="n">prefixes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+    <span class="p">],</span>  <span class="c1"># /32 or / 128 if nothing specified</span>
+    <span class="n">flow_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span>
+    <span class="n">prefix_len_v4</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PREFIX_LEN_V4</span><span class="p">,</span>
+    <span class="n">prefix_len_v6</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PREFIX_LEN_V6</span><span class="p">,</span>
+    <span class="n">probe_src_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PROBE_SRC_PORT</span><span class="p">,</span>
+    <span class="n">probe_dst_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_PROBE_DST_PORT</span><span class="p">,</span>
+    <span class="n">mapper_v4</span><span class="p">:</span> <span class="n">FlowMapper</span> <span class="o">=</span> <span class="n">SequentialFlowMapper</span><span class="p">(</span><span class="n">DEFAULT_PREFIX_SIZE_V4</span><span class="p">),</span>
+    <span class="n">mapper_v6</span><span class="p">:</span> <span class="n">FlowMapper</span> <span class="o">=</span> <span class="n">SequentialFlowMapper</span><span class="p">(</span><span class="n">DEFAULT_PREFIX_SIZE_V6</span><span class="p">),</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Probe</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a probe for each prefix, flow id and TTL, in a random order.</span>
+<span class="sd">    This function differs from :func:`probe_generator` in two aspects:</span>
+
+<span class="sd">        * The TTLs are specified for each prefixes, and not globally.</span>
+<span class="sd">        * All the probes for a given prefix and flow id are generated sequentially.</span>
+
+<span class="sd">    The parameters and output are identical to :func:`probe_generator`,</span>
+<span class="sd">    excepted for ``prefixes`` which is a list of (prefix, protocol, TTLs) tuples,</span>
+<span class="sd">    and the absence of the ``ttls`` parameter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prefixes_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">ttls</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">af</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">subprefix_size</span> <span class="ow">in</span> <span class="n">split_prefix</span><span class="p">(</span>
+            <span class="n">prefix</span><span class="p">,</span> <span class="n">prefix_len_v4</span><span class="p">,</span> <span class="n">prefix_len_v6</span>
+        <span class="p">):</span>
+            <span class="n">prefixes_</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">af</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">subprefix_size</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">ttls</span><span class="p">))</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">ParameterGrid</span><span class="p">(</span><span class="n">prefixes_</span><span class="p">,</span> <span class="n">flow_ids</span><span class="p">)</span><span class="o">.</span><span class="n">shuffled</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">af</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">subprefix_size</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">ttls</span><span class="p">),</span> <span class="n">flow_id</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">:</span>
+        <span class="n">mapper</span> <span class="o">=</span> <span class="n">mapper_v4</span> <span class="k">if</span> <span class="n">af</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">mapper_v6</span>
+        <span class="k">for</span> <span class="n">ttl</span> <span class="ow">in</span> <span class="n">ttls</span><span class="p">:</span>
+            <span class="n">addr_offset</span><span class="p">,</span> <span class="n">port_offset</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">offset</span><span class="p">(</span><span class="n">flow_id</span><span class="o">=</span><span class="n">flow_id</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">subprefix</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">subprefix</span> <span class="o">+</span> <span class="n">addr_offset</span><span class="p">,</span> <span class="n">probe_src_port</span> <span class="o">+</span> <span class="n">port_offset</span><span class="p">,</span> <span class="n">probe_dst_port</span><span class="p">,</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">protocol</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, dioptra.io.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Workflow &mdash; diamond-miner 0.1.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> diamond-miner
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="defaults.html">Default Values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="queries.html">Database Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mappers.html">Flow Mappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Probe Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rounds.html">MDA</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">diamond-miner</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Workflow</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/dioptra-io/diamond-miner/blob/main/docs/workflow.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="workflow">
+<h1>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h1>
+<p>This library contains three main components:</p>
+<ul class="simple">
+<li><p>Database queries that implements most of the algorithms in ClickHouse SQL.</p></li>
+<li><p>Flow mappers, to map between flow IDs and (address, port) offsets.</p></li>
+<li><p>Probe generators, to generate randomized probes on-the-fly.</p></li>
+</ul>
+<p>The example below show how to use these components together with <a class="reference external" href="https://github.com/dioptra-io/caracal">caracal</a>
+in order to discover load-balanced paths.
+Refer to the reference section of the documentation to learn more about the different functions available.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="kn">from</span> <span class="nn">diamond_miner.generator</span> <span class="kn">import</span> <span class="n">probe_generator_by_flow</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.mappers</span> <span class="kn">import</span> <span class="n">RandomFlowMapper</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.rounds.mda</span> <span class="kn">import</span> <span class="n">mda_probes</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CreateTables</span><span class="p">,</span>
+    <span class="n">GetLinks</span><span class="p">,</span>
+    <span class="n">InsertLinks</span><span class="p">,</span>
+    <span class="n">InsertPrefixes</span><span class="p">,</span>
+    <span class="n">results_table</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pycaracal</span> <span class="kn">import</span> <span class="n">cast_addr</span><span class="p">,</span> <span class="n">make_probe</span><span class="p">,</span> <span class="n">prober</span>
+
+
+<span class="k">def</span> <span class="nf">bulk_insert_results</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Insert results CSV into ClickHouse.&quot;&quot;&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    clickhouse-client </span><span class="se">\</span>
+<span class="s2">        --database=</span><span class="si">{</span><span class="n">database</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">        --host=</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">        --query=&#39;INSERT INTO </span><span class="si">{</span><span class="n">results_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">)</span><span class="si">}</span><span class="s2"> FORMAT CSV&#39; </span><span class="se">\</span>
+<span class="s2">    &lt; </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">make_probes</span><span class="p">(</span><span class="n">generator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create pycaracal probes.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">make_probe</span><span class="p">(</span><span class="n">cast_addr</span><span class="p">(</span><span class="n">dst_addr</span><span class="p">),</span> <span class="n">src_port</span><span class="p">,</span> <span class="n">dst_port</span><span class="p">,</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">protocol</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dst_addr</span><span class="p">,</span> <span class="n">src_port</span><span class="p">,</span> <span class="n">dst_port</span><span class="p">,</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">generator</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># Configuration</span>
+<span class="n">database_url</span> <span class="o">=</span> <span class="s2">&quot;clickhouse://localhost/default&quot;</span>
+<span class="n">measurement_id</span> <span class="o">=</span> <span class="s2">&quot;sample_measurement&quot;</span>
+<span class="n">probing_rate</span> <span class="o">=</span> <span class="mi">10_000</span> <span class="c1"># packets per second</span>
+<span class="n">prefix_len_v4</span> <span class="o">=</span> <span class="mi">24</span>
+<span class="n">prefix_len_v6</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">mapper_v4</span> <span class="o">=</span> <span class="n">RandomFlowMapper</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">2021</span><span class="p">,</span> <span class="n">prefix_size</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="mi">32</span> <span class="o">-</span> <span class="n">prefix_len_v4</span><span class="p">))</span>
+<span class="n">mapper_v6</span> <span class="o">=</span> <span class="n">RandomFlowMapper</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">2021</span><span class="p">,</span> <span class="n">prefix_size</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="mi">128</span> <span class="o">-</span> <span class="n">prefix_len_v6</span><span class="p">))</span>
+
+<span class="c1"># Enable logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<span class="c1"># Create the results/prefixes/flows/links tables</span>
+<span class="n">CreateTables</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">database_url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">)</span>
+
+<span class="c1"># Round 1</span>
+<span class="c1"># ICMP traceroute towards every /24 in 1.0.0.0/22 with 6 flows per prefix between TTLs 2-32</span>
+<span class="n">generator</span> <span class="o">=</span> <span class="n">probe_generator_by_flow</span><span class="p">(</span>
+    <span class="n">prefixes</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;1.0.0.0/16&quot;</span><span class="p">,</span> <span class="s2">&quot;icmp&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">32</span><span class="p">))],</span>
+    <span class="n">prefix_len_v4</span><span class="o">=</span><span class="n">prefix_len_v4</span><span class="p">,</span>
+    <span class="n">prefix_len_v6</span><span class="o">=</span><span class="n">prefix_len_v6</span><span class="p">,</span>
+    <span class="n">mapper_v4</span><span class="o">=</span><span class="n">mapper_v4</span><span class="p">,</span>
+    <span class="n">mapper_v6</span><span class="o">=</span><span class="n">mapper_v6</span><span class="p">,</span>
+    <span class="n">flow_ids</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Send the probes</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">prober</span><span class="o">.</span><span class="n">Config</span><span class="p">()</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set_output_file_csv</span><span class="p">(</span><span class="s2">&quot;round_1.csv&quot;</span><span class="p">)</span>  <span class="c1"># use .csv.zst to enable compression</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set_probing_rate</span><span class="p">(</span><span class="n">probing_rate</span><span class="p">)</span>
+<span class="n">prober</span><span class="o">.</span><span class="n">probe</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">make_probes</span><span class="p">(</span><span class="n">generator</span><span class="p">))</span>
+
+<span class="c1"># Round 2+</span>
+<span class="k">for</span> <span class="n">round_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+    <span class="n">bulk_insert_results</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;round_</span><span class="si">{</span><span class="n">round_</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+    <span class="c1"># See `execute_concurrent` and `subsets_for` to insert replies in parallel.</span>
+    <span class="n">InsertPrefixes</span><span class="p">(</span><span class="n">round_eq</span><span class="o">=</span><span class="n">round_</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">database_url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">)</span>
+    <span class="n">InsertLinks</span><span class="p">(</span><span class="n">round_eq</span><span class="o">=</span><span class="n">round_</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">database_url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">)</span>
+
+    <span class="c1"># Generate round n+1 probes from round n replies.</span>
+    <span class="n">probes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">mda_probes</span><span class="p">(</span>
+            <span class="n">database_url</span><span class="p">,</span>
+            <span class="n">measurement_id</span><span class="p">,</span>
+            <span class="n">mapper_v4</span><span class="o">=</span><span class="n">mapper_v4</span><span class="p">,</span>
+            <span class="n">mapper_v6</span><span class="o">=</span><span class="n">mapper_v6</span><span class="p">,</span>
+            <span class="n">round_</span><span class="o">=</span><span class="n">round_</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">probes</span><span class="p">:</span>
+        <span class="k">break</span>
+
+    <span class="c1"># Use `mda_parallel` when the number of prefixes/probes is large in order to</span>
+    <span class="c1"># shuffle the probes on disk.</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">probes</span><span class="p">)</span>
+
+    <span class="c1"># Send the probes</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">prober</span><span class="o">.</span><span class="n">Config</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">set_output_file_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;round_</span><span class="si">{</span><span class="n">round_</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">set_probing_rate</span><span class="p">(</span><span class="n">probing_rate</span><span class="p">)</span>
+    <span class="n">prober</span><span class="o">.</span><span class="n">probe</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">make_probes</span><span class="p">(</span><span class="n">probes</span><span class="p">))</span>
+
+<span class="n">links</span> <span class="o">=</span> <span class="n">GetLinks</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">database_url</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">links</span><span class="p">)</span><span class="si">}</span><span class="s2"> links discovered&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="development.html" class="btn btn-neutral float-right" title="Development" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, dioptra.io.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>diamond_miner.queries.get_links_from_view &mdash; diamond-miner 0.1.5 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> diamond-miner
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bibliography.html">Bibliography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../defaults.html">Default Values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../queries.html">Database Queries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mappers.html">Flow Mappers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../generators.html">Probe Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rounds.html">MDA</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">diamond-miner</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>diamond_miner.queries.get_links_from_view</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for diamond_miner.queries.get_links_from_view</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">diamond_miner.defaults</span> <span class="kn">import</span> <span class="n">UNIVERSE_SUBSET</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries</span> <span class="kn">import</span> <span class="n">CreateFlowsView</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries.fragments</span> <span class="kn">import</span> <span class="n">ip_in</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.queries.query</span> <span class="kn">import</span> <span class="n">FlowsQuery</span><span class="p">,</span> <span class="n">flows_table</span><span class="p">,</span> <span class="n">prefixes_table</span>
+<span class="kn">from</span> <span class="nn">diamond_miner.typing</span> <span class="kn">import</span> <span class="n">IPNetwork</span>
+
+
+<div class="viewcode-block" id="GetLinksFromView"><a class="viewcode-back" href="../../../queries.html#diamond_miner.queries.GetLinksFromView">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GetLinksFromView</span><span class="p">(</span><span class="n">FlowsQuery</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the links from the flows view.</span>
+<span class="sd">    This returns one line per ``(flow, link)`` pair.</span>
+
+<span class="sd">    We do not emit a link in the case of single reply in a traceroute.</span>
+<span class="sd">    For example: ``* * node * *``, does not generate a link.</span>
+<span class="sd">    However, ``* * node * * node&#39;``, will generate ``(node, *)`` and ``(*, node&#39;)``.</span>
+
+<span class="sd">    We emit cross-rounds links.</span>
+<span class="sd">    For example if flow N sees node A at TTL 10 at round 1 and flow N sees node B at TTL 11 at round 2,</span>
+<span class="sd">    we will emit ``(1, 10, A) - (2, 11, B)``.</span>
+
+<span class="sd">    We assume that there exists a single (flow, ttl) pair over all rounds.</span>
+<span class="sd">    TODO: Assert this?</span>
+
+<span class="sd">    If ``round_eq`` is none, compute the links per flow, across all rounds.</span>
+<span class="sd">    Otherwise, compute the links per flow, for the specified round.</span>
+<span class="sd">    This is useful if you want to update a `links` table round-by-round:</span>
+<span class="sd">    such a table will contain only intra-round links but can be updated incrementally.</span>
+
+<span class="sd">    &gt;&gt;&gt; from diamond_miner.test import url</span>
+<span class="sd">    &gt;&gt;&gt; links = GetLinksFromView().execute(url, &quot;test_nsdi_example&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; len(links)</span>
+<span class="sd">    58</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ignore_invalid_prefixes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">optimize_aggregation_in_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Necessary to avoid excessive memory usage when inserting all the links in one batch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">statement</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">measurement_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subset</span><span class="p">:</span> <span class="n">IPNetwork</span> <span class="o">=</span> <span class="n">UNIVERSE_SUBSET</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_invalid_prefixes</span><span class="p">:</span>
+            <span class="n">invalid_filter</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            AND (probe_protocol, probe_src_addr, probe_dst_prefix)</span>
+<span class="s2">            NOT IN (</span>
+<span class="s2">                SELECT probe_protocol, probe_src_addr, probe_dst_prefix</span>
+<span class="s2">                FROM </span><span class="si">{</span><span class="n">prefixes_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">                WHERE </span><span class="si">{</span><span class="n">ip_in</span><span class="p">(</span><span class="s1">&#39;probe_dst_prefix&#39;</span><span class="p">,</span> <span class="n">subset</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">                AND has_amplification</span>
+<span class="s2">            )</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+            <span class="c1"># TODO: We currently do not drop prefixes with loops as this considerably</span>
+            <span class="c1"># reduces the number of discoveries. As such, we send more probe than necessary.</span>
+            <span class="c1"># A better way would be to detect the min/max TTL of a loop, and to ignore it</span>
+            <span class="c1"># in the next round query.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">invalid_filter</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_aggregation_in_order</span><span class="p">:</span>
+            <span class="n">optimize_fragment</span> <span class="o">=</span> <span class="s2">&quot;SETTINGS optimize_aggregation_in_order = 1&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">optimize_fragment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        WITH</span>
+<span class="s2">            -- (round, ttl, addr)</span>
+<span class="s2">            groupUniqArrayMerge(replies) AS traceroute,</span>
+<span class="s2">            arrayMap(x -&gt; x.2, traceroute) AS ttls,</span>
+<span class="s2">            arrayMap(x -&gt; (x.1, x.3), traceroute) AS val,</span>
+<span class="s2">            CAST((ttls, val), &#39;Map(UInt8, Tuple(UInt8, IPv6))&#39;) AS map,</span>
+<span class="s2">            arrayMin(ttls) AS first_ttl,</span>
+<span class="s2">            arrayMax(ttls) AS last_ttl,</span>
+<span class="s2">            arrayMap(i -&gt; (toUInt8(i), toUInt8(i + 1), map[toUInt8(i)], map[toUInt8(i + 1)]), range(first_ttl, last_ttl)) AS links,</span>
+<span class="s2">            arrayJoin(links) AS link</span>
+<span class="s2">        SELECT</span>
+<span class="s2">            </span><span class="si">{</span><span class="n">CreateFlowsView</span><span class="o">.</span><span class="n">SORTING_KEY</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">            -- Set the round number for partial links:</span>
+<span class="s2">            -- The link (1, 10, A) -&gt; (null, 11, *) becomes</span>
+<span class="s2">            --          (1, 10, A) -&gt; (1,    11, *)</span>
+<span class="s2">            if(link.3.1 != 0, link.3.1, link.4.1) AS near_round,</span>
+<span class="s2">            if(link.4.1 != 0, link.4.1, link.3.1) AS far_round,</span>
+<span class="s2">            link.1 AS near_ttl,</span>
+<span class="s2">            link.2 AS far_ttl,</span>
+<span class="s2">            link.3.2 AS near_addr,</span>
+<span class="s2">            link.4.2 AS far_addr</span>
+<span class="s2">        FROM </span><span class="si">{</span><span class="n">flows_table</span><span class="p">(</span><span class="n">measurement_id</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        WHERE </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        </span><span class="si">{</span><span class="n">invalid_filter</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        GROUP BY (</span><span class="si">{</span><span class="n">CreateFlowsView</span><span class="o">.</span><span class="n">SORTING_KEY</span><span class="si">}</span><span class="s2">)</span>
+<span class="s2">        </span><span class="si">{</span><span class="n">optimize_fragment</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        &quot;&quot;&quot;</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, dioptra.io.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
