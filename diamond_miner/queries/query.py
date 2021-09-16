@@ -1,6 +1,7 @@
 import asyncio
 import os
 from asyncio import Semaphore
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from functools import reduce
@@ -25,6 +26,24 @@ CH_QUERY_SETTINGS = {
     # https://github.com/ClickHouse/ClickHouse/issues/18406
     "read_backoff_min_latency_ms": 100_000,
 }
+
+
+@asynccontextmanager
+async def async_client(url: str):
+    c = AsyncClient.from_url(url)
+    try:
+        yield c
+    finally:
+        await c.disconnect()
+
+
+@contextmanager
+def client(url: str):
+    c = Client.from_url(url)
+    try:
+        yield c
+    finally:
+        c.disconnect()
 
 
 def flows_table(measurement_id: str) -> str:
@@ -122,18 +141,18 @@ class Query:
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
         limit: Optional[Tuple[int, int]] = None,
     ) -> Iterator:
-        client = Client.from_url(url)
-        for subset in subsets:
-            for i, statement in enumerate(self.statements(measurement_id, subset)):
-                if limit:
-                    statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
-                with LoggingTimer(
-                    logger,
-                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
-                ):
-                    rows = client.execute_iter(statement, settings=CH_QUERY_SETTINGS)
-                    for row in rows:
-                        yield row
+        with client(url) as c:
+            for subset in subsets:
+                for i, statement in enumerate(self.statements(measurement_id, subset)):
+                    if limit:
+                        statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
+                    with LoggingTimer(
+                        logger,
+                        f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
+                    ):
+                        rows = c.execute_iter(statement, settings=CH_QUERY_SETTINGS)
+                        for row in rows:
+                            yield row
 
     async def execute_iter_async(
         self,
@@ -142,20 +161,20 @@ class Query:
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
         limit: Optional[Tuple[int, int]] = None,
     ) -> AsyncIterator:
-        client = AsyncClient.from_url(url)
-        for subset in subsets:
-            for i, statement in enumerate(self.statements(measurement_id, subset)):
-                if limit:
-                    statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
-                with LoggingTimer(
-                    logger,
-                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
-                ):
-                    rows = await client.execute_iter(
-                        statement, settings=CH_QUERY_SETTINGS
-                    )
-                    async for row in rows:
-                        yield row
+        async with async_client(url) as c:
+            for subset in subsets:
+                for i, statement in enumerate(self.statements(measurement_id, subset)):
+                    if limit:
+                        statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
+                    with LoggingTimer(
+                        logger,
+                        f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
+                    ):
+                        rows = await c.execute_iter(
+                            statement, settings=CH_QUERY_SETTINGS
+                        )
+                        async for row in rows:
+                            yield row
 
     async def execute_concurrent(
         self,
