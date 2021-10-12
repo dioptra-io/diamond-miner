@@ -69,8 +69,9 @@ def in_(column: str, values: Iterable[Any]) -> str:
 
 def date_time(d: datetime) -> str:
     """
-    >>> date_time(datetime(2021,10,12,10,57,30))
-    "parseDateTimeBestEffort('1634029050')"
+    >>> from pytz import UTC
+    >>> date_time(datetime(2021,10,12,10,57,30, tzinfo=UTC))
+    "parseDateTimeBestEffort('1634036250')"
     """
     return f"parseDateTimeBestEffort('{int(d.timestamp())}')"
 
