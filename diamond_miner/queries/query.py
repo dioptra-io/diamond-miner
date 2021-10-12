@@ -3,6 +3,7 @@ import os
 from asyncio import Semaphore
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from functools import reduce
 from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence, Tuple
@@ -88,6 +89,22 @@ class AddrType(str, Enum):
     Human string representation of the IPv6.
     With clickhouse-driver each address will be decoded as Python string.
     """
+
+
+@dataclass(frozen=True)
+class StoragePolicy:
+    """
+    See
+    - https://clickhouse.com/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-ttl
+    - https://clickhouse.com/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-multiple-volumes
+    """
+
+    name: str = "default"
+    """Name of the ClickHouse storage policy to use for the table."""
+    archive_to: str = "default"
+    """Name of the ClickHouse archive volume."""
+    archive_on: datetime = datetime(2100, 1, 1)
+    """Date at which the table will be moved to the archive volume."""
 
 
 @dataclass(frozen=True)

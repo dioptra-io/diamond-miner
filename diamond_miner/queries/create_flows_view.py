@@ -1,7 +1,13 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import ResultsQuery, flows_table, results_table
+from diamond_miner.queries.fragments import date_time
+from diamond_miner.queries.query import (
+    ResultsQuery,
+    StoragePolicy,
+    flows_table,
+    results_table,
+)
 from diamond_miner.typing import IPNetwork
 
 
@@ -12,6 +18,8 @@ class CreateFlowsView(ResultsQuery):
     PRIMARY_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
 
+    storage_policy: StoragePolicy = StoragePolicy()
+
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
@@ -21,6 +29,8 @@ class CreateFlowsView(ResultsQuery):
         ENGINE = AggregatingMergeTree
         ORDER BY ({self.SORTING_KEY})
         PRIMARY KEY ({self.PRIMARY_KEY})
+        TTL {date_time(self.storage_policy.archive_on)} TO VOLUME '{self.storage_policy.archive_to}'
+        SETTINGS storage_policy = '{self.storage_policy.name}'
         AS SELECT
             round,
             {self.SORTING_KEY},

@@ -2,7 +2,8 @@ from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreateFlowsView
-from diamond_miner.queries.query import Query, links_table
+from diamond_miner.queries.fragments import date_time
+from diamond_miner.queries.query import Query, StoragePolicy, links_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -11,6 +12,8 @@ class CreateLinksTable(Query):
     """Create the links table containing one line per (flow, link) pair."""
 
     SORTING_KEY = CreateFlowsView.SORTING_KEY
+
+    storage_policy: StoragePolicy = StoragePolicy()
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
@@ -39,4 +42,6 @@ class CreateLinksTable(Query):
         )
         ENGINE MergeTree
         ORDER BY ({self.SORTING_KEY})
+        TTL {date_time(self.storage_policy.archive_on)} TO VOLUME '{self.storage_policy.archive_to}'
+        SETTINGS storage_policy = '{self.storage_policy.name}'
         """

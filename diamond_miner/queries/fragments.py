@@ -1,3 +1,4 @@
+from datetime import datetime
 from ipaddress import ip_network
 from typing import Any, Iterable, Optional
 
@@ -64,6 +65,14 @@ def in_(column: str, values: Iterable[Any]) -> str:
     if not values:
         return "1"
     return f"{column} in [{','.join(map(str, values))}]"
+
+
+def date_time(d: datetime) -> str:
+    """
+    >>> date_time(datetime(2021,10,12,10,57,30))
+    "parseDateTimeBestEffort('1634029050')"
+    """
+    return f"parseDateTimeBestEffort('{int(d.timestamp())}')"
 
 
 def ipv6(x: Any) -> str:

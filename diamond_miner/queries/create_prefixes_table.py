@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import Query, prefixes_table
+from diamond_miner.queries.fragments import date_time
+from diamond_miner.queries.query import Query, StoragePolicy, prefixes_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -10,6 +11,8 @@ class CreatePrefixesTable(Query):
     """Create the table containing (invalid) prefixes."""
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
+
+    storage_policy: StoragePolicy = StoragePolicy()
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
@@ -25,4 +28,6 @@ class CreatePrefixesTable(Query):
         )
         ENGINE MergeTree
         ORDER BY ({self.SORTING_KEY})
+        TTL {date_time(self.storage_policy.archive_on)} TO VOLUME '{self.storage_policy.archive_to}'
+        SETTINGS storage_policy = '{self.storage_policy.name}'
         """

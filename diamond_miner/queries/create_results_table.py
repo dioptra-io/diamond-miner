@@ -5,8 +5,8 @@ from diamond_miner.defaults import (
     DEFAULT_PREFIX_LEN_V6,
     UNIVERSE_SUBSET,
 )
-from diamond_miner.queries.fragments import cut_ipv6
-from diamond_miner.queries.query import Query, results_table
+from diamond_miner.queries.fragments import cut_ipv6, date_time
+from diamond_miner.queries.query import Query, StoragePolicy, results_table
 from diamond_miner.typing import IPNetwork
 
 
@@ -18,6 +18,7 @@ class CreateResultsTable(Query):
 
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
+    storage_policy: StoragePolicy = StoragePolicy()
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
@@ -90,4 +91,6 @@ class CreateResultsTable(Query):
         )
         ENGINE MergeTree
         ORDER BY ({self.SORTING_KEY})
+        TTL {date_time(self.storage_policy.archive_on)} TO VOLUME '{self.storage_policy.archive_to}'
+        SETTINGS storage_policy = '{self.storage_policy.name}'
         """
