@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from asyncio import Semaphore
 from contextlib import asynccontextmanager, contextmanager
@@ -8,6 +9,7 @@ from enum import Enum
 from functools import reduce
 from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence, Tuple
 
+import httpx
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
 from clickhouse_driver.errors import ServerException
@@ -192,6 +194,27 @@ class Query:
                         )
                         async for row in rows:
                             yield row
+
+    async def execute_http_async(
+        self,
+        url: str,
+        measurement_id: str,
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
+    ) -> AsyncIterator[dict]:
+        async with httpx.AsyncClient() as c:
+            for subset in subsets:
+                for i, statement in enumerate(self.statements(measurement_id, subset)):
+                    if limit:
+                        statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
+                    statement += "\nFORMAT JSONEachRow"
+                    with LoggingTimer(
+                        logger,
+                        f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
+                    ):
+                        r = await c.get(url, params={"query": statement})
+                        for line in r.content.splitlines():
+                            yield json.loads(line)
 
     async def execute_concurrent(
         self,

@@ -24,6 +24,7 @@ build = "build_ext.py"
 python = "^3.8"
 aioch = "^0.0.2"
 clickhouse-driver = "^0.2.0"
+httpx = "^0.20.0"
 pygfc = "^1.0.3"
 zstandard = "^0.15.2"
 
