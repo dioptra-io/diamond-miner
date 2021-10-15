@@ -195,6 +195,26 @@ class Query:
                         async for row in rows:
                             yield row
 
+    def execute_http(
+        self,
+        url: str,
+        measurement_id: str,
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        limit: Optional[Tuple[int, int]] = None,
+    ) -> Iterator[dict]:
+        for subset in subsets:
+            for i, statement in enumerate(self.statements(measurement_id, subset)):
+                if limit:
+                    statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
+                statement += "\nFORMAT JSONEachRow"
+                with LoggingTimer(
+                    logger,
+                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
+                ):
+                    r = httpx.get(url, params={"query": statement})
+                    for line in r.content.splitlines():
+                        yield json.loads(line)
+
     async def execute_http_async(
         self,
         url: str,
