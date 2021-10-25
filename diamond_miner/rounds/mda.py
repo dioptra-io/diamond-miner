@@ -20,6 +20,7 @@ def mda_probes(
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
+    target_epsilon: float = 0.05,
     subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> Iterator[Probe]:
     """
@@ -33,6 +34,7 @@ def mda_probes(
         filter_partial=True,
         filter_virtual=True,
         filter_inter_round=True,
+        target_epsilon=target_epsilon,
     )
     rows = query.execute_iter(url, measurement_id, subsets)
     for row in rows:

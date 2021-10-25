@@ -27,6 +27,7 @@ async def mda_probes_parallel(
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
+    target_epsilon: float = 0.05,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -44,6 +45,7 @@ async def mda_probes_parallel(
             round_leq=round_,
             filter_virtual=True,
             filter_inter_round=True,
+            target_epsilon=target_epsilon,
         ),
         url,
         measurement_id,
