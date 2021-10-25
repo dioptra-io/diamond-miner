@@ -13,6 +13,7 @@ class GetNextRound(LinksQuery):
     adaptive_eps: bool = True
     dminer_lite: bool = True
     target_epsilon: float = 0.05
+    n_initial_flows: int = 6
 
     Row = namedtuple(
         "Row",
@@ -79,7 +80,7 @@ class GetNextRound(LinksQuery):
             -- over the links discovered during the previous rounds at TTL t and t-1
             if(
                 current_round == 1,
-                arrayMap(t -> 6, TTLs),
+                arrayMap(t -> {self.n_initial_flows}, TTLs),
                 arrayMap(i -> arrayMax([mda_flows_prev[i], mda_flows_prev[i - 1]]), arrayEnumerate(TTLs))
             ) AS already_sent,
             -- compute the number of probes to send during the next round

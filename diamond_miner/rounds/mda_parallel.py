@@ -28,6 +28,7 @@ async def mda_probes_parallel(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
     target_epsilon: float = 0.05,
+    n_initial_flows=6,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -46,6 +47,7 @@ async def mda_probes_parallel(
             filter_virtual=True,
             filter_inter_round=True,
             target_epsilon=target_epsilon,
+            n_initial_flows=n_initial_flows,
         ),
         url,
         measurement_id,
@@ -78,6 +80,8 @@ async def mda_probes_parallel(
                     probe_src_port,
                     probe_dst_port,
                     adaptive_eps,
+                    target_epsilon,
+                    n_initial_flows,
                     subset,
                     n_files_per_subset,
                 )
@@ -109,11 +113,14 @@ def worker(
     probe_src_port: int,
     probe_dst_port: int,
     adaptive_eps: bool,
+    target_epsilon: float,
+    n_initial_flows: int,
     subset: IPNetwork,
     n_files: int,
 ) -> int:
     """
-    Execute the :class:`diamond_miner.queries.GetNextRound` query on the specified subset, and write the probes to the specified file.
+    Execute the :class:`diamond_miner.queries.GetNextRound` query
+    on the specified subset, and write the probes to the specified file.
     """
     # TODO: random.shuffle is slow...
     # A potentially simpler and better way would be to shuffle
@@ -122,7 +129,8 @@ def worker(
     # e.g. ORDER BY rand() in GetNextRound.
 
     # The larger `max_probes_in_memory`, the better the performance
-    # (less calls to `probes.clear()`) and the randomization but the more the memory usage.
+    # (less calls to `probes.clear()`)
+    # and the randomization but the more the memory usage.
     max_probes_in_memory = 1_000_000
 
     outputs: List[Tuple] = []
@@ -144,6 +152,8 @@ def worker(
         probe_src_port,
         probe_dst_port,
         adaptive_eps,
+        target_epsilon,
+        n_initial_flows,
         (subset,),
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
