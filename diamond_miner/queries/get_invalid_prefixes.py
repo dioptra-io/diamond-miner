@@ -1,8 +1,35 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import ResultsQuery, results_table
+from diamond_miner.queries.query import (
+    PrefixesQuery,
+    ResultsQuery,
+    prefixes_table,
+    results_table,
+)
 from diamond_miner.typing import IPNetwork
+
+
+@dataclass(frozen=True)
+class GetInvalidPrefixes(PrefixesQuery):
+    """
+    Return the prefixes with unexpected behavior
+    (see :class:`GetPrefixesWithAmplification` and :class:`GetPrefixesWithLoops`).
+
+    >>> from diamond_miner.test import addr_to_string, url
+    >>> rows = GetInvalidPrefixes().execute(url, "test_invalid_prefixes")
+    >>> [addr_to_string(x[0]) for x in rows]
+    ['201.0.0.0', '202.0.0.0']
+    """
+
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
+        return f"""
+        SELECT probe_dst_prefix
+        FROM {prefixes_table(measurement_id)}
+        WHERE {self.filters(subset)} AND (has_amplification OR has_loops)
+        """
 
 
 @dataclass(frozen=True)
@@ -15,7 +42,7 @@ class GetPrefixesWithAmplification(ResultsQuery):
     >>> from diamond_miner.test import addr_to_string, url
     >>> rows = GetPrefixesWithAmplification().execute(url, "test_invalid_prefixes")
     >>> [addr_to_string(x[2]) for x in rows]
-    ['201.0.0.0', '202.0.0.0']
+    ['202.0.0.0']
     """
 
     def statement(

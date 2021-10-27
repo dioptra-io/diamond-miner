@@ -6,7 +6,11 @@ from .create_prefixes_table import CreatePrefixesTable
 from .create_results_table import CreateResultsTable
 from .create_tables import CreateTables
 from .drop_tables import DropTables
-from .get_invalid_prefixes import GetPrefixesWithAmplification, GetPrefixesWithLoops
+from .get_invalid_prefixes import (
+    GetInvalidPrefixes,
+    GetPrefixesWithAmplification,
+    GetPrefixesWithLoops,
+)
 from .get_links import GetLinks
 from .get_links_from_view import GetLinksFromView
 from .get_next_round import GetNextRound
@@ -48,6 +52,7 @@ __all__ = (
     "GetPrefixes",
     "GetResults",
     "GetSlidingPrefixes",
+    "GetInvalidPrefixes",
     "GetPrefixesWithAmplification",
     "GetPrefixesWithLoops",
     "InsertLinks",
