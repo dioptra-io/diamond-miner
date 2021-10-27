@@ -60,8 +60,7 @@ warn_unused_ignores = true
 archs = ["x86_64", "aarch64"]
 
 [tool.cibuildwheel.macos]
-# arm64/universal2 wheels are currently broken
-archs = ["x86_64"]
+archs = ["universal2"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=40.6.0", "Cython>=0.29.0"]
