@@ -199,6 +199,7 @@ class Query:
         self,
         url: str,
         measurement_id: str,
+        database: str = "default",
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
         limit: Optional[Tuple[int, int]] = None,
     ) -> Iterator[dict]:
@@ -209,9 +210,11 @@ class Query:
                 statement += "\nFORMAT JSONEachRow"
                 with LoggingTimer(
                     logger,
-                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
+                    f"query={self.name}#{i} measurement_id={measurement_id} database={database} subset={subset} limit={limit}",
                 ):
-                    r = httpx.get(url, params={"query": statement})
+                    r = httpx.get(
+                        url, params={"query": statement, "database": database}
+                    )
                     for line in r.content.splitlines():
                         yield json.loads(line)
 
@@ -219,6 +222,7 @@ class Query:
         self,
         url: str,
         measurement_id: str,
+        database: str = "default",
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
         limit: Optional[Tuple[int, int]] = None,
     ) -> AsyncIterator[dict]:
@@ -230,9 +234,11 @@ class Query:
                     statement += "\nFORMAT JSONEachRow"
                     with LoggingTimer(
                         logger,
-                        f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
+                        f"query={self.name}#{i} measurement_id={measurement_id} database={database} subset={subset} limit={limit}",
                     ):
-                        r = await c.get(url, params={"query": statement})
+                        r = await c.get(
+                            url, params={"query": statement, "database": database}
+                        )
                         for line in r.content.splitlines():
                             yield json.loads(line)
 
