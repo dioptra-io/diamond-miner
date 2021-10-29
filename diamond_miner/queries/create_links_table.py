@@ -23,7 +23,6 @@ class CreateLinksTable(Query):
         CREATE TABLE IF NOT EXISTS {links_table(measurement_id)}
         (
             probe_protocol    UInt8,
-            probe_src_addr    IPv6,
             probe_dst_prefix  IPv6,
             probe_dst_addr    IPv6,
             probe_src_port    UInt16,

@@ -37,12 +37,11 @@ class GetPrefixes(ResultsQuery):
         if self.reply_src_addr_in:
             join_fragment = f"""
             INNER JOIN (
-                SELECT DISTINCT probe_protocol, probe_src_addr, probe_dst_prefix
+                SELECT DISTINCT probe_protocol, probe_dst_prefix
                 FROM {results_table(measurement_id)}
                 WHERE {self.filters(subset)} AND {ip_in('reply_src_addr', self.reply_src_addr_in)}
             ) AS results
             ON  prefixes.probe_protocol   = results.probe_protocol
-            AND prefixes.probe_src_addr   = results.probe_src_addr
             AND prefixes.probe_dst_prefix = results.probe_dst_prefix
             """
         return f"""

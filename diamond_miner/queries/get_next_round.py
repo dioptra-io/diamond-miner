@@ -107,7 +107,7 @@ class GetNextRound(LinksQuery):
             TTLs
         FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
-        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
+        GROUP BY (probe_protocol, probe_dst_prefix)
         HAVING NOT skip_prefix
         """
 
@@ -177,5 +177,5 @@ class GetNextRoundStateful(LinksQuery):
             TTLs
         FROM {links_table(measurement_id)} AS links_table
         WHERE {self.filters(subset)}
-        GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
+        GROUP BY (probe_protocol, probe_dst_prefix)
         """

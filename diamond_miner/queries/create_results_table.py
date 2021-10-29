@@ -14,7 +14,7 @@ from diamond_miner.typing import IPNetwork
 class CreateResultsTable(Query):
     """Create the table used to store the measurement results from the prober."""
 
-    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
+    SORTING_KEY = "probe_protocol, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
 
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
@@ -27,7 +27,6 @@ class CreateResultsTable(Query):
         CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (
             probe_protocol         UInt8,
-            probe_src_addr         IPv6,
             probe_dst_addr         IPv6,
             probe_src_port         UInt16,
             probe_dst_port         UInt16,

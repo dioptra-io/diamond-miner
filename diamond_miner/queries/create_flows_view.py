@@ -15,8 +15,8 @@ from diamond_miner.typing import IPNetwork
 class CreateFlowsView(ResultsQuery):
     """Create the flows view."""
 
-    PRIMARY_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
-    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
+    PRIMARY_KEY = "probe_protocol, probe_dst_prefix"
+    SORTING_KEY = "probe_protocol, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port"
 
     storage_policy: StoragePolicy = StoragePolicy()
 

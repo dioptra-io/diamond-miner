@@ -47,9 +47,9 @@ class GetLinksFromView(FlowsQuery):
     ) -> str:
         if self.ignore_invalid_prefixes:
             invalid_filter = f"""
-            AND (probe_protocol, probe_src_addr, probe_dst_prefix)
+            AND (probe_protocol, probe_dst_prefix)
             NOT IN (
-                SELECT probe_protocol, probe_src_addr, probe_dst_prefix
+                SELECT probe_protocol, probe_dst_prefix
                 FROM {prefixes_table(measurement_id)}
                 WHERE {ip_in('probe_dst_prefix', subset)}
                 AND has_amplification

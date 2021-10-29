@@ -10,7 +10,7 @@ from diamond_miner.typing import IPNetwork
 class CreatePrefixesTable(Query):
     """Create the table containing (invalid) prefixes."""
 
-    SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
+    SORTING_KEY = "probe_protocol, probe_dst_prefix"
 
     storage_policy: StoragePolicy = StoragePolicy()
 
@@ -21,7 +21,6 @@ class CreatePrefixesTable(Query):
         CREATE TABLE IF NOT EXISTS {prefixes_table(measurement_id)}
         (
             probe_protocol         UInt8,
-            probe_src_addr         IPv6,
             probe_dst_prefix       IPv6,
             has_amplification      UInt8,
             has_loops              UInt8

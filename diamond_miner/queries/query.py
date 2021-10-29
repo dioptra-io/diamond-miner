@@ -315,12 +315,6 @@ class LinksQuery(Query):
     probe_protocol: Optional[int] = None
     "If specified, keep only the links inferred from probes sent with this protocol."
 
-    probe_src_addr: Optional[str] = None
-    """
-    If specified, keep only the links inferred from probes sent by this address.
-    This filter is relatively costly (IPv6 comparison on each row).
-    """
-
     round_eq: Optional[int] = None
     "If specified, keep only the links from this round."
 
@@ -334,8 +328,6 @@ class LinksQuery(Query):
             s += [ip_in("probe_dst_prefix", subset)]
         if self.probe_protocol:
             s += [eq("probe_protocol", self.probe_protocol)]
-        if self.probe_src_addr:
-            s += [ip_eq("probe_src_addr", self.probe_src_addr)]
         if self.round_eq:
             s += [eq("near_round", self.round_eq), eq("far_round", self.round_eq)]
         if self.round_leq:
@@ -361,12 +353,6 @@ class PrefixesQuery(Query):
     probe_protocol: Optional[int] = None
     "If specified, keep only the links inferred from probes sent with this protocol."
 
-    probe_src_addr: Optional[str] = None
-    """
-    If specified, keep only the links inferred from probes sent by this address.
-    This filter is relatively costly (IPv6 comparison on each row).
-    """
-
     def filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries on the prefixes table."""
         s = []
@@ -374,8 +360,6 @@ class PrefixesQuery(Query):
             s += [ip_in("probe_dst_prefix", subset)]
         if self.probe_protocol:
             s += [eq("probe_protocol", self.probe_protocol)]
-        if self.probe_src_addr:
-            s += [ip_eq("probe_src_addr", self.probe_src_addr)]
         return reduce(and_, s or ["1"])
 
 
@@ -429,12 +413,6 @@ class ResultsQuery(Query):
     probe_protocol: Optional[int] = None
     "If specified, keep only the replies to probes sent with this protocol."
 
-    probe_src_addr: Optional[str] = None
-    """
-    If specified, keep only the replies to probes sent by this address.
-    This filter is relatively costly (IPv6 comparison on each row).
-    """
-
     round_eq: Optional[int] = None
     "If specified, keep only the replies from this round."
 
@@ -448,8 +426,6 @@ class ResultsQuery(Query):
             s += [ip_in("probe_dst_prefix", subset)]
         if self.probe_protocol:
             s += [eq("probe_protocol", self.probe_protocol)]
-        if self.probe_src_addr:
-            s += [ip_eq("probe_src_addr", self.probe_src_addr)]
         if self.round_eq:
             s += [eq("round", self.round_eq)]
         if self.round_leq:
