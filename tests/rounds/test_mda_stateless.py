@@ -7,7 +7,7 @@ from diamond_miner.mappers import (
     ReverseByteFlowMapper,
     SequentialFlowMapper,
 )
-from diamond_miner.rounds.mda import mda_probes
+from diamond_miner.rounds.mda_stateless import mda_probes
 
 
 def test_mda_probes_lite(url):

@@ -12,7 +12,7 @@ from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_POR
 from diamond_miner.format import format_probe
 from diamond_miner.logging import logger
 from diamond_miner.queries import GetNextRound
-from diamond_miner.rounds.mda import mda_probes
+from diamond_miner.rounds.mda_stateless import mda_probes
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
