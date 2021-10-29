@@ -32,7 +32,7 @@ CH_QUERY_SETTINGS = {
 
 
 @asynccontextmanager
-async def async_client(url: str):
+async def async_client(url: str) -> AsyncClient:
     c = AsyncClient.from_url(url)
     try:
         yield c
@@ -41,7 +41,7 @@ async def async_client(url: str):
 
 
 @contextmanager
-def client(url: str):
+def client(url: str) -> Client:
     c = Client.from_url(url)
     try:
         yield c

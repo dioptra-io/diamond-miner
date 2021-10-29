@@ -28,7 +28,7 @@ async def mda_probes_parallel(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
     target_epsilon: float = 0.05,
-    n_initial_flows=6,
+    n_initial_flows: int = 6,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -152,8 +152,8 @@ def worker(
         probe_src_port,
         probe_dst_port,
         adaptive_eps,
-        target_epsilon,
         n_initial_flows,
+        target_epsilon,
         (subset,),
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
@@ -165,7 +165,7 @@ def worker(
     flush(probes_by_file, outputs)
 
     for ctx, file, stream in outputs:
-        stream.close()  # type: ignore
+        stream.close()
         file.close()
 
     return n_probes

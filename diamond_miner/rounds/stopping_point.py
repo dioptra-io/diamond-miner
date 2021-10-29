@@ -1,7 +1,7 @@
 from math import ceil, log
 
 
-def stopping_point(k, eps=0.05):
+def stopping_point(k: int, eps: float = 0.05) -> int:
     """
     Return the number `n_k` of probes that guarantees that the probability of not
     detecting `k` outgoing load-balanced edges is lower than `eps`.
