@@ -2,9 +2,14 @@ from dataclasses import asdict, fields
 from ipaddress import IPv6Address, IPv6Network, ip_network
 from typing import Dict, List, Union
 
-from diamond_miner.queries import CountLinksPerPrefix, CountResultsPerPrefix
-from diamond_miner.queries.count_rows import CountFlowsPerPrefix
-from diamond_miner.queries.query import FlowsQuery, LinksQuery, ResultsQuery
+from diamond_miner.queries import (
+    CountFlowsPerPrefix,
+    CountLinksPerPrefix,
+    CountResultsPerPrefix,
+    FlowsQuery,
+    LinksQuery,
+    ResultsQuery,
+)
 
 Counts = Dict[IPv6Network, int]
 

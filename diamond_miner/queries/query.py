@@ -16,7 +16,7 @@ from clickhouse_driver.errors import ServerException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import and_, eq, ip_eq, ip_in, leq, not_, or_
+from diamond_miner.queries.fragments import and_, eq, ip_eq, ip_in, leq, lt, not_, or_
 from diamond_miner.timer import LoggingTimer
 from diamond_miner.typing import IPNetwork
 
@@ -59,6 +59,10 @@ def links_table(measurement_id: str) -> str:
 
 def prefixes_table(measurement_id: str) -> str:
     return f"prefixes__{measurement_id}".replace("-", "_")
+
+
+def probes_table(measurement_id: str) -> str:
+    return f"probes__{measurement_id}".replace("-", "_")
 
 
 def results_table(measurement_id: str) -> str:
@@ -372,6 +376,36 @@ class PrefixesQuery(Query):
             s += [eq("probe_protocol", self.probe_protocol)]
         if self.probe_src_addr:
             s += [ip_eq("probe_src_addr", self.probe_src_addr)]
+        return reduce(and_, s or ["1"])
+
+
+@dataclass(frozen=True)
+class ProbesQuery(Query):
+    probe_protocol: Optional[int] = None
+    "If specified, keep only probes sent with this protocol."
+
+    round_eq: Optional[int] = None
+    "If specified, keep only the probes from this round."
+
+    round_leq: Optional[int] = None
+    "If specified, keep only links from this round or before."
+
+    round_lt: Optional[int] = None
+    "If specified, keep only links from before this round."
+
+    def filters(self, subset: IPNetwork) -> str:
+        """``WHERE`` clause common to all queries on the probes table."""
+        s = []
+        if subset != UNIVERSE_SUBSET:
+            s += [ip_in("probe_dst_prefix", subset)]
+        if self.probe_protocol:
+            s += [eq("probe_protocol", self.probe_protocol)]
+        if self.round_eq:
+            s += [eq("round", self.round_eq)]
+        if self.round_lt:
+            s += [lt("round", self.round_lt)]
+        if self.round_leq:
+            s += [leq("round", self.round_leq)]
         return reduce(and_, s or ["1"])
 
 

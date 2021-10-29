@@ -10,6 +10,7 @@ from diamond_miner.queries import (
     CreateFlowsView,
     CreateLinksTable,
     CreatePrefixesTable,
+    CreateProbesTable,
     CreateResultsTable,
 )
 from diamond_miner.queries.query import Query, StoragePolicy
@@ -39,4 +40,5 @@ class CreateTables(Query):
             *CreateFlowsView(**params).statements(measurement_id, subset),
             *CreateLinksTable(**params).statements(measurement_id, subset),
             *CreatePrefixesTable(**params).statements(measurement_id, subset),
+            *CreateProbesTable(**params).statements(measurement_id, subset),
         )

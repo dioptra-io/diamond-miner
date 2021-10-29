@@ -7,6 +7,7 @@ from diamond_miner.queries.query import (
     flows_table,
     links_table,
     prefixes_table,
+    probes_table,
     results_table,
 )
 from diamond_miner.typing import IPNetwork
@@ -24,4 +25,5 @@ class DropTables(Query):
             f"DROP TABLE IF EXISTS {flows_table(measurement_id)}",
             f"DROP TABLE IF EXISTS {links_table(measurement_id)}",
             f"DROP TABLE IF EXISTS {prefixes_table(measurement_id)}",
+            f"DROP TABLE IF EXISTS {probes_table(measurement_id)}",
         )

@@ -19,12 +19,23 @@
 -- 15 1 3 7 6
 
 -- Round 1, 6 probes per TTL
+INSERT INTO probes__test_nsdi_lite
+SELECT *
+FROM probes__test_nsdi_example
+WHERE round = 1;
+
 INSERT INTO results__test_nsdi_lite
 SELECT *
 FROM results__test_nsdi_example
 WHERE round = 1;
 
 -- Round 2, 5 probes at TTL 1-4
+INSERT INTO probes__test_nsdi_lite
+VALUES (1, '::ffff:200.0.0.0', 1, 5, 2),
+       (1, '::ffff:200.0.0.0', 2, 5, 2),
+       (1, '::ffff:200.0.0.0', 3, 5, 2),
+       (1, '::ffff:200.0.0.0', 4, 5, 2);
+
 INSERT INTO results__test_nsdi_lite
 VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.6', 24000, 33434, 1, 1, '::ffff:150.0.1.1', 1, 11, 0, 250, 0, [], 0.0, 2),
        (1, '::ffff:100.0.0.1', '::ffff:200.0.0.7', 24000, 33434, 1, 1, '::ffff:150.0.1.1', 1, 11, 0, 250, 0, [], 0.0, 2),
@@ -47,7 +58,12 @@ VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.6', 24000, 33434, 1, 1, '::ffff:1
        (1, '::ffff:100.0.0.1', '::ffff:200.0.0.9', 24000, 33434, 4, 4, '::ffff:150.0.6.1', 1, 11, 0, 250, 0, [], 0.0, 2),
        (1, '::ffff:100.0.0.1', '::ffff:200.0.0.10', 24000, 33434, 4, 4, '::ffff:150.0.6.1', 1, 11, 0, 250, 0, [], 0.0, 2);
 
--- Round 3, 5 probes at TTL 3-4
+-- Round 3, 5 probes at TTL 2-4
+INSERT INTO probes__test_nsdi_lite
+VALUES (1, '::ffff:200.0.0.0', 2, 5, 3),
+       (1, '::ffff:200.0.0.0', 3, 5, 3),
+       (1, '::ffff:200.0.0.0', 4, 5, 3);
+
 INSERT INTO results__test_nsdi_lite
 VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.11', 24000, 33434, 2, 2, '::ffff:150.0.2.1', 1, 11, 0, 250, 0, [], 0.0, 3),
        (1, '::ffff:100.0.0.1', '::ffff:200.0.0.12', 24000, 33434, 2, 2, '::ffff:150.0.2.1', 1, 11, 0, 250, 0, [], 0.0, 3),

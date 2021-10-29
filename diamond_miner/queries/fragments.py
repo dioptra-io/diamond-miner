@@ -31,6 +31,22 @@ def eq(column: str, value: Optional[Any]) -> str:
     return f"{column} = {value}"
 
 
+def lt(column: str, value: Optional[Any]) -> str:
+    """
+    >>> lt("col", None)
+    '1'
+    >>> lt("col", 1)
+    'col < 1'
+    >>> lt("col", "1")
+    "col < '1'"
+    """
+    if not value:
+        return "1"
+    if isinstance(value, str):
+        return f"{column} < '{value}'"
+    return f"{column} < {value}"
+
+
 def leq(column: str, value: Optional[Any]) -> str:
     """
     >>> leq("col", None)
