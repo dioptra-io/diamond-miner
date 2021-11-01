@@ -1,5 +1,4 @@
-from collections import defaultdict
-from typing import Dict, Iterable, Iterator, Tuple
+from typing import Iterable, Iterator
 
 from diamond_miner.defaults import (
     DEFAULT_PROBE_DST_PORT,
@@ -8,7 +7,9 @@ from diamond_miner.defaults import (
     UNIVERSE_SUBSET,
 )
 from diamond_miner.logging import logger
-from diamond_miner.queries import GetNextRound, GetNextRoundStateful, GetProbes
+from diamond_miner.queries import GetNextRound
+from diamond_miner.queries.get_next_round import InsertMDAProbes
+from diamond_miner.queries.get_probes import GetProbesDiff
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
@@ -27,34 +28,27 @@ def mda_probes_stateful(
     """
     Compute the probes to send given the previously discovered links.
     """
-    # 1) Get the number of probes sent during the previous rounds.
-    rows = GetProbes(round_leq=round_).execute_iter(url, measurement_id, subsets)
-    already_sent = defaultdict(int)
-    for row in rows:
-        row = GetProbes.Row(*row)
-        for ttl, n_probes in row.probes_per_ttl:
-            already_sent[(row.protocol, int(row.dst_prefix), ttl)] = n_probes
-
-    # 2) Compute the probes to send for the next round.
-    # TODO: filter_partial is temporary.
-    # TODO: filter_inter_round?
-    query = GetNextRoundStateful(
+    # TODO: Separate in a separate function?
+    # (compute_mda_probes?)
+    InsertMDAProbes(
         adaptive_eps=adaptive_eps,
         round_leq=round_,
         filter_partial=True,
         filter_virtual=True,
         filter_inter_round=True,
         target_epsilon=target_epsilon,
-    )
+    ).execute(url, measurement_id, subsets)
+    print(round_)
+    # TODO: Cleanup import/export in __init__.py
+    query = GetProbesDiff(round_eq=round_ + 1)
     rows = query.execute_iter(url, measurement_id, subsets)
     for row in rows:
         for probe in row_to_probes(
-            GetNextRoundStateful.Row(*row),
+            GetProbesDiff.Row(*row),
             mapper_v4,
             mapper_v6,
             probe_src_port,
             probe_dst_port,
-            already_sent,
         ):
             # TEMP: Log prefixes that overflows the port number.
             if probe[1] > (2 ** 16 - 1):
@@ -64,20 +58,19 @@ def mda_probes_stateful(
 
 
 def row_to_probes(
-    row: GetNextRoundStateful.Row,
+    row: GetProbesDiff.Row,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
     probe_src_port: int,
     probe_dst_port: int,
-    already_sent: Dict[Tuple[int, int, int], int],
 ) -> Iterator[Probe]:
     dst_prefix_int = int(row.dst_prefix)
     mapper = mapper_v4 if row.dst_prefix.ipv4_mapped else mapper_v6
     protocol_str = PROTOCOLS[row.protocol]
 
-    for ttl, total_probes in zip(row.ttls, row.total_probes):
-        already_sent_ = already_sent[(row.protocol, dst_prefix_int, ttl)]
-        for flow_id in range(already_sent_, total_probes):
+    for ttl, total_probes, already_sent in row.probes_per_ttl:
+        print(ttl, total_probes, already_sent)
+        for flow_id in range(already_sent, total_probes):
             addr_offset, port_offset = mapper.offset(
                 flow_id=flow_id, prefix=dst_prefix_int
             )

@@ -4,6 +4,7 @@ from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4, DEFAULT_PREFIX_SIZE_V
 
 # TODO: Merge with test_mda?
 from diamond_miner.mappers import SequentialFlowMapper
+from diamond_miner.queries.delete_probes import DeleteProbes
 from diamond_miner.rounds.mda_stateful import mda_probes_stateful
 
 
@@ -27,6 +28,8 @@ def test_mda_probes_lite(url):
                 adaptive_eps=False,
             )
         )
+
+    DeleteProbes(round_geq=2).execute(url, table)
 
     # Round 1 -> 2, 5 probes at TTL 1-4
     target_specs = []

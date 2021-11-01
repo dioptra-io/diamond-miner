@@ -2,7 +2,7 @@ from collections import namedtuple
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries.query import LinksQuery, links_table
+from diamond_miner.queries.query import LinksQuery, links_table, probes_table
 from diamond_miner.typing import IPNetwork
 
 # TODO: Exclude invalid prefixes
@@ -113,14 +113,14 @@ class GetNextRound(LinksQuery):
 
 
 @dataclass(frozen=True)
-class GetNextRoundStateful(LinksQuery):
+class GetMDAProbes(LinksQuery):
     # This query is tested in test_queries.py due to its complexity.
 
     adaptive_eps: bool = True
     dminer_lite: bool = True
     target_epsilon: float = 0.05
 
-    Row = namedtuple("Row", "protocol,dst_prefix,total_probes,ttls")
+    Row = namedtuple("Row", "protocol,dst_prefix,cumulative_probes,ttls")
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
@@ -165,7 +165,7 @@ class GetNextRoundStateful(LinksQuery):
             {dm_fragment}
             -- compute the number of probes to send during the next round
             -- => max of probes to send over TTL t and t-1
-            arrayMap(i -> arrayMax([mda_flows[i], mda_flows[i - 1]]), arrayEnumerate(TTLs)) AS total_probes
+            arrayMap(i -> arrayMax([mda_flows[i], mda_flows[i - 1]]), arrayEnumerate(TTLs)) AS cumulative_probes
             -- TODO: Cleanup/optimize/rewrite/... below
             -- do not send probes to TTLs where no replies have been received
             -- it is unlikely that we will discover more at this TTL if the first 6 flows have seen nothing
@@ -173,9 +173,29 @@ class GetNextRoundStateful(LinksQuery):
         SELECT
             probe_protocol,
             probe_dst_prefix,
-            total_probes,
+            cumulative_probes,
             TTLs
         FROM {links_table(measurement_id)} AS links_table
         WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
+        """
+
+
+@dataclass(frozen=True)
+class InsertMDAProbes(GetMDAProbes):
+    def statement(
+        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
+    ) -> str:
+        assert self.round_leq
+        return f"""
+        INSERT INTO {probes_table(measurement_id)}
+        WITH
+            arrayJoin(arrayZip(TTLs, cumulative_probes)) AS ttl_probe
+        SELECT
+            probe_protocol,
+            probe_dst_prefix,
+            ttl_probe.1,
+            ttl_probe.2,
+            {self.round_leq + 1}
+        FROM ({super().statement(measurement_id, subset)})
         """

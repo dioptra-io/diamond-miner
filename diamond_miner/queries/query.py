@@ -16,7 +16,17 @@ from clickhouse_driver.errors import ServerException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logging import logger
-from diamond_miner.queries.fragments import and_, eq, ip_eq, ip_in, leq, lt, not_, or_
+from diamond_miner.queries.fragments import (
+    and_,
+    eq,
+    geq,
+    ip_eq,
+    ip_in,
+    leq,
+    lt,
+    not_,
+    or_,
+)
 from diamond_miner.timer import LoggingTimer
 from diamond_miner.typing import IPNetwork
 
@@ -387,11 +397,14 @@ class ProbesQuery(Query):
     round_eq: Optional[int] = None
     "If specified, keep only the probes from this round."
 
+    round_geq: Optional[int] = None
+    "If specified, keep only the probes from this round or after."
+
     round_leq: Optional[int] = None
-    "If specified, keep only links from this round or before."
+    "If specified, keep only the probes from this round or before."
 
     round_lt: Optional[int] = None
-    "If specified, keep only links from before this round."
+    "If specified, keep only the probes from before this round."
 
     def filters(self, subset: IPNetwork) -> str:
         """``WHERE`` clause common to all queries on the probes table."""
@@ -402,6 +415,8 @@ class ProbesQuery(Query):
             s += [eq("probe_protocol", self.probe_protocol)]
         if self.round_eq:
             s += [eq("round", self.round_eq)]
+        if self.round_geq:
+            s += [geq("round", self.round_geq)]
         if self.round_lt:
             s += [lt("round", self.round_lt)]
         if self.round_leq:

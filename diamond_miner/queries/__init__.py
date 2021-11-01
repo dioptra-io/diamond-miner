@@ -14,7 +14,7 @@ from .get_invalid_prefixes import (
 )
 from .get_links import GetLinks
 from .get_links_from_view import GetLinksFromView
-from .get_next_round import GetNextRound, GetNextRoundStateful
+from .get_next_round import GetMDAProbes, GetNextRound
 from .get_nodes import GetNodes
 from .get_prefixes import GetPrefixes
 from .get_probes import GetProbes
@@ -54,7 +54,7 @@ __all__ = (
     "GetLinks",
     "GetLinksFromView",
     "GetNextRound",
-    "GetNextRoundStateful",
+    "GetMDAProbes",
     "GetNodes",
     "GetPrefixes",
     "GetProbes",

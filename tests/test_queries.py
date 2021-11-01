@@ -1,4 +1,4 @@
-from diamond_miner.queries import GetNextRound, GetNextRoundStateful  # noqa
+from diamond_miner.queries import GetMDAProbes, GetNextRound  # noqa
 from diamond_miner.queries.get_links import GetLinks  # noqa
 from diamond_miner.test import addr_to_string, url  # noqa
 
@@ -58,32 +58,33 @@ def test_get_next_round_nsdi():
     """
 
 
+# TODO: Rename to test_get_mda_probes_nsdi...
 def test_get_next_round_stateful_nsdi():
     """
-    >>> rows = GetNextRoundStateful(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')
-    >>> row = GetNextRoundStateful.Row(*rows[0])
+    >>> rows = GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')
+    >>> row = GetMDAProbes.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3, 4]
-    >>> row.total_probes
+    >>> row.cumulative_probes
     [11, 11, 11, 11]
-    >>> rows = GetNextRoundStateful(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')
-    >>> row = GetNextRoundStateful.Row(*rows[0])
+    >>> rows = GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')
+    >>> row = GetMDAProbes.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3, 4]
-    >>> row.total_probes
+    >>> row.cumulative_probes
     [11, 16, 16, 16]
 
-    >>> rows = GetNextRoundStateful(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')
-    >>> row = GetNextRoundStateful.Row(*rows[0])
+    >>> rows = GetMDAProbes(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')
+    >>> row = GetMDAProbes.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3, 4]
-    >>> row.total_probes
+    >>> row.cumulative_probes
     [11, 16, 16, 16]
     """
 
