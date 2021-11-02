@@ -1,4 +1,4 @@
-from diamond_miner.queries import GetMDAProbes, GetNextRound  # noqa
+from diamond_miner.queries import GetMDAProbes  # noqa
 from diamond_miner.queries.get_links import GetLinks  # noqa
 from diamond_miner.test import addr_to_string, url  # noqa
 
@@ -29,37 +29,39 @@ def test_get_links_multi_protocol():
     """
 
 
-def test_get_next_round_nsdi():
+def test_get_mda_probes_nsdi():
     """
-    >>> rows = GetNextRound(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')
-    >>> row = GetNextRound.Row(*rows[0])
+    >>> rows = GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')
+    >>> row = GetMDAProbes.Row(*rows[0])
     >>> addr_to_string(row.dst_prefix)
     '200.0.0.0'
     >>> row.ttls
     [1, 2, 3, 4]
-    >>> row.already_sent
-    [6, 6, 6, 6]
-    >>> row.to_send
-    [5, 5, 5, 5]
-
-    >>> rows = GetNextRound(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')
-    >>> row = GetNextRound.Row(*rows[0])
-    >>> addr_to_string(row.dst_prefix)
-    '200.0.0.0'
-    >>> row.ttls
-    [1, 2, 3, 4]
-    >>> row.already_sent
+    >>> row.cumulative_probes
     [11, 11, 11, 11]
-    >>> row.to_send
-    [0, 5, 5, 5]
 
-    >>> GetNextRound(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')
-    []
+    >>> rows = GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')
+    >>> row = GetMDAProbes.Row(*rows[0])
+    >>> addr_to_string(row.dst_prefix)
+    '200.0.0.0'
+    >>> row.ttls
+    [1, 2, 3, 4]
+    >>> row.cumulative_probes
+    [11, 16, 16, 16]
+
+    >>> rows = GetMDAProbes(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')
+    >>> row = GetMDAProbes.Row(*rows[0])
+    >>> addr_to_string(row.dst_prefix)
+    '200.0.0.0'
+    >>> row.ttls
+    [1, 2, 3, 4]
+    >>> row.cumulative_probes
+    [11, 16, 16, 16]
     """
 
 
 # TODO: Rename to test_get_mda_probes_nsdi...
-def test_get_next_round_stateful_nsdi():
+def test_get_mda_probes_stateful_nsdi():
     """
     >>> rows = GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')
     >>> row = GetMDAProbes.Row(*rows[0])
@@ -90,14 +92,14 @@ def test_get_next_round_stateful_nsdi():
 
 
 # TODO: Make this test pass
-#  def test_get_next_round_star():
+#  def test_get_mda_probes_star():
 #  """
 #  With the current links computation (in GetLinksFromView), we do not emit a link
 #  in the case of *single* reply in a traceroute. For example: * * node * *, does
 #  not generate a link. In this case this means that we never see a link including V_7.
 #
-#  >>> rows = GetNextRound(round_leq=1, adaptive_eps=False).execute(url, 'test_star_node_star')
-#  >>> row = GetNextRound.Row(*rows[0])
+#  >>> rows = GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_star_node_star')
+#  >>> row = GetMDAProbes.Row(*rows[0])
 #  >>> addr_to_string(row.dst_prefix)
 #  '200.0.0.0'
 #  >>> row.ttls
@@ -107,6 +109,6 @@ def test_get_next_round_stateful_nsdi():
 #  >>> row.to_send
 #  [0, 0, 5]
 #
-#  >>> GetNextRound(round_leq=2, adaptive_eps=False).execute(url, 'test_star_node_star')
+#  >>> GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_star_node_star')
 #  []
 #      """

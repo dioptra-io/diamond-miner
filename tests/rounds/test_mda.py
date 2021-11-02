@@ -7,13 +7,12 @@ from diamond_miner.mappers import (
     ReverseByteFlowMapper,
     SequentialFlowMapper,
 )
-from diamond_miner.rounds.mda_stateless import mda_probes
+from diamond_miner.rounds import mda_probes
 
 
 def test_mda_probes_lite(url):
-    table = "test_nsdi_lite"
+    measurement_id = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
-
     probe_src_port = 24000
     probe_dst_port = 33434
 
@@ -21,8 +20,8 @@ def test_mda_probes_lite(url):
         return list(
             mda_probes(
                 url=url,
-                measurement_id=table,
-                round_=round_,
+                measurement_id=measurement_id,
+                previous_round=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
                 probe_src_port=probe_src_port,
@@ -68,14 +67,14 @@ def test_mda_probes_lite(url):
 
 
 def test_mda_probes_lite_adaptive(url):
-    table = "test_nsdi_lite"
+    measurement_id = "test_nsdi_lite"
 
     def probes_for_round(round_):
         return list(
             mda_probes(
                 url=url,
-                measurement_id=table,
-                round_=round_,
+                measurement_id=measurement_id,
+                previous_round=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
                 adaptive_eps=True,
@@ -88,7 +87,7 @@ def test_mda_probes_lite_adaptive(url):
 
 
 def test_mda_probes_lite_mappers(url):
-    table = "test_nsdi_lite"
+    measurement_id = "test_nsdi_lite"
 
     # In this test, we simplify verify that the next round works with
     # all the different flow mappers. We do not check the probes themselves.
@@ -113,8 +112,8 @@ def test_mda_probes_lite_mappers(url):
             list(
                 mda_probes(
                     url=url,
-                    measurement_id=table,
-                    round_=1,
+                    measurement_id=measurement_id,
+                    previous_round=1,
                     mapper_v4=mapper_v4,
                     mapper_v6=mapper_v6,
                 )
@@ -126,9 +125,8 @@ def test_mda_probes_lite_mappers(url):
 
 
 def test_next_round_probes_multi_protocol(url):
-    table = "test_multi_protocol"
+    measurement_id = "test_multi_protocol"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
-
     probe_src_port = 24000
     probe_dst_port = 33434
 
@@ -136,8 +134,8 @@ def test_next_round_probes_multi_protocol(url):
         return list(
             mda_probes(
                 url=url,
-                measurement_id=table,
-                round_=round_,
+                measurement_id=measurement_id,
+                previous_round=round_,
                 mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
                 mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
                 probe_src_port=probe_src_port,
@@ -147,7 +145,7 @@ def test_next_round_probes_multi_protocol(url):
         )
 
     # Round 1 -> 2, 5 probes at TTL 1-2 only for ICMP
-    # TODO: Better test/test table
+    # TODO: Better test/test measurement_id
     target_specs = []
     for ttl in range(1, 3):
         for flow_id in range(6, 6 + 5):
