@@ -5,8 +5,6 @@ from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import LinksQuery, links_table, probes_table
 from diamond_miner.typing import IPNetwork
 
-# TODO: Exclude invalid prefixes
-
 
 @dataclass(frozen=True)
 class GetMDAProbes(LinksQuery):
