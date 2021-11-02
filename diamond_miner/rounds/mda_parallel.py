@@ -21,7 +21,7 @@ async def mda_probes_parallel(
     filepath: Path,
     url: str,
     measurement_id: str,
-    round_: int,
+    previous_round: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
@@ -42,7 +42,7 @@ async def mda_probes_parallel(
     subsets = await subsets_for(
         GetMDAProbes(
             adaptive_eps=adaptive_eps,
-            round_leq=round_,
+            round_leq=previous_round,
             filter_virtual=True,
             filter_inter_round=True,
             target_epsilon=target_epsilon,
@@ -72,7 +72,7 @@ async def mda_probes_parallel(
                     Path(temp_dir) / f"subset_{i}",
                     url,
                     measurement_id,
-                    round_,
+                    previous_round,
                     mapper_v4,
                     mapper_v6,
                     probe_src_port,
