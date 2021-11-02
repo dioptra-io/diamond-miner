@@ -14,10 +14,10 @@ from .get_invalid_prefixes import (
 )
 from .get_links import GetLinks
 from .get_links_from_view import GetLinksFromView
-from .get_next_round import GetNextRound, GetNextRoundStateful
+from .get_mda_probes import GetMDAProbes, InsertMDAProbes
 from .get_nodes import GetNodes
 from .get_prefixes import GetPrefixes
-from .get_probes import GetProbes
+from .get_probes import GetProbes, GetProbesDiff
 from .get_results import GetResults
 from .get_sliding_prefixes import GetSlidingPrefixes
 from .insert_links import InsertLinks
@@ -53,16 +53,17 @@ __all__ = (
     "DropTables",
     "GetLinks",
     "GetLinksFromView",
-    "GetNextRound",
-    "GetNextRoundStateful",
+    "GetMDAProbes",
     "GetNodes",
     "GetPrefixes",
     "GetProbes",
+    "GetProbesDiff",
     "GetResults",
     "GetSlidingPrefixes",
     "GetInvalidPrefixes",
     "GetPrefixesWithAmplification",
     "GetPrefixesWithLoops",
+    "InsertMDAProbes",
     "InsertLinks",
     "InsertPrefixes",
     "Query",

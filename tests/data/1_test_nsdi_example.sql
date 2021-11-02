@@ -66,10 +66,10 @@ VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.0', 24000, 33434, 1, 1, '::ffff:1
 
 -- Round 2, 5 probes at TTL 1, 12 probes at TTL 2-4
 INSERT INTO probes__test_nsdi_example
-VALUES (1, '::ffff:200.0.0.0', 1, 5, 2),
-       (1, '::ffff:200.0.0.0', 2, 12, 2),
-       (1, '::ffff:200.0.0.0', 3, 12, 2),
-       (1, '::ffff:200.0.0.0', 4, 12, 2);
+VALUES (1, '::ffff:200.0.0.0', 1, 11, 2),
+       (1, '::ffff:200.0.0.0', 2, 18, 2),
+       (1, '::ffff:200.0.0.0', 3, 18, 2),
+       (1, '::ffff:200.0.0.0', 4, 18, 2);
 
 INSERT INTO results__test_nsdi_example
 VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.6', 24000, 33434, 1, 1, '::ffff:150.0.1.1', 1, 11, 0, 250, 0, [], 0.0, 2),
@@ -116,9 +116,10 @@ VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.6', 24000, 33434, 1, 1, '::ffff:1
 
 -- Round 3, 2 probes at TTL 2, 9 probes at TTL 3-4
 INSERT INTO probes__test_nsdi_example
-VALUES (1, '::ffff:200.0.0.0', 2, 2, 3),
-       (1, '::ffff:200.0.0.0', 3, 9, 3),
-       (1, '::ffff:200.0.0.0', 4, 9, 3);
+VALUES (1, '::ffff:200.0.0.0', 1, 11, 3),
+       (1, '::ffff:200.0.0.0', 2, 20, 3),
+       (1, '::ffff:200.0.0.0', 3, 27, 3),
+       (1, '::ffff:200.0.0.0', 4, 27, 3);
 
 INSERT INTO results__test_nsdi_example
 VALUES (1, '::ffff:100.0.0.1', '::ffff:200.0.0.18', 24000, 33434, 2, 2, '::ffff:150.0.2.1', 1, 11, 0, 250, 0, [], 0.0, 3),

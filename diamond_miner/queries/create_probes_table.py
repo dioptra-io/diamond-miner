@@ -8,7 +8,7 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateProbesTable(Query):
-    """Create the table containing (invalid) prefixes."""
+    """Create the table containing the cumulative number of probes sent over the rounds."""
 
     SORTING_KEY = "probe_protocol, probe_dst_prefix"
 
@@ -23,7 +23,7 @@ class CreateProbesTable(Query):
             probe_protocol         UInt8,
             probe_dst_prefix       IPv6,
             probe_ttl              UInt8,
-            n_probes               UInt16,
+            cumulative_probes      UInt32,
             round                  UInt8
         )
         ENGINE MergeTree

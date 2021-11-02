@@ -11,7 +11,7 @@ from zstandard import ZstdCompressor
 from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_PORT
 from diamond_miner.format import format_probe
 from diamond_miner.logging import logger
-from diamond_miner.queries import GetNextRound
+from diamond_miner.queries import GetMDAProbes
 from diamond_miner.rounds.mda import mda_probes
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
@@ -21,14 +21,13 @@ async def mda_probes_parallel(
     filepath: Path,
     url: str,
     measurement_id: str,
-    round_: int,
+    previous_round: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     adaptive_eps: bool = False,
     target_epsilon: float = 0.05,
-    n_initial_flows: int = 6,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -41,13 +40,12 @@ async def mda_probes_parallel(
     # NOTE: Make sure that the parameter of GetNextRound are equal to the
     # ones defines in mda_probes, in order to guarantee optimal subsets.
     subsets = await subsets_for(
-        GetNextRound(
+        GetMDAProbes(
             adaptive_eps=adaptive_eps,
-            round_leq=round_,
+            round_leq=previous_round,
             filter_virtual=True,
             filter_inter_round=True,
             target_epsilon=target_epsilon,
-            n_initial_flows=n_initial_flows,
         ),
         url,
         measurement_id,
@@ -74,14 +72,13 @@ async def mda_probes_parallel(
                     Path(temp_dir) / f"subset_{i}",
                     url,
                     measurement_id,
-                    round_,
+                    previous_round,
                     mapper_v4,
                     mapper_v6,
                     probe_src_port,
                     probe_dst_port,
                     adaptive_eps,
                     target_epsilon,
-                    n_initial_flows,
                     subset,
                     n_files_per_subset,
                 )
@@ -114,7 +111,6 @@ def worker(
     probe_dst_port: int,
     adaptive_eps: bool,
     target_epsilon: float,
-    n_initial_flows: int,
     subset: IPNetwork,
     n_files: int,
 ) -> int:
@@ -152,7 +148,6 @@ def worker(
         probe_src_port,
         probe_dst_port,
         adaptive_eps,
-        n_initial_flows,
         target_epsilon,
         (subset,),
     ):
