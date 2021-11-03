@@ -171,7 +171,7 @@ def probe_generator(
 
     for (af, subprefix, subprefix_size, protocol), ttl, flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
-        addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=subprefix)
+        addr_offset, port_offset = mapper.offset(flow_id, subprefix)
         yield subprefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol
 
 
@@ -211,5 +211,5 @@ def probe_generator_by_flow(
     for (af, subprefix, subprefix_size, protocol, ttls), flow_id in grid:
         mapper = mapper_v4 if af == 4 else mapper_v6
         for ttl in ttls:
-            addr_offset, port_offset = mapper.offset(flow_id=flow_id, prefix=subprefix)
+            addr_offset, port_offset = mapper.offset(flow_id, subprefix)
             yield subprefix + addr_offset, probe_src_port + port_offset, probe_dst_port, ttl, protocol

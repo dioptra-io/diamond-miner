@@ -1,7 +1,9 @@
 from math import ceil, log
 
+from diamond_miner.defaults import DEFAULT_FAILURE_RATE
 
-def stopping_point(k: int, eps: float = 0.05) -> int:
+
+def stopping_point(k: int, eps: float = DEFAULT_FAILURE_RATE) -> int:
     """
     Return the number `n_k` of probes that guarantees that the probability of not
     detecting `k` outgoing load-balanced edges is lower than `eps`.

@@ -1,13 +1,14 @@
 from ipaddress import ip_address
 
 from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4, DEFAULT_PREFIX_SIZE_V6
+from diamond_miner.generators import probe_generator_from_database
+from diamond_miner.insert import insert_mda_probe_counts
 from diamond_miner.mappers import (
     IntervalFlowMapper,
     RandomFlowMapper,
     ReverseByteFlowMapper,
     SequentialFlowMapper,
 )
-from diamond_miner.rounds import mda_probes
 
 
 def test_mda_probes_lite(url):
@@ -17,16 +18,19 @@ def test_mda_probes_lite(url):
     probe_dst_port = 33434
 
     def probes_for_round(round_):
+        insert_mda_probe_counts(
+            url=url,
+            measurement_id=measurement_id,
+            previous_round=round_,
+            adaptive_eps=False,
+        )
         return list(
-            mda_probes(
+            probe_generator_from_database(
                 url=url,
                 measurement_id=measurement_id,
-                previous_round=round_,
-                mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
-                mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
+                round_=round_ + 1,
                 probe_src_port=probe_src_port,
                 probe_dst_port=probe_dst_port,
-                adaptive_eps=False,
             )
         )
 
@@ -70,14 +74,17 @@ def test_mda_probes_lite_adaptive(url):
     measurement_id = "test_nsdi_lite"
 
     def probes_for_round(round_):
+        insert_mda_probe_counts(
+            url=url,
+            measurement_id=measurement_id,
+            previous_round=round_,
+            adaptive_eps=True,
+        )
         return list(
-            mda_probes(
+            probe_generator_from_database(
                 url=url,
                 measurement_id=measurement_id,
-                previous_round=round_,
-                mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
-                mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
-                adaptive_eps=True,
+                round_=round_ + 1,
             )
         )
 
@@ -107,13 +114,20 @@ def test_mda_probes_lite_mappers(url):
 
     all_probes = []
 
+    insert_mda_probe_counts(
+        url=url,
+        measurement_id=measurement_id,
+        previous_round=1,
+        adaptive_eps=True,
+    )
+
     for mapper_v4, mapper_v6 in zip(mappers_v4, mappers_v6):
         all_probes.append(
             list(
-                mda_probes(
+                probe_generator_from_database(
                     url=url,
                     measurement_id=measurement_id,
-                    previous_round=1,
+                    round_=2,
                     mapper_v4=mapper_v4,
                     mapper_v6=mapper_v6,
                 )
@@ -131,16 +145,19 @@ def test_next_round_probes_multi_protocol(url):
     probe_dst_port = 33434
 
     def probes_for_round(round_):
+        insert_mda_probe_counts(
+            url=url,
+            measurement_id=measurement_id,
+            previous_round=round_,
+            adaptive_eps=False,
+        )
         return list(
-            mda_probes(
+            probe_generator_from_database(
                 url=url,
                 measurement_id=measurement_id,
-                previous_round=round_,
-                mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
-                mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
+                round_=round_ + 1,
                 probe_src_port=probe_src_port,
                 probe_dst_port=probe_dst_port,
-                adaptive_eps=False,
             )
         )
 

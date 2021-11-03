@@ -10,24 +10,22 @@ from zstandard import ZstdCompressor
 
 from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_PORT
 from diamond_miner.format import format_probe
-from diamond_miner.logging import logger
-from diamond_miner.queries import GetMDAProbes
-from diamond_miner.rounds.mda import mda_probes
+from diamond_miner.generators.database import probe_generator_from_database
+from diamond_miner.logger import logger
+from diamond_miner.queries import GetProbesDiff
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
-async def mda_probes_parallel(
+async def probe_generator_parallel(
     filepath: Path,
     url: str,
     measurement_id: str,
-    previous_round: int,
+    round_: int,
     mapper_v4: FlowMapper,
     mapper_v6: FlowMapper,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
-    adaptive_eps: bool = False,
-    target_epsilon: float = 0.05,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -37,19 +35,9 @@ async def mda_probes_parallel(
     """
     loop = asyncio.get_running_loop()
 
-    # NOTE: Make sure that the parameter of GetNextRound are equal to the
-    # ones defines in mda_probes, in order to guarantee optimal subsets.
-    subsets = await subsets_for(
-        GetMDAProbes(
-            adaptive_eps=adaptive_eps,
-            round_leq=previous_round,
-            filter_virtual=True,
-            filter_inter_round=True,
-            target_epsilon=target_epsilon,
-        ),
-        url,
-        measurement_id,
-    )
+    # TODO: These subsets are sub-optimal, `CountProbesPerPrefix` should count
+    # the actual number of probes to be sent, not the total number of probes sent.
+    subsets = await subsets_for(GetProbesDiff(round_eq=round_), url, measurement_id)
 
     if not subsets:
         return 0
@@ -72,13 +60,11 @@ async def mda_probes_parallel(
                     Path(temp_dir) / f"subset_{i}",
                     url,
                     measurement_id,
-                    previous_round,
+                    round_,
                     mapper_v4,
                     mapper_v6,
                     probe_src_port,
                     probe_dst_port,
-                    adaptive_eps,
-                    target_epsilon,
                     subset,
                     n_files_per_subset,
                 )
@@ -109,8 +95,6 @@ def worker(
     mapper_v6: FlowMapper,
     probe_src_port: int,
     probe_dst_port: int,
-    adaptive_eps: bool,
-    target_epsilon: float,
     subset: IPNetwork,
     n_files: int,
 ) -> int:
@@ -139,7 +123,7 @@ def worker(
     probes_by_file: List[List[Probe]] = [[] for _ in range(n_files)]
     n_probes = 0
 
-    for probe in mda_probes(
+    for probe in probe_generator_from_database(
         url,
         measurement_id,
         round_,
@@ -147,8 +131,6 @@ def worker(
         mapper_v6,
         probe_src_port,
         probe_dst_port,
-        adaptive_eps,
-        target_epsilon,
         (subset,),
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)

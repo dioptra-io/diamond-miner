@@ -1,5 +1,10 @@
 from .count import Count
-from .count_rows import CountFlowsPerPrefix, CountLinksPerPrefix, CountResultsPerPrefix
+from .count_rows import (
+    CountFlowsPerPrefix,
+    CountLinksPerPrefix,
+    CountProbesPerPrefix,
+    CountResultsPerPrefix,
+)
 from .create_flows_view import CreateFlowsView
 from .create_links_table import CreateLinksTable
 from .create_prefixes_table import CreatePrefixesTable
@@ -43,6 +48,7 @@ __all__ = (
     "Count",
     "CountFlowsPerPrefix",
     "CountLinksPerPrefix",
+    "CountProbesPerPrefix",
     "CountResultsPerPrefix",
     "CreateFlowsView",
     "CreateLinksTable",

@@ -15,7 +15,7 @@ from clickhouse_driver import Client
 from clickhouse_driver.errors import ServerException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.logging import logger
+from diamond_miner.logger import logger
 from diamond_miner.queries.fragments import (
     and_,
     eq,
@@ -27,8 +27,8 @@ from diamond_miner.queries.fragments import (
     not_,
     or_,
 )
-from diamond_miner.timer import LoggingTimer
 from diamond_miner.typing import IPNetwork
+from diamond_miner.utilities import LoggingTimer
 
 CH_QUERY_SETTINGS = {
     "max_block_size": 128_000,
