@@ -17,14 +17,14 @@ class GetLinksFromView(FlowsQuery):
     For example: ``* * node * *``, does not generate a link.
     However, ``* * node * * node'``, will generate ``(node, *)`` and ``(*, node')``.
 
-    We emit cross-rounds links.
+    We emit cross-generators links.
     For example if flow N sees node A at TTL 10 at round 1 and flow N sees node B at TTL 11 at round 2,
     we will emit ``(1, 10, A) - (2, 11, B)``.
 
-    We assume that there exists a single (flow, ttl) pair over all rounds.
+    We assume that there exists a single (flow, ttl) pair over all generators.
     TODO: Assert this?
 
-    If ``round_eq`` is none, compute the links per flow, across all rounds.
+    If ``round_eq`` is none, compute the links per flow, across all generators.
     Otherwise, compute the links per flow, for the specified round.
     This is useful if you want to update a `links` table round-by-round:
     such a table will contain only intra-round links but can be updated incrementally.

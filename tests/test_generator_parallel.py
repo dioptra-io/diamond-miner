@@ -5,8 +5,9 @@ import pytest
 from zstandard import ZstdDecompressor
 
 from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4, DEFAULT_PREFIX_SIZE_V6
+from diamond_miner.generators import probe_generator_parallel
+from diamond_miner.insert import insert_mda_probe_counts_parallel
 from diamond_miner.mappers import SequentialFlowMapper
-from diamond_miner.rounds.mda_parallel import mda_probes_parallel
 
 
 @pytest.mark.asyncio
@@ -18,16 +19,21 @@ async def test_mda_probes_parallel(tmp_path, url):
 
     async def probes_for_round(round_):
         filepath = tmp_path / f"probes-{round_}.csv.zst"
-        n_probes = await mda_probes_parallel(
-            filepath=filepath,
+        await insert_mda_probe_counts_parallel(
             url=url,
             measurement_id=measurement_id,
             previous_round=round_,
+            adaptive_eps=False,
+        )
+        n_probes = await probe_generator_parallel(
+            filepath=filepath,
+            url=url,
+            measurement_id=measurement_id,
+            round_=round_ + 1,
             mapper_v4=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V4),
             mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
             probe_src_port=probe_src_port,
             probe_dst_port=probe_dst_port,
-            adaptive_eps=False,
             n_workers=4,
         )
         probes = []
