@@ -311,7 +311,7 @@ class FlowsQuery(Query):
 @dataclass(frozen=True)
 class LinksQuery(Query):
     filter_inter_round: bool = False
-    "If true, exclude links inferred across generators."
+    "If true, exclude links inferred across rounds."
 
     filter_partial: bool = False
     "If true, exclude partial links: ``('::', node)`` and ``(node, '::')``."
