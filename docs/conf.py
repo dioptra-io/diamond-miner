@@ -22,7 +22,7 @@ copyright = "2021, dioptra.io"
 author = "dioptra.io"
 
 # Managed by bumpversion
-version = "0.2.0"
+version = "0.3.0"
 release = version
 
 # -- General configuration ---------------------------------------------------
