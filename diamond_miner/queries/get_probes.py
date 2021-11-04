@@ -23,6 +23,9 @@ class GetProbes(ProbesQuery):
     >>> row = GetProbes.Row(*GetProbes(round_eq=3).execute(url, 'test_nsdi_example')[0])
     >>> sorted(row.probes_per_ttl)
     [(1, 11), (2, 20), (3, 27), (4, 27)]
+    >>> row = GetProbes.Row(*GetProbes(round_eq=3, probe_ttl_geq=2, probe_ttl_leq=3).execute(url, 'test_nsdi_example')[0])
+    >>> sorted(row.probes_per_ttl)
+    [(2, 20), (3, 27)]
     >>> GetProbes(round_eq=4).execute(url, 'test_nsdi_example')
     []
     """

@@ -394,6 +394,12 @@ class ProbesQuery(Query):
     probe_protocol: Optional[int] = None
     "If specified, keep only probes sent with this protocol."
 
+    probe_ttl_geq: Optional[int] = None
+    "If specified, keep only the probes with TTL >= this value."
+
+    probe_ttl_leq: Optional[int] = None
+    "If specified, keep only the probes with TTL <= this value."
+
     round_eq: Optional[int] = None
     "If specified, keep only the probes from this round."
 
@@ -413,6 +419,10 @@ class ProbesQuery(Query):
             s += [ip_in("probe_dst_prefix", subset)]
         if self.probe_protocol:
             s += [eq("probe_protocol", self.probe_protocol)]
+        if self.probe_ttl_geq:
+            s += [geq("probe_ttl", self.probe_ttl_geq)]
+        if self.probe_ttl_leq:
+            s += [leq("probe_ttl", self.probe_ttl_leq)]
         if self.round_eq:
             s += [eq("round", self.round_eq)]
         if self.round_geq:

@@ -10,7 +10,7 @@ from diamond_miner.typing import IPNetwork
 class CreateProbesTable(Query):
     """Create the table containing the cumulative number of probes sent over the rounds."""
 
-    SORTING_KEY = "probe_protocol, probe_dst_prefix"
+    SORTING_KEY = "probe_protocol, probe_dst_prefix, probe_ttl"
 
     storage_policy: StoragePolicy = StoragePolicy()
 
