@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diamond-miner"
-version = "0.3.0"
+version = "0.3.1"
 description = "High-speed, Internet-scale, load-balanced paths discovery."
 license = "MIT"
 authors = [
