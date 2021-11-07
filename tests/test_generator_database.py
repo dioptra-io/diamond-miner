@@ -9,6 +9,7 @@ from diamond_miner.mappers import (
     ReverseByteFlowMapper,
     SequentialFlowMapper,
 )
+from diamond_miner.queries.delete_probes import DeleteProbes
 
 
 def test_mda_probes_lite(url):
@@ -18,6 +19,7 @@ def test_mda_probes_lite(url):
     probe_dst_port = 33434
 
     def probes_for_round(round_):
+        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
         insert_mda_probe_counts(
             url=url,
             measurement_id=measurement_id,
@@ -74,6 +76,7 @@ def test_mda_probes_lite_adaptive(url):
     measurement_id = "test_nsdi_lite"
 
     def probes_for_round(round_):
+        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
         insert_mda_probe_counts(
             url=url,
             measurement_id=measurement_id,
@@ -145,6 +148,7 @@ def test_next_round_probes_multi_protocol(url):
     probe_dst_port = 33434
 
     def probes_for_round(round_):
+        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
         insert_mda_probe_counts(
             url=url,
             measurement_id=measurement_id,

@@ -8,6 +8,7 @@ from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4, DEFAULT_PREFIX_SIZE_V
 from diamond_miner.generators import probe_generator_parallel
 from diamond_miner.insert import insert_mda_probe_counts_parallel
 from diamond_miner.mappers import SequentialFlowMapper
+from diamond_miner.queries.delete_probes import DeleteProbes
 
 
 @pytest.mark.asyncio
@@ -19,6 +20,7 @@ async def test_mda_probes_parallel(tmp_path, url):
 
     async def probes_for_round(round_):
         filepath = tmp_path / f"probes-{round_}.csv.zst"
+        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
         await insert_mda_probe_counts_parallel(
             url=url,
             measurement_id=measurement_id,

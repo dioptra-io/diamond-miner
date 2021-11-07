@@ -10,7 +10,6 @@ from diamond_miner.defaults import (
 )
 from diamond_miner.generators.standalone import split_prefix
 from diamond_miner.queries import InsertMDAProbes
-from diamond_miner.queries.delete_probes import DeleteProbes
 from diamond_miner.queries.query import client, probes_table
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import IPNetwork
@@ -45,7 +44,6 @@ def insert_probe_counts(
     >>> sorted(row.probes_per_ttl)
     [(2, 6), (3, 6), (4, 6)]
     """
-    DeleteProbes(round_eq=round_).execute(url, measurement_id)
     with client(url) as c:
         rows = []
         sql = f"INSERT INTO {probes_table(measurement_id)} VALUES"
@@ -70,7 +68,6 @@ def insert_mda_probe_counts(
     target_epsilon: float = DEFAULT_FAILURE_RATE,
     subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> None:
-    DeleteProbes(round_eq=previous_round + 1).execute(url, measurement_id)
     # TODO: set filter_partial and filter_virtual to false?
     InsertMDAProbes(
         adaptive_eps=adaptive_eps,
@@ -90,7 +87,6 @@ async def insert_mda_probe_counts_parallel(
     target_epsilon: float = DEFAULT_FAILURE_RATE,
     concurrent_requests: int = (os.cpu_count() or 2) // 2,
 ) -> None:
-    DeleteProbes(round_eq=previous_round + 1).execute(url, measurement_id)
     # TODO: set filter_partial and filter_virtual to false?
     query = InsertMDAProbes(
         adaptive_eps=adaptive_eps,
