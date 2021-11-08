@@ -4,14 +4,20 @@ import random
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from zstandard import ZstdCompressor
 
-from diamond_miner.defaults import DEFAULT_PROBE_DST_PORT, DEFAULT_PROBE_SRC_PORT
+from diamond_miner.defaults import (
+    DEFAULT_PREFIX_SIZE_V4,
+    DEFAULT_PREFIX_SIZE_V6,
+    DEFAULT_PROBE_DST_PORT,
+    DEFAULT_PROBE_SRC_PORT,
+)
 from diamond_miner.format import format_probe
 from diamond_miner.generators.database import probe_generator_from_database
 from diamond_miner.logger import logger
+from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.queries import GetProbesDiff
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
@@ -22,10 +28,13 @@ async def probe_generator_parallel(
     url: str,
     measurement_id: str,
     round_: int,
-    mapper_v4: FlowMapper,
-    mapper_v6: FlowMapper,
+    *,
+    mapper_v4: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
+    mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
+    probe_ttl_geq: Optional[int] = None,
+    probe_ttl_leq: Optional[int] = None,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -37,7 +46,13 @@ async def probe_generator_parallel(
 
     # TODO: These subsets are sub-optimal, `CountProbesPerPrefix` should count
     # the actual number of probes to be sent, not the total number of probes sent.
-    subsets = await subsets_for(GetProbesDiff(round_eq=round_), url, measurement_id)
+    subsets = await subsets_for(
+        GetProbesDiff(
+            round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
+        ),
+        url,
+        measurement_id,
+    )
 
     if not subsets:
         return 0
@@ -65,6 +80,8 @@ async def probe_generator_parallel(
                     mapper_v6,
                     probe_src_port,
                     probe_dst_port,
+                    probe_ttl_geq,
+                    probe_ttl_leq,
                     subset,
                     n_files_per_subset,
                 )
@@ -95,6 +112,8 @@ def worker(
     mapper_v6: FlowMapper,
     probe_src_port: int,
     probe_dst_port: int,
+    probe_ttl_geq: int,
+    probe_ttl_leq: int,
     subset: IPNetwork,
     n_files: int,
 ) -> int:
@@ -124,14 +143,16 @@ def worker(
     n_probes = 0
 
     for probe in probe_generator_from_database(
-        url,
-        measurement_id,
-        round_,
-        mapper_v4,
-        mapper_v6,
-        probe_src_port,
-        probe_dst_port,
-        (subset,),
+        url=url,
+        measurement_id=measurement_id,
+        round_=round_,
+        mapper_v4=mapper_v4,
+        mapper_v6=mapper_v6,
+        probe_src_port=probe_src_port,
+        probe_dst_port=probe_dst_port,
+        probe_ttl_geq=probe_ttl_geq,
+        probe_ttl_leq=probe_ttl_leq,
+        subsets=(subset,),
     ):
         # probe[:-2] => (probe_dst_addr, probe_src_port, probe_dst_port)
         probes_by_file[hash(probe[:-2]) % n_files].append(probe)

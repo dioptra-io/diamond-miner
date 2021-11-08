@@ -36,6 +36,8 @@ async def test_mda_probes_parallel(tmp_path, url):
             mapper_v6=SequentialFlowMapper(prefix_size=DEFAULT_PREFIX_SIZE_V6),
             probe_src_port=probe_src_port,
             probe_dst_port=probe_dst_port,
+            probe_ttl_geq=1,
+            probe_ttl_leq=32,
             n_workers=4,
         )
         probes = []

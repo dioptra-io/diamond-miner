@@ -92,8 +92,9 @@ def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int) -> Sequen
 
 def probe_generator(
     prefixes: Sequence[Tuple[str, str]],  # /32 or / 128 if nothing specified
-    flow_ids: Sequence[int] = range(6),
-    ttls: Sequence[int] = range(1, 33),
+    flow_ids: Sequence[int],
+    ttls: Sequence[int],
+    *,
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
@@ -179,7 +180,8 @@ def probe_generator_by_flow(
     prefixes: Iterable[
         Tuple[str, str, Iterable[int]]
     ],  # /32 or / 128 if nothing specified
-    flow_ids: Sequence[int] = range(6),
+    flow_ids: Sequence[int],
+    *,
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,

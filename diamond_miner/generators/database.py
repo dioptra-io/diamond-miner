@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Optional
 
 from diamond_miner.defaults import (
     DEFAULT_PREFIX_SIZE_V4,
@@ -18,10 +18,13 @@ def probe_generator_from_database(
     url: str,
     measurement_id: str,
     round_: int,
+    *,
     mapper_v4: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
     mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
+    probe_ttl_geq: Optional[int] = None,
+    probe_ttl_leq: Optional[int] = None,
     subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> Iterator[Probe]:
     """
@@ -37,7 +40,9 @@ def probe_generator_from_database(
     >>> (str(ip_address(probes[0][0])), *probes[0][1:])
     ('::ffff:808:100', 24000, 33434, 1, 'icmp')
     """
-    rows = GetProbesDiff(round_eq=round_).execute_iter(url, measurement_id, subsets)
+    rows = GetProbesDiff(
+        round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
+    ).execute_iter(url, measurement_id, subsets)
     for row in rows:
         row = GetProbesDiff.Row(*row)
 
