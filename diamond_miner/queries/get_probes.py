@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
+from diamond_miner.queries.fragments import ip_in
 from diamond_miner.queries.query import ProbesQuery, probes_table
 from diamond_miner.typing import IPNetwork
 
@@ -88,8 +89,7 @@ class GetProbesDiff(ProbesQuery):
                 probe_ttl,
                 cumulative_probes
             FROM {probes_table(measurement_id)}
-            WHERE round = {self.round_eq - 1}
-            -- TODO: Filter on subset for greater performance?
+            WHERE {ip_in("probe_dst_prefix", subset)} AND round = {self.round_eq - 1}
         ) AS previous
         ON current.probe_protocol = previous.probe_protocol
         AND current.probe_dst_prefix = previous.probe_dst_prefix
