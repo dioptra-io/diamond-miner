@@ -227,6 +227,7 @@ class Query:
                 ):
                     r = httpx.get(
                         url,
+                        headers={"Accept-encoding": "gzip"},
                         params={"query": statement, "database": database},
                         timeout=None,
                     )
@@ -253,6 +254,7 @@ class Query:
                     ):
                         r = await c.get(
                             url,
+                            headers={"Accept-encoding": "gzip"},
                             params={"query": statement, "database": database},
                             timeout=None,
                         )
