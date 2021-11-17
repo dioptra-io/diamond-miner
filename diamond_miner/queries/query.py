@@ -13,7 +13,6 @@ import httpx
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
 from clickhouse_driver.errors import ServerException
-
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logger import logger
 from diamond_miner.queries.fragments import (
@@ -227,7 +226,9 @@ class Query:
                     f"query={self.name}#{i} measurement_id={measurement_id} database={database} subset={subset} limit={limit}",
                 ):
                     r = httpx.get(
-                        url, params={"query": statement, "database": database}
+                        url,
+                        params={"query": statement, "database": database},
+                        timeout=None,
                     )
                     for line in r.content.splitlines():
                         yield json.loads(line)
@@ -251,7 +252,9 @@ class Query:
                         f"query={self.name}#{i} measurement_id={measurement_id} database={database} subset={subset} limit={limit}",
                     ):
                         r = await c.get(
-                            url, params={"query": statement, "database": database}
+                            url,
+                            params={"query": statement, "database": database},
+                            timeout=None,
                         )
                         for line in r.content.splitlines():
                             yield json.loads(line)
