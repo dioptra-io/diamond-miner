@@ -26,7 +26,11 @@ class CreateResultsTable(Query):
         return f"""
         CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (
-            capture_timestamp      DateTime64(6) CODEC(DoubleDelta),
+            -- Since we do not order by capture timestamp, this column compresses badly.
+            -- To reduce its size, caracal outputs the timestamp with a one-second resolution (instead of one microsecond).
+            -- This is sufficient to know if two replies were received close in time
+            -- and avoid the inference of false links over many hours.
+            capture_timestamp      DateTime CODEC(T64, ZSTD(1)),
             probe_protocol         UInt8,
             probe_src_addr         IPv6,
             probe_dst_addr         IPv6,
