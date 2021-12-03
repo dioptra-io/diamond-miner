@@ -7,9 +7,7 @@
 
 > D-Miner is the first Internet-scale system that captures a multipath view of the topology.
 > By combining and adapting state-of-the-art multipath detection and high speed randomized topology discovery techniques,
-> D-Miner permits discovery of the Internet’s multipath topology in 2.5 days¹ when probing at 100kpps. [[1]](#references)
-
-¹ As of v0.1.0, diamond-miner can discover the multipath topology in less than a day when probing at 100k pps.
+> D-Miner permits discovery of the Internet’s multipath topology in 2.5 days[^1] when probing at 100kpps.[^2]
 
 ## 🚀 Quickstart
 
@@ -48,10 +46,6 @@ If you use Diamond-Miner, please cite the following paper:
 Diamond-Miner is developed and maintained by the [Dioptra group](https://dioptra.io) at Sorbonne Université in Paris, France.
 The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
 
-## References
-
-[1] Vermeulen, Kevin, et al. ["Diamond-Miner: Comprehensive Discovery of the Internet's Topology Diamonds."](https://www.usenix.org/system/files/nsdi20-paper-vermeulen.pdf) _17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20)_. 2020.
-
 ## License & Dependencies
 
 This software is released under the [MIT license](/LICENSE), in accordance with the license of its dependencies.
@@ -62,3 +56,6 @@ Name                                             | License                      
 [clickhouse-driver](https://github.com/mymarilyn/clickhouse-driver)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
 [pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT) | Generating random permutations
 [python-zstandard](https://github.com/indygreg/python-zstandard) | [3-clause BSD](https://opensource.org/licenses/BSD-3-Clause) | Compression
+
+[^1]: As of v0.1.0, diamond-miner can discover the multipath topology in less than a day when probing at 100k pps.
+[^2]: Vermeulen, Kevin, et al. ["Diamond-Miner: Comprehensive Discovery of the Internet's Topology Diamonds."](https://www.usenix.org/system/files/nsdi20-paper-vermeulen.pdf) _17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20)_. 2020.
