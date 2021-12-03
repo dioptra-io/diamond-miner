@@ -13,6 +13,7 @@ import httpx
 from aioch import Client as AsyncClient
 from clickhouse_driver import Client
 from clickhouse_driver.errors import ServerException
+
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logger import logger
 from diamond_miner.queries.fragments import (

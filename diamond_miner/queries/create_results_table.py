@@ -26,6 +26,7 @@ class CreateResultsTable(Query):
         return f"""
         CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (
+            capture_timestamp      DateTime64(6) CODEC(DoubleDelta),
             probe_protocol         UInt8,
             probe_src_addr         IPv6,
             probe_dst_addr         IPv6,
@@ -39,7 +40,7 @@ class CreateResultsTable(Query):
             reply_icmp_code        UInt8,
             reply_ttl              UInt8,
             reply_size             UInt16,
-            reply_mpls_labels      Array(UInt32),
+            reply_mpls_labels      Array(Tuple(UInt32, UInt8, UInt8, UInt8)),
             -- The rtt column is the largest compressed column, we use T64 and ZSTD to reduce its size, see:
             -- https://altinity.com/blog/2019/7/new-encodings-to-improve-clickhouse
             -- https://clickhouse.tech/docs/en/sql-reference/statements/create/table/#codecs
