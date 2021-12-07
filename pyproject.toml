@@ -55,8 +55,8 @@ warn_unreachable = true
 warn_unused_ignores = true
 
 [tool.cibuildwheel]
-# https://github.com/pypa/cibuildwheel/issues/902
-skip = ["cp310-macosx_*", "*-musllinux_*"]
+# Keep emulated aarch64 build times manageable...
+skip = ["*-musllinux_*"]
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"]
