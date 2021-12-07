@@ -14,13 +14,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.10'
-      - name: Start ClickHouse
-        run: |
-          docker run -d -p 8123:8123 yandex/clickhouse-server
-          until $(curl --output /dev/null --silent --head --fail http://localhost:8123); do
-            printf '.'
-            sleep 0.1
-          done
+      - uses: dioptra-io/setup-clickhouse-action@v1
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
