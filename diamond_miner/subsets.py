@@ -1,4 +1,4 @@
-from ipaddress import IPv6Address, IPv6Network, ip_network
+from ipaddress import IPv6Network, ip_network
 from typing import Dict, List, Union
 
 from diamond_miner.queries import (
@@ -16,7 +16,7 @@ from diamond_miner.utilities import common_parameters
 Counts = Dict[IPv6Network, int]
 
 
-async def subsets_for(
+def subsets_for(
     query: Union[FlowsQuery, LinksQuery, ProbesQuery, ResultsQuery],
     url: str,
     measurement_id: str,
@@ -34,9 +34,9 @@ async def subsets_for(
         raise NotImplementedError
     counts = {
         addr_to_network(
-            addr, count_query.prefix_len_v4, count_query.prefix_len_v6
-        ): count
-        for addr, count in await count_query.execute_async(url, measurement_id)
+            row["prefix"], count_query.prefix_len_v4, count_query.prefix_len_v6
+        ): row["count"]
+        for row in count_query.execute_iter(url, measurement_id)
     }
     return split(counts, max_items_per_subset)
 
@@ -69,10 +69,8 @@ def split(counts: Counts, max_items_per_subset: int) -> List[IPv6Network]:
     return sorted(subsets)
 
 
-def addr_to_network(
-    addr: IPv6Address, prefix_len_v4: int, prefix_len_v6: int
-) -> IPv6Network:
-    if addr.ipv4_mapped:
+def addr_to_network(addr: str, prefix_len_v4: int, prefix_len_v6: int) -> IPv6Network:
+    if addr.startswith("::ffff:"):
         return IPv6Network(f"{addr}/{96+prefix_len_v4}")
     return IPv6Network(f"{addr}/{prefix_len_v6}")
 

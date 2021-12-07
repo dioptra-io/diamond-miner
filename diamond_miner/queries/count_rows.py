@@ -29,7 +29,7 @@ class CountFlowsPerPrefix(FlowsQuery):
     ) -> str:
         return f"""
         WITH {cut_ipv6('probe_dst_addr', self.prefix_len_v4, self.prefix_len_v6)} AS prefix
-        SELECT prefix, count()
+        SELECT prefix, count() AS count
         FROM {flows_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY prefix
@@ -50,7 +50,7 @@ class CountLinksPerPrefix(LinksQuery):
     ) -> str:
         return f"""
         WITH {cut_ipv6('probe_dst_addr', self.prefix_len_v4, self.prefix_len_v6)} AS prefix
-        SELECT prefix, count()
+        SELECT prefix, count() AS count
         FROM {links_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY prefix
@@ -72,7 +72,7 @@ class CountProbesPerPrefix(ProbesQuery):
         assert self.round_eq
         return f"""
         WITH {cut_ipv6('probe_dst_prefix', self.prefix_len_v4, self.prefix_len_v6)} AS prefix
-        SELECT prefix, sum(cumulative_probes)
+        SELECT prefix, sum(cumulative_probes) AS count
         FROM {probes_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY prefix
@@ -84,10 +84,10 @@ class CountResultsPerPrefix(ResultsQuery):
     """
     Count rows per prefix.
 
-    >>> from diamond_miner.test import addr_to_string, url
+    >>> from diamond_miner.test import url
     >>> rows = CountResultsPerPrefix(prefix_len_v4=8, prefix_len_v6=8).execute(url, 'test_count_replies')
-    >>> sorted((addr_to_string(a), b) for a, b in rows)
-    [('1.0.0.0', 2), ('2.0.0.0', 1), ('204.0.0.0', 1)]
+    >>> sorted((row["prefix"], row["count()"]) for row in rows)
+    [('::ffff:1.0.0.0', 2), ('::ffff:2.0.0.0', 1), ('::ffff:204.0.0.0', 1)]
     """
 
     prefix_len_v4: int = 8

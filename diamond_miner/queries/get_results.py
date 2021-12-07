@@ -10,7 +10,7 @@ class GetResults(ResultsQuery):
     """
     Return all the columns from the results table.
 
-    >>> from diamond_miner.test import addr_to_string, url
+    >>> from diamond_miner.test import url
     >>> rows = GetResults().execute(url, 'test_nsdi_example')
     >>> len(rows)
     85

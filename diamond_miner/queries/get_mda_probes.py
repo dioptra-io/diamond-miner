@@ -1,4 +1,3 @@
-from collections import namedtuple
 from dataclasses import dataclass
 
 from diamond_miner.defaults import DEFAULT_FAILURE_RATE, UNIVERSE_SUBSET
@@ -11,8 +10,6 @@ class GetMDAProbes(LinksQuery):
     adaptive_eps: bool = True
     dminer_lite: bool = True
     target_epsilon: float = DEFAULT_FAILURE_RATE
-
-    Row = namedtuple("Row", "protocol,dst_prefix,cumulative_probes,ttls")
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

@@ -13,7 +13,7 @@ class GetLinks(LinksQuery):
     """
     Return the links pre-computed in the links table.
 
-    >>> from diamond_miner.test import addr_to_string, url
+    >>> from diamond_miner.test import url
     >>> links = GetLinks(filter_invalid_prefixes=False).execute(url, 'test_invalid_prefixes')
     >>> len(links)
     3
@@ -38,7 +38,7 @@ class GetLinks(LinksQuery):
     "If true, include the TTLs at which `near_addr` and `far_addr` were seen."
 
     def columns(self) -> List[str]:
-        columns = [self._addr_cast("near_addr"), self._addr_cast("far_addr")]
+        columns = ["near_addr", "far_addr"]
         if self.include_metadata:
             columns = ["near_ttl", "far_ttl", *columns]
         return columns

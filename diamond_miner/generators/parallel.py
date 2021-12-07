@@ -1,7 +1,7 @@
-import asyncio
 import os
 import random
-from concurrent.futures import ProcessPoolExecutor
+import shutil
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, Optional, Tuple
@@ -23,7 +23,7 @@ from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
-async def probe_generator_parallel(
+def probe_generator_parallel(
     filepath: Path,
     url: str,
     measurement_id: str,
@@ -42,11 +42,9 @@ async def probe_generator_parallel(
     This function shuffle the probes on-disk using the following algorithm:
     https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
     """
-    loop = asyncio.get_running_loop()
-
     # TODO: These subsets are sub-optimal, `CountProbesPerPrefix` should count
     # the actual number of probes to be sent, not the total number of probes sent.
-    subsets = await subsets_for(
+    subsets = subsets_for(
         GetProbesDiff(
             round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
         ),
@@ -67,10 +65,9 @@ async def probe_generator_parallel(
     )
 
     with TemporaryDirectory(dir=filepath.parent) as temp_dir:
-        with ProcessPoolExecutor(n_workers) as pool:
+        with ProcessPoolExecutor(n_workers) as executor:
             futures = [
-                loop.run_in_executor(
-                    pool,
+                executor.submit(
                     worker,
                     Path(temp_dir) / f"subset_{i}",
                     url,
@@ -87,18 +84,16 @@ async def probe_generator_parallel(
                 )
                 for i, subset in enumerate(subsets)
             ]
-            n_probes = sum(await asyncio.gather(*futures))
+            n_probes = sum(future.result() for future in as_completed(futures))
 
-        logger.info("mda_probes status=merging")
-        file_list = Path(temp_dir) / "files.txt"
-        proc = await asyncio.create_subprocess_shell(
-            f"find {temp_dir} -name 'subset_*.csv.zst' | shuf > {file_list}"
-        )
-        await proc.wait()
-        proc = await asyncio.create_subprocess_shell(
-            f"xargs cat < {file_list} > {filepath}"
-        )
-        await proc.wait()
+        files = list(Path(temp_dir).glob("subset_*.csv.zst"))
+        random.shuffle(files)
+
+        logger.info("mda_probes status=merging n_files=%s", len(files))
+        with filepath.open("wb") as out:
+            for f in files:
+                with f.open("rb") as inp:
+                    shutil.copyfileobj(inp, out)
 
     return n_probes
 

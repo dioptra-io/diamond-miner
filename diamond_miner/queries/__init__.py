@@ -25,10 +25,10 @@ from .get_prefixes import GetPrefixes
 from .get_probes import GetProbes, GetProbesDiff
 from .get_results import GetResults
 from .get_sliding_prefixes import GetSlidingPrefixes
+from .get_traceroutes import GetTraceroutes
 from .insert_links import InsertLinks
 from .insert_prefixes import InsertPrefixes
 from .query import (
-    AddrType,
     FlowsQuery,
     LinksQuery,
     PrefixesQuery,
@@ -44,7 +44,6 @@ from .query import (
 )
 
 __all__ = (
-    "AddrType",
     "Count",
     "CountFlowsPerPrefix",
     "CountLinksPerPrefix",
@@ -65,6 +64,7 @@ __all__ = (
     "GetProbes",
     "GetProbesDiff",
     "GetResults",
+    "GetTraceroutes",
     "GetSlidingPrefixes",
     "GetInvalidPrefixes",
     "GetPrefixesWithAmplification",

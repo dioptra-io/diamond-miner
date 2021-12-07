@@ -13,16 +13,16 @@ class GetNodes(ResultsQuery):
     """
     Return all the discovered nodes.
 
-    >>> from diamond_miner.test import addr_to_string, url
+    >>> from diamond_miner.test import url
     >>> nodes = GetNodes(include_probe_ttl=True).execute(url, 'test_nsdi_example')
-    >>> sorted((x[0], addr_to_string(x[1])) for x in nodes)
-    [(1, '150.0.1.1'), (2, '150.0.2.1'), (2, '150.0.3.1'), (3, '150.0.4.1'), (3, '150.0.5.1'), (3, '150.0.7.1'), (4, '150.0.6.1')]
+    >>> sorted((node["probe_ttl"], node["reply_src_addr"]) for node in nodes)
+    [(1, '::ffff:150.0.1.1'), (2, '::ffff:150.0.2.1'), (2, '::ffff:150.0.3.1'), (3, '::ffff:150.0.4.1'), (3, '::ffff:150.0.5.1'), (3, '::ffff:150.0.7.1'), (4, '::ffff:150.0.6.1')]
     >>> nodes = GetNodes(filter_invalid_prefixes=False).execute(url, 'test_invalid_prefixes')
-    >>> sorted(addr_to_string(x[0]) for x in nodes)
-    ['150.0.0.1', '150.0.0.2', '150.0.1.1', '150.0.1.2', '150.0.2.1', '150.0.2.2', '150.0.2.3']
+    >>> sorted(node["reply_src_addr"] for node in nodes)
+    ['::ffff:150.0.0.1', '::ffff:150.0.0.2', '::ffff:150.0.1.1', '::ffff:150.0.1.2', '::ffff:150.0.2.1', '::ffff:150.0.2.2', '::ffff:150.0.2.3']
     >>> nodes = GetNodes(filter_invalid_prefixes=True).execute(url, 'test_invalid_prefixes')
-    >>> sorted(addr_to_string(x[0]) for x in nodes)
-    ['150.0.0.1', '150.0.0.2', '150.0.2.3']
+    >>> sorted(node["reply_src_addr"] for node in nodes)
+    ['::ffff:150.0.0.1', '::ffff:150.0.0.2', '::ffff:150.0.2.3']
     """
 
     filter_invalid_prefixes: bool = False
@@ -32,7 +32,7 @@ class GetNodes(ResultsQuery):
     "If true, include the TTL at which `reply_src_addr` was seen."
 
     def columns(self) -> List[str]:
-        columns = [self._addr_cast("reply_src_addr")]
+        columns = ["reply_src_addr"]
         if self.include_probe_ttl:
             columns.insert(0, "probe_ttl")
         return columns

@@ -1,6 +1,5 @@
-from distutils.command.build_ext import build_ext  # type: ignore
-
 from Cython.Build import cythonize
+from setuptools.command.build_ext import build_ext
 
 
 def build(setup_kwargs):

@@ -1,18 +1,12 @@
-import asyncio
-import json
 import os
-from asyncio import Semaphore
-from contextlib import asynccontextmanager, contextmanager
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
 from functools import reduce
-from typing import AsyncIterator, Iterable, Iterator, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
-import httpx
-from aioch import Client as AsyncClient
-from clickhouse_driver import Client
-from clickhouse_driver.errors import ServerException
+import orjson
+import requests
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logger import logger
@@ -29,34 +23,6 @@ from diamond_miner.queries.fragments import (
 )
 from diamond_miner.typing import IPNetwork
 from diamond_miner.utilities import LoggingTimer
-
-CH_QUERY_SETTINGS = {
-    "max_block_size": 128_000,
-    # Avoid timeout in case of a slow connection
-    "connect_timeout": 1000,
-    "send_timeout": 6000,
-    "receive_timeout": 6000,
-    # https://github.com/ClickHouse/ClickHouse/issues/18406
-    "read_backoff_min_latency_ms": 100_000,
-}
-
-
-@asynccontextmanager
-async def async_client(url: str) -> AsyncClient:
-    c = AsyncClient.from_url(url)
-    try:
-        yield c
-    finally:
-        await c.disconnect()
-
-
-@contextmanager
-def client(url: str) -> Client:
-    c = Client.from_url(url)
-    try:
-        yield c
-    finally:
-        c.disconnect()
 
 
 def flows_table(measurement_id: str) -> str:
@@ -79,34 +45,6 @@ def results_table(measurement_id: str) -> str:
     return f"results__{measurement_id}".replace("-", "_")
 
 
-class AddrType(str, Enum):
-    """ClickHouse IPv6 type."""
-
-    IPv6 = "IPv6"
-    """
-    IPv6 stored as FixedString(16) internally.
-    Slow with clickhouse-driver as it will call :func:`ipaddress.IPv6Address` on each address.
-    """
-
-    String = "String"
-    """
-    String representation of the internal FixedString.
-    With clickhouse-driver each address will be decoded as Python string.
-    """
-
-    FixedString = "FixedString"
-    """
-    Native FixedString(16) representation.
-    Fastest with clickhouse-driver as it will return directly a byte string.
-    """
-
-    IPv6NumToString = "IPv6NumToString"
-    """
-    Human string representation of the IPv6.
-    With clickhouse-driver each address will be decoded as Python string.
-    """
-
-
 @dataclass(frozen=True)
 class StoragePolicy:
     """
@@ -125,8 +63,6 @@ class StoragePolicy:
 
 @dataclass(frozen=True)
 class Query:
-    addr_type: AddrType = AddrType.IPv6
-
     @property
     def name(self) -> str:
         return self.__class__.__name__
@@ -144,125 +80,47 @@ class Query:
         # Override this method if you want your query to return multiple statements.
         return (self.statement(measurement_id, subset),)
 
-    def execute(
-        self,
-        url: str,
-        measurement_id: str,
-        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        limit: Optional[Tuple[int, int]] = None,
-    ) -> List:
-        return [row for row in self.execute_iter(url, measurement_id, subsets, limit)]
-
-    async def execute_async(
-        self,
-        url: str,
-        measurement_id: str,
-        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        limit: Optional[Tuple[int, int]] = None,
-    ) -> List:
-        return [
-            row
-            async for row in self.execute_iter_async(
-                url, measurement_id, subsets, limit
-            )
-        ]
+    def execute(self, *args: Any, **kwargs: Any) -> List[dict]:
+        return list(self.execute_iter(*args, **kwargs))
 
     def execute_iter(
         self,
         url: str,
         measurement_id: str,
-        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
+        *,
+        data: Optional[Any] = None,
         limit: Optional[Tuple[int, int]] = None,
-    ) -> Iterator:
-        with client(url) as c:
-            for subset in subsets:
-                for i, statement in enumerate(self.statements(measurement_id, subset)):
-                    if limit:
-                        statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
-                    with LoggingTimer(
-                        logger,
-                        f"query={self.name}#{i} measurement_id={measurement_id} subset={subset}",
-                    ):
-                        rows = c.execute_iter(statement, settings=CH_QUERY_SETTINGS)
-                        for row in rows:
-                            yield row
-
-    async def execute_iter_async(
-        self,
-        url: str,
-        measurement_id: str,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        limit: Optional[Tuple[int, int]] = None,
-    ) -> AsyncIterator:
-        async with async_client(url) as c:
-            for subset in subsets:
-                for i, statement in enumerate(self.statements(measurement_id, subset)):
-                    if limit:
-                        statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
-                    with LoggingTimer(
-                        logger,
-                        f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
-                    ):
-                        rows = await c.execute_iter(
-                            statement, settings=CH_QUERY_SETTINGS
-                        )
-                        async for row in rows:
-                            yield row
-
-    def execute_http(
-        self,
-        url: str,
-        measurement_id: str,
-        database: str = "default",
-        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        limit: Optional[Tuple[int, int]] = None,
+        timeout: Optional[Tuple[int, int]] = (1, 60),
     ) -> Iterator[dict]:
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
-                if limit:
-                    statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
-                statement += "\nFORMAT JSONEachRow"
                 with LoggingTimer(
                     logger,
-                    f"query={self.name}#{i} measurement_id={measurement_id} database={database} subset={subset} limit={limit}",
+                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
                 ):
-                    r = httpx.get(
+                    params: Dict[str, Union[int, str]] = {
+                        "default_format": "JSONEachRow",
+                        "limit": limit[0] if limit else 0,
+                        "offset": limit[1] if limit else 0,
+                        "output_format_json_quote_64bit_integers": 0,
+                        "query": statement,
+                    }
+                    r = requests.post(
                         url,
                         headers={"Accept-encoding": "gzip"},
-                        params={"query": statement, "database": database},
-                        timeout=None,
+                        params=params,
+                        data=data,
+                        stream=True,
+                        timeout=timeout,
                     )
-                    for line in r.content.splitlines():
-                        yield json.loads(line)
+                    try:
+                        for line in r.iter_lines(chunk_size=2 ** 20):
+                            yield orjson.loads(line)
+                    except orjson.JSONDecodeError:
+                        logger.error("%s", line.decode(), exc_info=True)
 
-    async def execute_http_async(
-        self,
-        url: str,
-        measurement_id: str,
-        database: str = "default",
-        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        limit: Optional[Tuple[int, int]] = None,
-    ) -> AsyncIterator[dict]:
-        async with httpx.AsyncClient() as c:
-            for subset in subsets:
-                for i, statement in enumerate(self.statements(measurement_id, subset)):
-                    if limit:
-                        statement += f"\nLIMIT {limit[0]} OFFSET {limit[1]}"
-                    statement += "\nFORMAT JSONEachRow"
-                    with LoggingTimer(
-                        logger,
-                        f"query={self.name}#{i} measurement_id={measurement_id} database={database} subset={subset} limit={limit}",
-                    ):
-                        r = await c.get(
-                            url,
-                            headers={"Accept-encoding": "gzip"},
-                            params={"query": statement, "database": database},
-                            timeout=None,
-                        )
-                        for line in r.content.splitlines():
-                            yield json.loads(line)
-
-    async def execute_concurrent(
+    def execute_concurrent(
         self,
         url: str,
         measurement_id: str,
@@ -270,33 +128,18 @@ class Query:
         limit: Optional[Tuple[int, int]] = None,
         concurrent_requests: int = (os.cpu_count() or 2) // 2,
     ) -> None:
-        semaphore = Semaphore(concurrent_requests)
-
-        async def do(subset: IPNetwork) -> None:
-            async with semaphore:
-                try:
-                    await self.execute_async(url, measurement_id, (subset,), limit)
-                except ServerException as e:
-                    logger.error(
-                        "query=%s subset=%s exception=%s", self.name, subset, e
-                    )
-                    raise e
+        def do(subset: IPNetwork) -> None:
+            try:
+                self.execute(url, measurement_id, subsets=(subset,), limit=limit)
+            except Exception as e:
+                logger.error("query=%s subset=%s exc=%s", self.name, subset, e)
+                raise e
 
         logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
-        await asyncio.gather(*[do(subset) for subset in subsets])
-
-    def _addr_cast(self, column: str) -> str:
-        """Returns the column casted to the specified address type."""
-        if self.addr_type == AddrType.IPv6:
-            return column
-        elif self.addr_type == AddrType.String:
-            return f"CAST({column} AS String)"
-        elif self.addr_type == AddrType.FixedString:
-            return f"CAST({column} AS FixedString(16))"
-        elif self.addr_type == AddrType.IPv6NumToString:
-            return f"IPv6NumToString({column})"
-        else:
-            raise AttributeError("`addr_type` must be `AddrType` type")
+        with ThreadPoolExecutor(concurrent_requests) as executor:
+            futures = [executor.submit(do, subset) for subset in subsets]
+            for future in as_completed(futures):
+                future.result()
 
 
 @dataclass(frozen=True)
