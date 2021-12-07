@@ -98,7 +98,7 @@ class CountResultsPerPrefix(ResultsQuery):
     ) -> str:
         return f"""
         WITH {cut_ipv6('probe_dst_addr', self.prefix_len_v4, self.prefix_len_v6)} AS prefix
-        SELECT prefix, count()
+        SELECT prefix, count() AS count
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         GROUP BY prefix
