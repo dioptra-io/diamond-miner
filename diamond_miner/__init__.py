@@ -13,4 +13,4 @@ There are two implementations of Diamond-Miner:
   This implementation is maintained and used in production. It supports IPv4 and IPv6.
 """
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
