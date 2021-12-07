@@ -1,4 +1,4 @@
-url = "http://localhost:8123"
+url = "http://127.0.0.1:8123"
 
 
 def create_tables(url: str, measurement_id: str) -> None:

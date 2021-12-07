@@ -32,7 +32,7 @@ def test_get_mda_probes_nsdi():
     """
     >>> from diamond_miner.test import url
     >>> from diamond_miner.queries import GetMDAProbes
-    >>> row = next(GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite'))
+    >>> row = GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')[0]
     >>> row["probe_dst_prefix"]
     '::ffff:200.0.0.0'
     >>> row["TTLs"]
@@ -40,7 +40,7 @@ def test_get_mda_probes_nsdi():
     >>> row["cumulative_probes"]
     [11, 11, 11, 11]
 
-    >>> row = next(GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite'))
+    >>> row = GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')[0]
     >>> row["probe_dst_prefix"]
     '::ffff:200.0.0.0'
     >>> row["TTLs"]
@@ -48,7 +48,7 @@ def test_get_mda_probes_nsdi():
     >>> row["cumulative_probes"]
     [11, 16, 16, 16]
 
-    >>> row = next(GetMDAProbes(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite'))
+    >>> row = GetMDAProbes(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')[0]
     >>> row["probe_dst_prefix"]
     '::ffff:200.0.0.0'
     >>> row["TTLs"]
@@ -63,21 +63,21 @@ def test_get_mda_probes_stateful_nsdi():
     """
     >>> from diamond_miner.test import url
     >>> from diamond_miner.queries import GetMDAProbes
-    >>> row = next(GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite'))
+    >>> row = GetMDAProbes(round_leq=1, adaptive_eps=False).execute(url, 'test_nsdi_lite')[0]
     >>> row["probe_dst_prefix"]
     '::ffff:200.0.0.0'
     >>> row["TTLs"]
     [1, 2, 3, 4]
     >>> row["cumulative_probes"]
     [11, 11, 11, 11]
-    >>> row = next(GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite'))
+    >>> row = GetMDAProbes(round_leq=2, adaptive_eps=False).execute(url, 'test_nsdi_lite')[0]
     >>> row["probe_dst_prefix"]
     '::ffff:200.0.0.0'
     >>> row["TTLs"]
     [1, 2, 3, 4]
     >>> row["cumulative_probes"]
     [11, 16, 16, 16]
-    >>> row = next(GetMDAProbes(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite'))
+    >>> row = GetMDAProbes(round_leq=3, adaptive_eps=False).execute(url, 'test_nsdi_lite')[0]
     >>> row["probe_dst_prefix"]
     '::ffff:200.0.0.0'
     >>> row["TTLs"]
