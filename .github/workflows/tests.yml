@@ -17,7 +17,10 @@ jobs:
       - name: Start ClickHouse
         run: |
           docker run -d -p 8123:8123 yandex/clickhouse-server
-          sleep 5
+          until $(curl --output /dev/null --silent --head --fail http://localhost:8123); do
+            printf '.'
+            sleep 0.1
+          done
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
