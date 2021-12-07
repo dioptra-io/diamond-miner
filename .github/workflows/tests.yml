@@ -21,7 +21,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Start ClickHouse
         run: |
-          docker run -d -p 127.0.0.1:8123:8213 yandex/clickhouse-server
+          docker run -d -p 8123:8123 yandex/clickhouse-server
           sleep 5
       - name: Install dependencies
         run: |
