@@ -12,3 +12,5 @@ There are two implementations of Diamond-Miner:
 - This implementation, `diamond-miner <https://github.com/dioptra-io/diamond-miner>`_, a rewrite of the core algorithm in Python and ClickHouse SQL.
   This implementation is maintained and used in production. It supports IPv4 and IPv6.
 """
+
+__version__ = "0.4.1"

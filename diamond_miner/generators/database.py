@@ -1,3 +1,4 @@
+from ipaddress import IPv6Address
 from typing import Iterable, Iterator, Optional
 
 from diamond_miner.defaults import (
@@ -42,15 +43,15 @@ def probe_generator_from_database(
     """
     rows = GetProbesDiff(
         round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
-    ).execute_iter(url, measurement_id, subsets)
+    ).execute_iter(url, measurement_id, subsets=subsets)
     for row in rows:
-        row = GetProbesDiff.Row(*row)
+        dst_prefix_int = int(IPv6Address(row["probe_dst_prefix"]))
+        mapper = (
+            mapper_v4 if row["probe_dst_prefix"].startswith("::ffff:") else mapper_v6
+        )
+        protocol_str = PROTOCOLS[row["probe_protocol"]]
 
-        dst_prefix_int = int(row.dst_prefix)
-        mapper = mapper_v4 if row.dst_prefix.ipv4_mapped else mapper_v6
-        protocol_str = PROTOCOLS[row.protocol]
-
-        for ttl, total_probes, already_sent in row.probes_per_ttl:
+        for ttl, total_probes, already_sent in row["probes_per_ttl"]:
             for flow_id in range(already_sent, total_probes):
                 addr_offset, port_offset = mapper.offset(flow_id, dst_prefix_int)
                 dst_addr = dst_prefix_int + addr_offset

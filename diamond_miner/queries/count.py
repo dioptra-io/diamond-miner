@@ -14,9 +14,9 @@ class Count(Query):
     >>> from diamond_miner.test import url
     >>> from diamond_miner.queries.get_nodes import GetNodes
     >>> from diamond_miner.queries.get_links import GetLinks
-    >>> Count(query=GetNodes()).execute(url, 'test_nsdi_example')[0][0]
+    >>> Count(query=GetNodes()).execute(url, 'test_nsdi_example')[0]["count()"]
     7
-    >>> Count(query=GetLinks()).execute(url, 'test_nsdi_example')[0][0]
+    >>> Count(query=GetLinks()).execute(url, 'test_nsdi_example')[0]["count()"]
     8
     """
 
@@ -28,4 +28,4 @@ class Count(Query):
     ) -> str:
         # `query` must be typed `Optional` since it appears after arguments with default values.
         assert self.query is not None
-        return f"SELECT COUNT() FROM ({self.query.statement(measurement_id, subset)})"
+        return f"SELECT count() FROM ({self.query.statement(measurement_id, subset)})"

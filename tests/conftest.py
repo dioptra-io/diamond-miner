@@ -3,4 +3,4 @@ import pytest
 
 @pytest.fixture()
 def url():
-    return "clickhouse://localhost"
+    return "http://localhost:8123"

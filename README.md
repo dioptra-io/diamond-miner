@@ -50,12 +50,12 @@ The initial version has been written by [Kévin Vermeulen](https://github.com/kv
 
 This software is released under the [MIT license](/LICENSE), in accordance with the license of its dependencies.
 
-Name                                             | License                                    | Usage
--------------------------------------------------|--------------------------------------------|------
-[aioch](https://github.com/mymarilyn/aioch)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
-[clickhouse-driver](https://github.com/mymarilyn/clickhouse-driver)      | [MIT](https://opensource.org/licenses/MIT) | Interacting with ClickHouse
-[pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT) | Generating random permutations
+Name                                             | License                                                      | Usage
+-------------------------------------------------|--------------------------------------------------------------|------
+[pygfc](https://github.com/maxmouchet/gfc)       | [MIT](https://opensource.org/licenses/MIT)                   | Generating random permutations
 [python-zstandard](https://github.com/indygreg/python-zstandard) | [3-clause BSD](https://opensource.org/licenses/BSD-3-Clause) | Compression
+[requests](https://github.com/psf/requests) | [Apache 2.0](https://opensource.org/licenses/Apache-2.0)     | Querying the database
+[scamper](https://github.com/cmand/scamper) | [3-Clause BSD](https://opensource.org/licenses/BSD-3-Clause) | Reading and writing warts
 
 [^1]: As of v0.1.0, diamond-miner can discover the multipath topology in less than a day when probing at 100k pps.
 [^2]: Vermeulen, Kevin, et al. ["Diamond-Miner: Comprehensive Discovery of the Internet's Topology Diamonds."](https://www.usenix.org/system/files/nsdi20-paper-vermeulen.pdf) _17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20)_. 2020.

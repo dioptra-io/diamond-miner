@@ -13,7 +13,7 @@ class GetPrefixes(ResultsQuery):
     """
     Return the destination prefixes for which replies have been received.
 
-    >>> from diamond_miner.test import addr_to_string, url
+    >>> from diamond_miner.test import url
     >>> from ipaddress import ip_network
     >>> rows = GetPrefixes().execute(url, 'test_nsdi_example')
     >>> len(rows)
