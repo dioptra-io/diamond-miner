@@ -117,27 +117,30 @@ class Query:
                     try:
                         for line in r.iter_lines(chunk_size=2 ** 20):
                             yield orjson.loads(line)
-                    except orjson.JSONDecodeError:
-                        logger.error("%s", line.decode(), exc_info=True)
+                    except orjson.JSONDecodeError as e:
+                        raise RuntimeError(f"Invalid database response: {line}") from e
 
     def execute_concurrent(
         self,
         url: str,
         measurement_id: str,
+        *,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
         limit: Optional[Tuple[int, int]] = None,
         concurrent_requests: int = (os.cpu_count() or 2) // 2,
     ) -> None:
-        def do(subset: IPNetwork) -> None:
-            try:
-                self.execute(url, measurement_id, subsets=(subset,), limit=limit)
-            except Exception as e:
-                logger.error("query=%s subset=%s exc=%s", self.name, subset, e)
-                raise e
-
         logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
         with ThreadPoolExecutor(concurrent_requests) as executor:
-            futures = [executor.submit(do, subset) for subset in subsets]
+            futures = [
+                executor.submit(
+                    self.execute,
+                    url=url,
+                    measurement_id=measurement_id,
+                    subsets=(subset,),
+                    limit=limit,
+                )
+                for subset in subsets
+            ]
             for future in as_completed(futures):
                 future.result()
 

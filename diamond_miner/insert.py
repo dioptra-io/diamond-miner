@@ -104,5 +104,5 @@ def insert_mda_probe_counts_parallel(
     )
     subsets = subsets_for(query, url, measurement_id)
     query.execute_concurrent(
-        url, measurement_id, subsets, concurrent_requests=concurrent_requests
+        url, measurement_id, subsets=subsets, concurrent_requests=concurrent_requests
     )
