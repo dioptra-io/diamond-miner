@@ -1,4 +1,6 @@
-url = "http://localhost:8123"
+from os import environ
+
+url = environ.get("DIAMOND_MINER_TEST_DATABASE_URL", "http://localhost:8123")
 
 
 def create_tables(url: str, measurement_id: str) -> None:
