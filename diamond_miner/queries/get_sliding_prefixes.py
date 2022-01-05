@@ -22,13 +22,13 @@ class GetSlidingPrefixes(ResultsQuery):
         SELECT
             probe_protocol,
             probe_src_addr,
-            probe_dst_prefix,
+            probe_dst_prefix
         FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         AND probe_ttl >= {self.window_max_ttl - self.stopping_condition}
         GROUP BY (
             probe_protocol,
             probe_src_addr,
-            probe_dst_prefix,
+            probe_dst_prefix
         )
         """
