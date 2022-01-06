@@ -35,6 +35,7 @@ def probe_generator_parallel(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     probe_ttl_geq: Optional[int] = None,
     probe_ttl_leq: Optional[int] = None,
+    max_open_files: int = 8192,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
     """
@@ -55,7 +56,7 @@ def probe_generator_parallel(
     if not subsets:
         return 0
 
-    n_files_per_subset = 8192 // len(subsets)
+    n_files_per_subset = max_open_files // len(subsets)
 
     logger.info(
         "mda_probes n_workers=%s n_subsets=%s n_files_per_subset=%s",
