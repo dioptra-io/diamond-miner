@@ -173,9 +173,9 @@ def unfold(
     >>> from diamond_miner.test import url
     >>> from diamond_miner.queries import GetTraceroutes
     >>> rows = GetTraceroutes().execute(url, 'test_nsdi_example')
-    >>> rows = sorted(rows, key=lambda x: x["probe_src_addr"])
+    >>> rows = sorted(rows, key=lambda x: x["probe_dst_addr"])
     >>> next(unfold(**rows[0]))
-    (0, 1, '::ffff:100.0.0.1', '::ffff:200.0.0.8', 24000, 0, 1, 0, '::ffff:150.0.1.1', 1, 11, 0, 250, 0, [], 0, 1)
+    (0, 1, '::ffff:100.0.0.1', '::ffff:200.0.0.0', 24000, 0, 1, 0, '::ffff:150.0.1.1', 1, 11, 0, 250, 0, [], 0, 1)
     """
     for (
         capture_timestamp,
