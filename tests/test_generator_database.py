@@ -10,9 +10,10 @@ from diamond_miner.mappers import (
     SequentialFlowMapper,
 )
 from diamond_miner.queries.delete_probes import DeleteProbes
+from diamond_miner.test import url
 
 
-def test_mda_probes_lite(url):
+def test_mda_probes_lite():
     measurement_id = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
     probe_src_port = 24000
@@ -72,7 +73,7 @@ def test_mda_probes_lite(url):
     assert probes_for_round(3) == []
 
 
-def test_mda_probes_lite_adaptive(url):
+def test_mda_probes_lite_adaptive():
     measurement_id = "test_nsdi_lite"
 
     def probes_for_round(round_):
@@ -96,7 +97,7 @@ def test_mda_probes_lite_adaptive(url):
     assert len(probes_for_round(1)) > 20
 
 
-def test_mda_probes_lite_mappers(url):
+def test_mda_probes_lite_mappers():
     measurement_id = "test_nsdi_lite"
 
     # In this test, we simplify verify that the next round works with
@@ -141,7 +142,7 @@ def test_mda_probes_lite_mappers(url):
     assert len(set(len(probes) for probes in all_probes)) == 1
 
 
-def test_next_round_probes_multi_protocol(url):
+def test_next_round_probes_multi_protocol():
     measurement_id = "test_multi_protocol"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
     probe_src_port = 24000

@@ -6,6 +6,7 @@ import pytest
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import Query
+from diamond_miner.test import url
 from diamond_miner.typing import IPNetwork
 
 
@@ -25,14 +26,14 @@ class InvalidQuery(Query):
         return ["SELECT a FROM invalid_table", "SELECT zzz"]
 
 
-def test_execute(url):
+def test_execute():
     rows = ValidQuery().execute(url, "")
     assert rows == [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}, {"a": 10, "b": 20}]
     with pytest.raises(RuntimeError):
         InvalidQuery().execute(url, "")
 
 
-def test_execute_concurrent(url):
+def test_execute_concurrent():
     subsets = list(ip_network("0.0.0.0/0").subnets(prefixlen_diff=2))
     assert ValidQuery().execute_concurrent(url, "", subsets=subsets) is None
     with pytest.raises(RuntimeError):

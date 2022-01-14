@@ -8,9 +8,10 @@ from diamond_miner.generators import probe_generator_parallel
 from diamond_miner.insert import insert_mda_probe_counts_parallel
 from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.queries.delete_probes import DeleteProbes
+from diamond_miner.test import url
 
 
-def test_mda_probes_parallel(tmp_path, url):
+def test_mda_probes_parallel(tmp_path):
     measurement_id = "test_nsdi_lite"
     probe_dst_prefix = int(ip_address("::ffff:200.0.0.0"))
     probe_src_port = 24000
