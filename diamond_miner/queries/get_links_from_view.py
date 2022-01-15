@@ -37,11 +37,6 @@ class GetLinksFromView(FlowsQuery):
 
     ignore_invalid_prefixes: bool = True
 
-    optimize_aggregation_in_order: bool = False
-    """
-    Necessary to avoid excessive memory usage when inserting all the links in one batch.
-    """
-
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
@@ -61,11 +56,6 @@ class GetLinksFromView(FlowsQuery):
             # in the next round query.
         else:
             invalid_filter = ""
-
-        if self.optimize_aggregation_in_order:
-            optimize_fragment = "SETTINGS optimize_aggregation_in_order = 1"
-        else:
-            optimize_fragment = ""
 
         return f"""
         WITH
@@ -93,5 +83,4 @@ class GetLinksFromView(FlowsQuery):
         WHERE {self.filters(subset)}
         {invalid_filter}
         GROUP BY ({CreateFlowsView.SORTING_KEY})
-        {optimize_fragment}
         """

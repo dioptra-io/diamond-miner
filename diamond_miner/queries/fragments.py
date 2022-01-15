@@ -1,5 +1,4 @@
 from datetime import datetime
-from ipaddress import ip_network
 from typing import Any, Iterable, Optional
 
 from diamond_miner.typing import IPNetwork
@@ -150,15 +149,6 @@ def ip_not_in(column: str, subset: Optional[IPNetwork]) -> str:
     if not subset:
         return "1"
     return f"({column} < {ipv6(subset[0])} OR {column} > {ipv6(subset[-1])})"
-
-
-def ip_not_private(column: str) -> str:
-    return f"""
-    {ip_not_in(column, ip_network('10.0.0.0/8'))}
-    AND {ip_not_in(column, ip_network('172.16.0.0/12'))}
-    AND {ip_not_in(column, ip_network('192.168.0.0/16'))}
-    AND {ip_not_in(column, ip_network('fd00::/8'))}
-    """
 
 
 def and_(a: str, b: str) -> str:

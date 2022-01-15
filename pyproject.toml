@@ -29,6 +29,7 @@ zstandard = ">=0.15.2,<0.17.0"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "^0.6.0"
+coverage = {extras = ["toml"], version = "^6.2"}
 Cython = "^0.29.26"
 hypothesis = "^6.34.1"
 pytest = "^6.2"
@@ -38,7 +39,7 @@ sphinx-rtd-theme = "^1.0.0"
 sphinxcontrib-bibtex = "^2.2.1"
 
 [tool.pytest.ini_options]
-addopts = "--cov=diamond_miner --cov-report=term --doctest-ignore-import-errors --doctest-modules --log-cli-level info"
+addopts = "--capture=no --doctest-modules --log-cli-level=info --strict-markers --verbosity=2"
 
 [tool.mypy]
 disallow_untyped_calls = true
@@ -53,6 +54,15 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
 warn_unused_ignores = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "if TYPE_CHECKING:$",
+    "if __name__ == \"__main__\":$",
+    "pass$",
+    "\\s\\.\\.\\.$",
+    "raise NotImplementedError$"
+]
 
 [tool.cibuildwheel]
 # Keep emulated aarch64 build times manageable...

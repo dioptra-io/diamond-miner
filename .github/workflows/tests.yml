@@ -26,5 +26,5 @@ jobs:
       - name: Tests
         run: |
           poetry run tests/data/insert.py
-          poetry run pytest -s --cov-report xml
+          poetry run pytest --cov=diamond_miner --cov-report=xml
       - uses: codecov/codecov-action@v2
