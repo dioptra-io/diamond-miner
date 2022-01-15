@@ -129,6 +129,7 @@ def ip_eq(column: str, value: Optional[str]) -> str:
 
 def ip_in(column: str, subset: Optional[IPNetwork]) -> str:
     """
+    >>> from ipaddress import ip_network
     >>> ip_in("col", None)
     '1'
     >>> ip_in("col", ip_network("::/0"))
@@ -141,6 +142,7 @@ def ip_in(column: str, subset: Optional[IPNetwork]) -> str:
 
 def ip_not_in(column: str, subset: Optional[IPNetwork]) -> str:
     """
+    >>> from ipaddress import ip_network
     >>> ip_not_in("col", None)
     '1'
     >>> ip_not_in("col", ip_network("::/0"))
