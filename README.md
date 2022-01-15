@@ -43,7 +43,7 @@ If you use Diamond-Miner, please cite the following paper:
 
 ## Authors
 
-Diamond-Miner is developed and maintained by the [Dioptra group](https://dioptra.io) at Sorbonne Université in Paris, France.
+Diamond-Miner is developed and maintained by the [Dioptra group](https://dioptra.io) at [Sorbonne Université](https://www.sorbonne-universite.fr) in Paris, France.
 The initial version has been written by [Kévin Vermeulen](https://github.com/kvermeul), with subsequents refactoring and improvements by [Maxime Mouchet](https://github.com/maxmouchet) and [Matthieu Gouel](https://github.com/matthieugouel).
 
 ## License & Dependencies
