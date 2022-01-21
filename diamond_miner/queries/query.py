@@ -91,7 +91,7 @@ class Query:
         data: Optional[Any] = None,
         limit: Optional[Tuple[int, int]] = None,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        timeout: Optional[Tuple[int, int]] = (1, 60),
+        timeout: Optional[Tuple[int, int]] = (5, 3600),
     ) -> Iterator[dict]:
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
