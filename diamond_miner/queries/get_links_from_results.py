@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries import CreateFlowsView
 from diamond_miner.queries.fragments import ip_in
-from diamond_miner.queries.query import FlowsQuery, flows_table, prefixes_table
+from diamond_miner.queries.query import ResultsQuery, prefixes_table, results_table
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
-class GetLinksFromView(FlowsQuery):
+class GetLinksFromResults(ResultsQuery):
     """
-    Compute the links from the flows view.
+    Compute the links from the results table.
     This returns one line per ``(flow, link)`` pair.
 
     We do not emit a link in the case of single reply in a traceroute.
@@ -30,7 +29,7 @@ class GetLinksFromView(FlowsQuery):
     such a table will contain only intra-round links but can be updated incrementally.
 
     >>> from diamond_miner.test import url
-    >>> links = GetLinksFromView().execute(url, "test_nsdi_example")
+    >>> links = GetLinksFromResults().execute(url, "test_nsdi_example")
     >>> len(links)
     58
     """
@@ -59,8 +58,7 @@ class GetLinksFromView(FlowsQuery):
 
         return f"""
         WITH
-            -- (round, ttl, addr)
-            groupUniqArrayMerge(replies) AS traceroute,
+            groupUniqArray((round, probe_ttl, reply_src_addr)) AS traceroute,
             arrayMap(x -> x.2, traceroute) AS ttls,
             arrayMap(x -> (x.1, x.3), traceroute) AS val,
             CAST((ttls, val), 'Map(UInt8, Tuple(UInt8, IPv6))') AS map,
@@ -69,7 +67,12 @@ class GetLinksFromView(FlowsQuery):
             arrayMap(i -> (toUInt8(i), toUInt8(i + 1), map[toUInt8(i)], map[toUInt8(i + 1)]), range(first_ttl, last_ttl)) AS links,
             arrayJoin(links) AS link
         SELECT
-            {CreateFlowsView.SORTING_KEY},
+            probe_protocol,
+            probe_src_addr,
+            probe_dst_prefix,
+            probe_dst_addr,
+            probe_src_port,
+            probe_dst_port,
             -- Set the round number for partial links:
             -- The link (1, 10, A) -> (null, 11, *) becomes
             --          (1, 10, A) -> (1,    11, *)
@@ -79,8 +82,15 @@ class GetLinksFromView(FlowsQuery):
             link.2 AS far_ttl,
             link.3.2 AS near_addr,
             link.4.2 AS far_addr
-        FROM {flows_table(measurement_id)}
+        FROM {results_table(measurement_id)}
         WHERE {self.filters(subset)}
         {invalid_filter}
-        GROUP BY ({CreateFlowsView.SORTING_KEY})
+        GROUP BY (
+            probe_protocol,
+            probe_src_addr,
+            probe_dst_prefix,
+            probe_dst_addr,
+            probe_src_port,
+            probe_dst_port
+        )
         """

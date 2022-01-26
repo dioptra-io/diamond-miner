@@ -25,10 +25,6 @@ from diamond_miner.typing import IPNetwork
 from diamond_miner.utilities import LoggingTimer
 
 
-def flows_table(measurement_id: str) -> str:
-    return f"flows__{measurement_id}".replace("-", "_")
-
-
 def links_table(measurement_id: str) -> str:
     return f"links__{measurement_id}".replace("-", "_")
 
@@ -143,21 +139,6 @@ class Query:
             ]
             for future in as_completed(futures):
                 future.result()
-
-
-@dataclass(frozen=True)
-class FlowsQuery(Query):
-    round_eq: Optional[int] = None
-    "If specified, keep only the flows from this round."
-
-    def filters(self, subset: IPNetwork) -> str:
-        """``WHERE`` clause common to all queries on the flows table."""
-        s = []
-        if subset != UNIVERSE_SUBSET:
-            s += [ip_in("probe_dst_prefix", subset)]
-        if self.round_eq:
-            s += [eq("round", self.round_eq)]
-        return reduce(and_, s or ["1"])
 
 
 @dataclass(frozen=True)

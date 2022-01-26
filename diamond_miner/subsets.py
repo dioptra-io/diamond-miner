@@ -2,11 +2,9 @@ from ipaddress import IPv6Network, ip_network
 from typing import Dict, List, Union
 
 from diamond_miner.queries import (
-    CountFlowsPerPrefix,
     CountLinksPerPrefix,
     CountProbesPerPrefix,
     CountResultsPerPrefix,
-    FlowsQuery,
     LinksQuery,
     ProbesQuery,
     ResultsQuery,
@@ -17,7 +15,7 @@ Counts = Dict[IPv6Network, int]
 
 
 def subsets_for(
-    query: Union[FlowsQuery, LinksQuery, ProbesQuery, ResultsQuery],
+    query: Union[LinksQuery, ProbesQuery, ResultsQuery],
     url: str,
     measurement_id: str,
     *,
@@ -25,9 +23,7 @@ def subsets_for(
 ) -> List[IPv6Network]:
     """
     >>> from diamond_miner.test import url
-    >>> from diamond_miner.queries import GetLinksFromView, GetLinks, GetProbes, GetResults
-    >>> subsets_for(GetLinksFromView(), url, 'test_nsdi_example', max_items_per_subset=1)
-    [IPv6Network('::ffff:c800:0/104')]
+    >>> from diamond_miner.queries import GetLinks, GetProbes, GetResults
     >>> subsets_for(GetLinks(), url, 'test_nsdi_example', max_items_per_subset=1)
     [IPv6Network('::ffff:c800:0/104')]
     >>> subsets_for(GetProbes(round_eq=1), url, 'test_nsdi_example', max_items_per_subset=1)
@@ -35,10 +31,8 @@ def subsets_for(
     >>> subsets_for(GetResults(), url, 'test_nsdi_example', max_items_per_subset=1)
     [IPv6Network('::ffff:c800:0/104')]
     """
-    if isinstance(query, FlowsQuery):
-        count_query = CountFlowsPerPrefix(**common_parameters(query, FlowsQuery))
-    elif isinstance(query, LinksQuery):
-        count_query = CountLinksPerPrefix(**common_parameters(query, LinksQuery))  # type: ignore
+    if isinstance(query, LinksQuery):
+        count_query = CountLinksPerPrefix(**common_parameters(query, LinksQuery))
     elif isinstance(query, ProbesQuery):
         count_query = CountProbesPerPrefix(**common_parameters(query, ProbesQuery))  # type: ignore
     elif isinstance(query, ResultsQuery):

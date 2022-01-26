@@ -4,7 +4,6 @@ from typing import Sequence
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import (
     Query,
-    flows_table,
     links_table,
     prefixes_table,
     probes_table,
@@ -22,7 +21,6 @@ class DropTables(Query):
     ) -> Sequence[str]:
         return (
             f"DROP TABLE IF EXISTS {results_table(measurement_id)}",
-            f"DROP TABLE IF EXISTS {flows_table(measurement_id)}",
             f"DROP TABLE IF EXISTS {links_table(measurement_id)}",
             f"DROP TABLE IF EXISTS {prefixes_table(measurement_id)}",
             f"DROP TABLE IF EXISTS {probes_table(measurement_id)}",

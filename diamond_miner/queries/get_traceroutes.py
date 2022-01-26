@@ -4,8 +4,6 @@ from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import ResultsQuery, results_table
 from diamond_miner.typing import IPNetwork
 
-# TODO: Implement over the flows view instead?
-
 
 @dataclass(frozen=True)
 class GetTraceroutes(ResultsQuery):

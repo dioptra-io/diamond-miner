@@ -7,7 +7,6 @@ from diamond_miner.defaults import (
     UNIVERSE_SUBSET,
 )
 from diamond_miner.queries import (
-    CreateFlowsView,
     CreateLinksTable,
     CreatePrefixesTable,
     CreateProbesTable,
@@ -37,7 +36,6 @@ class CreateTables(Query):
         }
         return (
             *CreateResultsTable(**all_params).statements(measurement_id, subset),
-            *CreateFlowsView(**params).statements(measurement_id, subset),
             *CreateLinksTable(**params).statements(measurement_id, subset),
             *CreatePrefixesTable(**params).statements(measurement_id, subset),
             *CreateProbesTable(**params).statements(measurement_id, subset),
