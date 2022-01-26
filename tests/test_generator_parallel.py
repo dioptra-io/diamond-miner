@@ -5,7 +5,7 @@ from zstandard import ZstdDecompressor
 
 from diamond_miner.defaults import DEFAULT_PREFIX_SIZE_V4, DEFAULT_PREFIX_SIZE_V6
 from diamond_miner.generators import probe_generator_parallel
-from diamond_miner.insert import insert_mda_probe_counts_parallel
+from diamond_miner.insert import insert_mda_probe_counts
 from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.queries.delete_probes import DeleteProbes
 from diamond_miner.test import url
@@ -20,7 +20,7 @@ def test_mda_probes_parallel(tmp_path):
     def probes_for_round(round_):
         filepath = tmp_path / f"probes-{round_}.csv.zst"
         DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
-        insert_mda_probe_counts_parallel(
+        insert_mda_probe_counts(
             url=url,
             measurement_id=measurement_id,
             previous_round=round_,

@@ -60,32 +60,15 @@ def insert_probe_counts(
             for af, subprefix, subprefix_size in split_prefix(
                 prefix, prefix_len_v4, prefix_len_v6
             ):
-                for ttl in ttls:
-                    yield f'[{protocol},"{format_ipv6(subprefix)}",{ttl},{n_probes},{round_}]'.encode()
+                yield "\n".join(
+                    f'[{protocol},"{format_ipv6(subprefix)}",{ttl},{n_probes},{round_}]'
+                    for ttl in ttls
+                ).encode()
 
     InsertProbes().execute(url, measurement_id, data=gen())
 
 
 def insert_mda_probe_counts(
-    url: str,
-    measurement_id: str,
-    previous_round: int,
-    adaptive_eps: bool = False,
-    target_epsilon: float = DEFAULT_FAILURE_RATE,
-    subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-) -> None:
-    # TODO: set filter_partial and filter_virtual to false?
-    InsertMDAProbes(
-        adaptive_eps=adaptive_eps,
-        round_leq=previous_round,
-        filter_partial=True,
-        filter_virtual=True,
-        filter_inter_round=True,
-        target_epsilon=target_epsilon,
-    ).execute(url, measurement_id, subsets=subsets)
-
-
-def insert_mda_probe_counts_parallel(
     url: str,
     measurement_id: str,
     previous_round: int,
