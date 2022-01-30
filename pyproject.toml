@@ -21,7 +21,7 @@ classifiers = [
 build = "build_ext.py"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<4.0"
 orjson = "^3.6.5"
 pygfc = "^1.0.3"
 requests = "^2.26.0"
