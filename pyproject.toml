@@ -31,7 +31,7 @@ zstandard = ">=0.15.2,<0.18.0"
 bumpversion = "^0.6.0"
 coverage = {extras = ["toml"], version = "^6.2"}
 Cython = "^0.29.26"
-hypothesis = "^6.34.1"
+hypothesis = "^6.36.1"
 pytest = "^6.2"
 pytest-cov = "^3.0.0"
 Sphinx = "^4.3.2"

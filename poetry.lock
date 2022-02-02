@@ -128,7 +128,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "hypothesis"
-version = "6.36.0"
+version = "6.36.1"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -613,7 +613,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "f87ed9d4ae01ea5de994bc047aee3d3c15e4584fc517d2a5d1cd17b7b3909237"
+content-hash = "6131ffc00c30b4a1121f5f131e29bcedb1deba2f6c8026da2c7aa298d201a6fa"
 
 [metadata.files]
 alabaster = [
@@ -806,8 +806,8 @@ docutils = [
     {file = "docutils-0.17.1.tar.gz", hash = "sha256:686577d2e4c32380bb50cbb22f575ed742d58168cee37e99117a854bcd88f125"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.36.0-py3-none-any.whl", hash = "sha256:fa9f845b06199ea87e68c6da04a609ff46e381b5d542351184790d54eaca144c"},
-    {file = "hypothesis-6.36.0.tar.gz", hash = "sha256:2b9c56faa067d660f0802679689f825bf142eec8261ab9e2e6ea916b1d8278a1"},
+    {file = "hypothesis-6.36.1-py3-none-any.whl", hash = "sha256:886342c291e3e592f26889f25b33aac78c6af62c736451f7cdad0a06ffa27325"},
+    {file = "hypothesis-6.36.1.tar.gz", hash = "sha256:46cbee9d7aed822149af75ec63d5f86cd1042df69b2e8eae17b26a56a4dda781"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
