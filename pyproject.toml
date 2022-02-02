@@ -25,7 +25,7 @@ python = ">=3.8,<4.0"
 orjson = "^3.6.5"
 pygfc = "^1.0.3"
 requests = "^2.26.0"
-zstandard = ">=0.15.2,<0.17.0"
+zstandard = ">=0.15.2,<0.18.0"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "^0.6.0"
