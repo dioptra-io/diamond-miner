@@ -13,14 +13,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-11]
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: '3.x'
 
       - name: Set up QEMU
         if: runner.os == 'Linux'
@@ -30,6 +30,11 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.3.1
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 
       - name: Publish to PyPI
         # Publish only when the current ref. is a tag.
