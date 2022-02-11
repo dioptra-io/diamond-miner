@@ -65,9 +65,9 @@ exclude_lines = [
 ]
 
 [tool.cibuildwheel]
-# The default `pip` frontend always produces wheels for Python 3.8,
-# no matter what is the selected version; thus the switch to `build`.
-build-frontend = "build"
+# Cleanup build/ directory before each build to avoid an issue where
+# the compiled modules are not built for the correct Python version.
+before-build = "rm -rf build"
 # Keep emulated aarch64 build times manageable...
 skip = ["*-musllinux_*"]
 
