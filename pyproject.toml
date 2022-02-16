@@ -22,8 +22,8 @@ build = "build_ext.py"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-orjson = "^3.6.5"
-pygfc = "^1.0.3"
+orjson = "^3.6.7"
+pygfc = "^1.0.5"
 requests = "^2.26.0"
 zstandard = ">=0.15.2,<0.18.0"
 
@@ -31,8 +31,8 @@ zstandard = ">=0.15.2,<0.18.0"
 bumpversion = "^0.6.0"
 coverage = {extras = ["toml"], version = "^6.3"}
 Cython = "^0.29.27"
-hypothesis = "^6.36.1"
-pytest = "^6.2"
+hypothesis = "^6.36.2"
+pytest = "^7.0.1"
 pytest-cov = "^3.0.0"
 Sphinx = "^4.3.2"
 sphinx-rtd-theme = "^1.0.0"
