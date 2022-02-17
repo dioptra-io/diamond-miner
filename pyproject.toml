@@ -22,9 +22,8 @@ build = "build_ext.py"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-orjson = "^3.6.7"
+pych-client = {extras = ["orjson"], version = "^0.2.3"}
 pygfc = "^1.0.5"
-requests = "^2.26.0"
 zstandard = ">=0.15.2,<0.18.0"
 
 [tool.poetry.dev-dependencies]

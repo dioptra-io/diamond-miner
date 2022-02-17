@@ -27,9 +27,9 @@ def probe_id_from_uuid(uuid: Union[UUID, str]) -> int:
 
 def from_ripe_atlas(traceroute: dict) -> dict:
     """
-    >>> from diamond_miner.test import url
+    >>> from diamond_miner.test import client
     >>> from diamond_miner.queries import GetTraceroutes
-    >>> rows = GetTraceroutes().execute(url, 'test_nsdi_example')
+    >>> rows = GetTraceroutes().execute(client, 'test_nsdi_example')
     >>> row = sorted(rows, key=lambda x: x["probe_dst_addr"])[0]
     >>> atlas = to_ripe_atlas("measurement", "agent", **row, ipv4_mapped=True)
     >>> res = from_ripe_atlas(atlas)
@@ -84,9 +84,9 @@ def to_ripe_atlas(
     ipv4_mapped: bool = False,
 ) -> dict:
     """
-    >>> from diamond_miner.test import url
+    >>> from diamond_miner.test import client
     >>> from diamond_miner.queries import GetTraceroutes
-    >>> rows = GetTraceroutes().execute(url, 'test_nsdi_example')
+    >>> rows = GetTraceroutes().execute(client, 'test_nsdi_example')
     >>> rows = sorted(rows, key=lambda x: x["probe_dst_addr"])
     >>> atlas = to_ripe_atlas("measurement", "agent", **rows[0])
     >>> atlas["src_addr"]
@@ -170,9 +170,9 @@ def unfold(
 ) -> Iterator[tuple]:
     # TODO: Return dict instead?
     """
-    >>> from diamond_miner.test import url
+    >>> from diamond_miner.test import client
     >>> from diamond_miner.queries import GetTraceroutes
-    >>> rows = GetTraceroutes().execute(url, 'test_nsdi_example')
+    >>> rows = GetTraceroutes().execute(client, 'test_nsdi_example')
     >>> rows = sorted(rows, key=lambda x: x["probe_dst_addr"])
     >>> next(unfold(**rows[0]))
     (0, 1, '::ffff:100.0.0.1', '::ffff:200.0.0.0', 24000, 0, 1, 0, '::ffff:150.0.1.1', 1, 11, 0, 250, 0, [], 0, 1)

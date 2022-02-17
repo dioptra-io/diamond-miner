@@ -11,12 +11,12 @@ class Count(Query):
     """
     Count the rows of a given query.
 
-    >>> from diamond_miner.test import url
+    >>> from diamond_miner.test import client
     >>> from diamond_miner.queries.get_nodes import GetNodes
     >>> from diamond_miner.queries.get_links import GetLinks
-    >>> Count(query=GetNodes()).execute(url, 'test_nsdi_example')[0]["count()"]
+    >>> Count(query=GetNodes()).execute(client, 'test_nsdi_example')[0]["count()"]
     7
-    >>> Count(query=GetLinks()).execute(url, 'test_nsdi_example')[0]["count()"]
+    >>> Count(query=GetLinks()).execute(client, 'test_nsdi_example')[0]["count()"]
     8
     """
 

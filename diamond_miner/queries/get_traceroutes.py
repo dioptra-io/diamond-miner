@@ -10,8 +10,8 @@ class GetTraceroutes(ResultsQuery):
     """
     Return all the columns from the results table.
 
-    >>> from diamond_miner.test import url
-    >>> rows = GetTraceroutes().execute(url, 'test_nsdi_example')
+    >>> from diamond_miner.test import client
+    >>> rows = GetTraceroutes().execute(client, 'test_nsdi_example')
     >>> len(rows)
     27
     """

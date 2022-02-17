@@ -1,6 +1,8 @@
 from ipaddress import IPv6Network, ip_network
 from typing import Dict, List, Union
 
+from pych_client import ClickHouseClient
+
 from diamond_miner.queries import (
     CountLinksPerPrefix,
     CountProbesPerPrefix,
@@ -16,19 +18,19 @@ Counts = Dict[IPv6Network, int]
 
 def subsets_for(
     query: Union[LinksQuery, ProbesQuery, ResultsQuery],
-    url: str,
+    client: ClickHouseClient,
     measurement_id: str,
     *,
     max_items_per_subset: int = 8_000_000,
 ) -> List[IPv6Network]:
     """
-    >>> from diamond_miner.test import url
+    >>> from diamond_miner.test import client
     >>> from diamond_miner.queries import GetLinks, GetProbes, GetResults
-    >>> subsets_for(GetLinks(), url, 'test_nsdi_example', max_items_per_subset=1)
+    >>> subsets_for(GetLinks(), client, 'test_nsdi_example', max_items_per_subset=1)
     [IPv6Network('::ffff:c800:0/104')]
-    >>> subsets_for(GetProbes(round_eq=1), url, 'test_nsdi_example', max_items_per_subset=1)
+    >>> subsets_for(GetProbes(round_eq=1), client, 'test_nsdi_example', max_items_per_subset=1)
     [IPv6Network('::ffff:c800:0/104')]
-    >>> subsets_for(GetResults(), url, 'test_nsdi_example', max_items_per_subset=1)
+    >>> subsets_for(GetResults(), client, 'test_nsdi_example', max_items_per_subset=1)
     [IPv6Network('::ffff:c800:0/104')]
     """
     if isinstance(query, LinksQuery):
@@ -43,7 +45,7 @@ def subsets_for(
         addr_to_network(
             row["prefix"], count_query.prefix_len_v4, count_query.prefix_len_v6
         ): row["count"]
-        for row in count_query.execute_iter(url, measurement_id)
+        for row in count_query.execute_iter(client, measurement_id)
     }
     return split(counts, max_items_per_subset)
 

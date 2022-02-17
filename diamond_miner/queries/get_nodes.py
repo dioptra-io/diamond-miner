@@ -13,14 +13,14 @@ class GetNodes(ResultsQuery):
     """
     Return all the discovered nodes.
 
-    >>> from diamond_miner.test import url
-    >>> nodes = GetNodes(include_probe_ttl=True).execute(url, 'test_nsdi_example')
+    >>> from diamond_miner.test import client
+    >>> nodes = GetNodes(include_probe_ttl=True).execute(client, 'test_nsdi_example')
     >>> sorted((node["probe_ttl"], node["reply_src_addr"]) for node in nodes)
     [(1, '::ffff:150.0.1.1'), (2, '::ffff:150.0.2.1'), (2, '::ffff:150.0.3.1'), (3, '::ffff:150.0.4.1'), (3, '::ffff:150.0.5.1'), (3, '::ffff:150.0.7.1'), (4, '::ffff:150.0.6.1')]
-    >>> nodes = GetNodes(filter_invalid_prefixes=False).execute(url, 'test_invalid_prefixes')
+    >>> nodes = GetNodes(filter_invalid_prefixes=False).execute(client, 'test_invalid_prefixes')
     >>> sorted(node["reply_src_addr"] for node in nodes)
     ['::ffff:150.0.0.1', '::ffff:150.0.0.2', '::ffff:150.0.1.1', '::ffff:150.0.1.2', '::ffff:150.0.2.1', '::ffff:150.0.2.2', '::ffff:150.0.2.3']
-    >>> nodes = GetNodes(filter_invalid_prefixes=True).execute(url, 'test_invalid_prefixes')
+    >>> nodes = GetNodes(filter_invalid_prefixes=True).execute(client, 'test_invalid_prefixes')
     >>> sorted(node["reply_src_addr"] for node in nodes)
     ['::ffff:150.0.0.1', '::ffff:150.0.0.2', '::ffff:150.0.2.3']
     """

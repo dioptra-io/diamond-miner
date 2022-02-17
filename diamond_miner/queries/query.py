@@ -3,10 +3,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 from functools import reduce
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Iterable, Iterator, List, Optional, Sequence, Tuple
 
-import orjson
-import requests
+from pych_client import ClickHouseClient
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.logger import logger
@@ -76,18 +75,37 @@ class Query:
         # Override this method if you want your query to return multiple statements.
         return (self.statement(measurement_id, subset),)
 
-    def execute(self, *args: Any, **kwargs: Any) -> List[dict]:
-        return list(self.execute_iter(*args, **kwargs))
-
-    def execute_iter(
+    def execute(
         self,
-        url: str,
+        client: ClickHouseClient,
         measurement_id: str,
         *,
         data: Optional[Any] = None,
         limit: Optional[Tuple[int, int]] = None,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        timeout: Optional[Tuple[int, int]] = (5, 3600),
+    ) -> List[dict]:
+        rows = []
+        for subset in subsets:
+            for i, statement in enumerate(self.statements(measurement_id, subset)):
+                with LoggingTimer(
+                    logger,
+                    f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
+                ):
+                    settings = dict(
+                        limit=limit[0] if limit else 0,
+                        offset=limit[1] if limit else 0,
+                    )
+                    rows += client.json(statement, data=data, settings=settings)
+        return rows
+
+    def execute_iter(
+        self,
+        client: ClickHouseClient,
+        measurement_id: str,
+        *,
+        data: Optional[Any] = None,
+        limit: Optional[Tuple[int, int]] = None,
+        subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator[dict]:
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
@@ -95,30 +113,15 @@ class Query:
                     logger,
                     f"query={self.name}#{i} measurement_id={measurement_id} subset={subset} limit={limit}",
                 ):
-                    params: Dict[str, Union[int, str]] = {
-                        "default_format": "JSONEachRow",
-                        "limit": limit[0] if limit else 0,
-                        "offset": limit[1] if limit else 0,
-                        "output_format_json_quote_64bit_integers": 0,
-                        "query": statement,
-                    }
-                    r = requests.post(
-                        url,
-                        headers={"Accept-encoding": "gzip"},
-                        params=params,
-                        data=data,
-                        stream=True,
-                        timeout=timeout,
+                    settings = dict(
+                        limit=limit[0] if limit else 0,
+                        offset=limit[1] if limit else 0,
                     )
-                    try:
-                        for line in r.iter_lines(chunk_size=2 ** 20):
-                            yield orjson.loads(line)
-                    except orjson.JSONDecodeError as e:
-                        raise RuntimeError(f"Invalid database response: {line}") from e
+                    yield from client.iter_json(statement, data=data, settings=settings)
 
     def execute_concurrent(
         self,
-        url: str,
+        client: ClickHouseClient,
         measurement_id: str,
         *,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
@@ -130,7 +133,7 @@ class Query:
             futures = [
                 executor.submit(
                     self.execute,
-                    url=url,
+                    client=client,
                     measurement_id=measurement_id,
                     subsets=(subset,),
                     limit=limit,

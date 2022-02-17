@@ -2,6 +2,8 @@ import os
 from dataclasses import dataclass
 from typing import Iterable, Iterator, Tuple
 
+from pych_client import ClickHouseClient
+
 from diamond_miner.defaults import (
     DEFAULT_FAILURE_RATE,
     DEFAULT_PREFIX_LEN_V4,
@@ -26,7 +28,7 @@ class InsertProbes(Query):
 
 
 def insert_probe_counts(
-    url: str,
+    client: ClickHouseClient,
     measurement_id: str,
     round_: int,
     # prefix (/32 or / 128 if nothing specified), protocol, ttls, n_probes
@@ -35,11 +37,11 @@ def insert_probe_counts(
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
 ) -> None:
     """
-    >>> from diamond_miner.test import create_tables, url
+    >>> from diamond_miner.test import client, create_tables
     >>> from diamond_miner.queries import GetProbes
-    >>> create_tables(url, "test_probe_counts")
-    >>> insert_probe_counts(url, "test_probe_counts", 1, [("8.8.0.0/22", "icmp", range(2, 5), 6)])
-    >>> rows = sorted(GetProbes(round_eq=1).execute(url, "test_probe_counts"), key=lambda x: x["probe_dst_prefix"])
+    >>> create_tables(client, "test_probe_counts")
+    >>> insert_probe_counts(client, "test_probe_counts", 1, [("8.8.0.0/22", "icmp", range(2, 5), 6)])
+    >>> rows = sorted(GetProbes(round_eq=1).execute(client, "test_probe_counts"), key=lambda x: x["probe_dst_prefix"])
     >>> len(rows)
     4
     >>> row = rows[0]
@@ -65,11 +67,11 @@ def insert_probe_counts(
                     for ttl in ttls
                 ).encode()
 
-    InsertProbes().execute(url, measurement_id, data=gen())
+    InsertProbes().execute(client, measurement_id, data=gen())
 
 
 def insert_mda_probe_counts(
-    url: str,
+    client: ClickHouseClient,
     measurement_id: str,
     previous_round: int,
     adaptive_eps: bool = False,
@@ -85,7 +87,7 @@ def insert_mda_probe_counts(
         filter_inter_round=True,
         target_epsilon=target_epsilon,
     )
-    subsets = subsets_for(query, url, measurement_id)
+    subsets = subsets_for(query, client, measurement_id)
     query.execute_concurrent(
-        url, measurement_id, subsets=subsets, concurrent_requests=concurrent_requests
+        client, measurement_id, subsets=subsets, concurrent_requests=concurrent_requests
     )

@@ -10,7 +10,7 @@ from diamond_miner.mappers import (
     SequentialFlowMapper,
 )
 from diamond_miner.queries.delete_probes import DeleteProbes
-from diamond_miner.test import url
+from diamond_miner.test import client
 
 
 def test_mda_probes_lite():
@@ -20,16 +20,16 @@ def test_mda_probes_lite():
     probe_dst_port = 33434
 
     def probes_for_round(round_):
-        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
+        DeleteProbes(round_eq=round_ + 1).execute(client, measurement_id)
         insert_mda_probe_counts(
-            url=url,
+            client=client,
             measurement_id=measurement_id,
             previous_round=round_,
             adaptive_eps=False,
         )
         return list(
             probe_generator_from_database(
-                url=url,
+                client=client,
                 measurement_id=measurement_id,
                 round_=round_ + 1,
                 probe_src_port=probe_src_port,
@@ -77,16 +77,16 @@ def test_mda_probes_lite_adaptive():
     measurement_id = "test_nsdi_lite"
 
     def probes_for_round(round_):
-        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
+        DeleteProbes(round_eq=round_ + 1).execute(client, measurement_id)
         insert_mda_probe_counts(
-            url=url,
+            client=client,
             measurement_id=measurement_id,
             previous_round=round_,
             adaptive_eps=True,
         )
         return list(
             probe_generator_from_database(
-                url=url,
+                client=client,
                 measurement_id=measurement_id,
                 round_=round_ + 1,
             )
@@ -119,7 +119,7 @@ def test_mda_probes_lite_mappers():
     all_probes = []
 
     insert_mda_probe_counts(
-        url=url,
+        client=client,
         measurement_id=measurement_id,
         previous_round=1,
         adaptive_eps=True,
@@ -129,7 +129,7 @@ def test_mda_probes_lite_mappers():
         all_probes.append(
             list(
                 probe_generator_from_database(
-                    url=url,
+                    client=client,
                     measurement_id=measurement_id,
                     round_=2,
                     mapper_v4=mapper_v4,
@@ -149,16 +149,16 @@ def test_next_round_probes_multi_protocol():
     probe_dst_port = 33434
 
     def probes_for_round(round_):
-        DeleteProbes(round_eq=round_ + 1).execute(url, measurement_id)
+        DeleteProbes(round_eq=round_ + 1).execute(client, measurement_id)
         insert_mda_probe_counts(
-            url=url,
+            client=client,
             measurement_id=measurement_id,
             previous_round=round_,
             adaptive_eps=False,
         )
         return list(
             probe_generator_from_database(
-                url=url,
+                client=client,
                 measurement_id=measurement_id,
                 round_=round_ + 1,
                 probe_src_port=probe_src_port,

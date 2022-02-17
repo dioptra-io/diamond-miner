@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, Optional, Tuple
 
+from pych_client import ClickHouseClient
 from zstandard import ZstdCompressor
 
 from diamond_miner.defaults import (
@@ -25,7 +26,7 @@ from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 def probe_generator_parallel(
     filepath: Path,
-    url: str,
+    client: ClickHouseClient,
     measurement_id: str,
     round_: int,
     *,
@@ -49,7 +50,7 @@ def probe_generator_parallel(
         GetProbesDiff(
             round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
         ),
-        url,
+        client,
         measurement_id,
     )
 
@@ -71,7 +72,7 @@ def probe_generator_parallel(
                 executor.submit(
                     worker,
                     Path(temp_dir) / f"subset_{i}",
-                    url,
+                    client.config,
                     measurement_id,
                     round_,
                     mapper_v4,
@@ -101,7 +102,7 @@ def probe_generator_parallel(
 
 def worker(
     prefix: Path,
-    url: str,
+    client_config: dict,
     measurement_id: str,
     round_: int,
     mapper_v4: FlowMapper,
@@ -139,7 +140,7 @@ def worker(
     n_probes = 0
 
     for probe in probe_generator_from_database(
-        url=url,
+        client=ClickHouseClient(**client_config),
         measurement_id=measurement_id,
         round_=round_,
         mapper_v4=mapper_v4,

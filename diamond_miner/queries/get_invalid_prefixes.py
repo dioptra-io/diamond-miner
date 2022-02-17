@@ -16,8 +16,8 @@ class GetInvalidPrefixes(PrefixesQuery):
     Return the prefixes with unexpected behavior
     (see :class:`GetPrefixesWithAmplification` and :class:`GetPrefixesWithLoops`).
 
-    >>> from diamond_miner.test import url
-    >>> rows = GetInvalidPrefixes().execute(url, "test_invalid_prefixes")
+    >>> from diamond_miner.test import client
+    >>> rows = GetInvalidPrefixes().execute(client, "test_invalid_prefixes")
     >>> [x["probe_dst_prefix"] for x in rows]
     ['::ffff:201.0.0.0', '::ffff:202.0.0.0']
     """
@@ -39,8 +39,8 @@ class GetPrefixesWithAmplification(ResultsQuery):
 
     .. important:: This query assumes that a single probe is sent per (flow ID, TTL) pair.
 
-    >>> from diamond_miner.test import url
-    >>> rows = GetPrefixesWithAmplification().execute(url, "test_invalid_prefixes")
+    >>> from diamond_miner.test import client
+    >>> rows = GetPrefixesWithAmplification().execute(client, "test_invalid_prefixes")
     >>> [x["probe_dst_prefix"] for x in rows]
     ['::ffff:202.0.0.0']
     """
@@ -78,8 +78,8 @@ class GetPrefixesWithLoops(ResultsQuery):
     .. note:: Prefixes with amplification (multiple replies per probe) may trigger a false positive
               for this query, since we do not check that the IP appears at two *different* TTLs.
 
-    >>> from diamond_miner.test import url
-    >>> GetPrefixesWithLoops().execute(url, "test_invalid_prefixes")
+    >>> from diamond_miner.test import client
+    >>> GetPrefixesWithLoops().execute(client, "test_invalid_prefixes")
     [{'probe_protocol': 1, 'probe_src_addr': '::ffff:100.0.0.1', 'probe_dst_prefix': '::ffff:201.0.0.0', 'has_loops': 1}]
     """
 

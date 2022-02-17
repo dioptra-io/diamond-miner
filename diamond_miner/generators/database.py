@@ -1,6 +1,8 @@
 from ipaddress import IPv6Address
 from typing import Iterable, Iterator, Optional
 
+from pych_client import ClickHouseClient
+
 from diamond_miner.defaults import (
     DEFAULT_PREFIX_SIZE_V4,
     DEFAULT_PREFIX_SIZE_V6,
@@ -16,7 +18,7 @@ from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
 
 def probe_generator_from_database(
-    url: str,
+    client: ClickHouseClient,
     measurement_id: str,
     round_: int,
     *,
@@ -32,10 +34,10 @@ def probe_generator_from_database(
     TODO: Doctest, note that this doesn't randomize probes.
     >>> from ipaddress import ip_address
     >>> from diamond_miner.insert import insert_probe_counts
-    >>> from diamond_miner.test import create_tables, url
-    >>> create_tables(url, "test_probe_gen")
-    >>> insert_probe_counts(url, "test_probe_gen", 1, [("8.8.0.0/23", "icmp", [1, 2], 2)])
-    >>> probes = list(probe_generator_from_database(url, "test_probe_gen", 1))
+    >>> from diamond_miner.test import client, create_tables
+    >>> create_tables(client, "test_probe_gen")
+    >>> insert_probe_counts(client, "test_probe_gen", 1, [("8.8.0.0/23", "icmp", [1, 2], 2)])
+    >>> probes = list(probe_generator_from_database(client, "test_probe_gen", 1))
     >>> len(probes)
     8
     >>> (str(ip_address(probes[0][0])), *probes[0][1:])
@@ -43,7 +45,7 @@ def probe_generator_from_database(
     """
     rows = GetProbesDiff(
         round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
-    ).execute_iter(url, measurement_id, subsets=subsets)
+    ).execute_iter(client, measurement_id, subsets=subsets)
     for row in rows:
         dst_prefix_int = int(IPv6Address(row["probe_dst_prefix"]))
         mapper = (

@@ -3,10 +3,11 @@ from ipaddress import ip_network
 from typing import Sequence
 
 import pytest
+from pych_client.exceptions import ClickHouseException
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import Query
-from diamond_miner.test import url
+from diamond_miner.test import client
 from diamond_miner.typing import IPNetwork
 
 
@@ -27,14 +28,14 @@ class InvalidQuery(Query):
 
 
 def test_execute():
-    rows = ValidQuery().execute(url, "")
+    rows = ValidQuery().execute(client, "")
     assert rows == [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}, {"a": 10, "b": 20}]
-    with pytest.raises(RuntimeError):
-        InvalidQuery().execute(url, "")
+    with pytest.raises(ClickHouseException):
+        InvalidQuery().execute(client, "")
 
 
 def test_execute_concurrent():
     subsets = list(ip_network("0.0.0.0/0").subnets(prefixlen_diff=2))
-    assert ValidQuery().execute_concurrent(url, "", subsets=subsets) is None
-    with pytest.raises(RuntimeError):
-        InvalidQuery().execute_concurrent(url, "", subsets=subsets)
+    assert ValidQuery().execute_concurrent(client, "", subsets=subsets) is None
+    with pytest.raises(ClickHouseException):
+        InvalidQuery().execute_concurrent(client, "", subsets=subsets)

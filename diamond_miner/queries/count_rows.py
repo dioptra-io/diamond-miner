@@ -61,8 +61,8 @@ class CountResultsPerPrefix(ResultsQuery):
     """
     Count rows per prefix.
 
-    >>> from diamond_miner.test import url
-    >>> rows = CountResultsPerPrefix(prefix_len_v4=8, prefix_len_v6=8).execute(url, 'test_count_replies')
+    >>> from diamond_miner.test import client
+    >>> rows = CountResultsPerPrefix(prefix_len_v4=8, prefix_len_v6=8).execute(client, 'test_count_replies')
     >>> sorted((row["prefix"], row["count"]) for row in rows)
     [('::ffff:1.0.0.0', 2), ('::ffff:2.0.0.0', 1), ('::ffff:204.0.0.0', 1)]
     """

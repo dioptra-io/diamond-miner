@@ -28,8 +28,8 @@ class GetLinksFromResults(ResultsQuery):
     This is useful if you want to update a `links` table round-by-round:
     such a table will contain only intra-round links but can be updated incrementally.
 
-    >>> from diamond_miner.test import url
-    >>> links = GetLinksFromResults().execute(url, "test_nsdi_example")
+    >>> from diamond_miner.test import client
+    >>> links = GetLinksFromResults().execute(client, "test_nsdi_example")
     >>> len(links)
     58
     """

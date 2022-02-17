@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-import asyncio
 import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
+from pych_client import ClickHouseClient
+
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import InsertLinks, Query
 from diamond_miner.queries.create_tables import CreateTables
 from diamond_miner.queries.drop_tables import DropTables
 from diamond_miner.queries.insert_prefixes import InsertPrefixes
-from diamond_miner.test import url
+from diamond_miner.test import client
 from diamond_miner.typing import IPNetwork
 
 
@@ -43,23 +44,23 @@ def get_measurement_id(file: Path):
     return re.match(r"\d+_(.+)\.sql", file.name).group(1)
 
 
-async def insert_file(url: str, file: Path):
+def insert_file(client: ClickHouseClient, file: Path):
     measurement_id = get_measurement_id(file)
     print(f"Processing {file.name} -> {measurement_id}")
-    DropTables().execute(url, measurement_id)
-    CreateTables().execute(url, measurement_id)
-    QueryFromFile(file=file).execute(url, measurement_id)
-    InsertPrefixes().execute(url, measurement_id)
-    InsertLinks().execute(url, measurement_id)
+    DropTables().execute(client, measurement_id)
+    CreateTables().execute(client, measurement_id)
+    QueryFromFile(file=file).execute(client, measurement_id)
+    InsertPrefixes().execute(client, measurement_id)
+    InsertLinks().execute(client, measurement_id)
 
 
-async def main():
+def main():
     logging.basicConfig(level=logging.INFO)
     files = Path(__file__).parent.glob("*.sql")
     files = sorted(files, key=get_rank)
     for file in files:
-        await insert_file(url, file)
+        insert_file(client, file)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
