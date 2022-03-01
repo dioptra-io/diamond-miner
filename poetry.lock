@@ -192,7 +192,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.36.2"
+version = "6.38.0"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -706,7 +706,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "820f6ae626d16df6d66142a790f41ba105125c6d07716e80cfd33d7cd74304a3"
+content-hash = "4a0da4cd05d0655acccd14f8c659b5f65acd8339de071f29432dd844c5e732ec"
 
 [metadata.files]
 alabaster = [
@@ -899,8 +899,8 @@ httpx = [
     {file = "httpx-0.22.0.tar.gz", hash = "sha256:d8e778f76d9bbd46af49e7f062467e3157a5a3d2ae4876a4bbfd8a51ed9c9cb4"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.36.2-py3-none-any.whl", hash = "sha256:7789664e0b487f6553492500738d6ed29ee1af143857d605b296d112154a4057"},
-    {file = "hypothesis-6.36.2.tar.gz", hash = "sha256:7202ea05759f591adf6c1887edbd4d53c049821284f630c5ec8ec3f3f57fd46b"},
+    {file = "hypothesis-6.38.0-py3-none-any.whl", hash = "sha256:3cc2ea360d0c3fc6395f6ab224fd80bc73b5a552bc2acb6561a984ff92c46693"},
+    {file = "hypothesis-6.38.0.tar.gz", hash = "sha256:c61152db9e0b6e14276ff5e799a1bbdc5d3f3c3174be09e1260787fa59d4a162"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
