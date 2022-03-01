@@ -360,14 +360,14 @@ pybtex = ">=0.16"
 
 [[package]]
 name = "pych-client"
-version = "0.2.3"
+version = "0.2.8"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-httpx = ">=0.22.0,<0.23.0"
+httpx = ">=0.21.0"
 orjson = {version = ">=3.6.6,<4.0.0", optional = true, markers = "extra == \"orjson\""}
 
 [package.extras]
@@ -1052,8 +1052,8 @@ pybtex-docutils = [
     {file = "pybtex_docutils-1.0.1-py3-none-any.whl", hash = "sha256:42e379bd1d5473b9fd7be4b3a64ca291d4fdc9ae6c6854e52d1d0157c955bbfa"},
 ]
 pych-client = [
-    {file = "pych-client-0.2.3.tar.gz", hash = "sha256:776e71587f2e3893a82bad52f46207be2d1bc7a7d5b0934516c5055187561690"},
-    {file = "pych_client-0.2.3-py3-none-any.whl", hash = "sha256:0afc195c2a9f5659c2d8b095f9eb1a96c4634e992e880c5758c0c9fa0e218e80"},
+    {file = "pych-client-0.2.8.tar.gz", hash = "sha256:3f090c640e7b0ec40ad9f707a4fa9b26928fc3118c6ae6a7dfa910031342ea0b"},
+    {file = "pych_client-0.2.8-py3-none-any.whl", hash = "sha256:78a1d603d3a260131f9758d041a09820f163d3b2e7a73f336497208c2f37cf6d"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
