@@ -192,7 +192,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.38.0"
+version = "6.40.1"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -203,7 +203,7 @@ attrs = ">=19.2.0"
 sortedcontainers = ">=2.1.0,<3.0.0"
 
 [package.extras]
-all = ["black (>=19.10b0)", "click (>=7.0)", "django (>=2.2)", "dpcontracts (>=0.4)", "lark-parser (>=0.6.5)", "libcst (>=0.3.16)", "numpy (>=1.9.0)", "pandas (>=0.25)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "importlib-metadata (>=3.6)", "backports.zoneinfo (>=0.2.1)", "tzdata (>=2021.5)"]
+all = ["black (>=19.10b0)", "click (>=7.0)", "django (>=2.2)", "dpcontracts (>=0.4)", "lark-parser (>=0.6.5)", "libcst (>=0.3.16)", "numpy (>=1.9.0)", "pandas (>=0.25)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "importlib-metadata (>=3.6)", "backports.zoneinfo (>=0.2.1)", "tzdata (>=2022.1)"]
 cli = ["click (>=7.0)", "black (>=19.10b0)", "rich (>=9.0.0)"]
 codemods = ["libcst (>=0.3.16)"]
 dateutil = ["python-dateutil (>=1.4)"]
@@ -216,7 +216,7 @@ pandas = ["pandas (>=0.25)"]
 pytest = ["pytest (>=4.6)"]
 pytz = ["pytz (>=2014.1)"]
 redis = ["redis (>=3.0.0)"]
-zoneinfo = ["backports.zoneinfo (>=0.2.1)", "tzdata (>=2021.5)"]
+zoneinfo = ["backports.zoneinfo (>=0.2.1)", "tzdata (>=2022.1)"]
 
 [[package]]
 name = "idna"
@@ -706,7 +706,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "f5731fdb3dfe9ec84cf5a32e62cb2ee974e9c867a54c2293d3b75c8a8f6546b7"
+content-hash = "c75014a6279e780aca8007829127bfe51a2502bc1258110e0f25d3f929c9fc81"
 
 [metadata.files]
 alabaster = [
@@ -899,8 +899,8 @@ httpx = [
     {file = "httpx-0.22.0.tar.gz", hash = "sha256:d8e778f76d9bbd46af49e7f062467e3157a5a3d2ae4876a4bbfd8a51ed9c9cb4"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.38.0-py3-none-any.whl", hash = "sha256:3cc2ea360d0c3fc6395f6ab224fd80bc73b5a552bc2acb6561a984ff92c46693"},
-    {file = "hypothesis-6.38.0.tar.gz", hash = "sha256:c61152db9e0b6e14276ff5e799a1bbdc5d3f3c3174be09e1260787fa59d4a162"},
+    {file = "hypothesis-6.40.1-py3-none-any.whl", hash = "sha256:7e01d7a968bef2baef0047dab2c2099f5cef35cdf63f28b1d1e0f43bcf287a07"},
+    {file = "hypothesis-6.40.1.tar.gz", hash = "sha256:063e5da9f6a0861f2530cf543ce6b1f3e5a7932670c1955ed862025eed3a15bc"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
