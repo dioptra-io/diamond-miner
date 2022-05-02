@@ -23,7 +23,7 @@ jobs:
         run: poetry run tests/data/insert.py
       - name: Run tests
         run: poetry run pytest --cov=diamond_miner --cov-report=xml
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
 
   pypi:
     needs: [test]
