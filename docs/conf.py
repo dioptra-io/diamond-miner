@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "diamond-miner"
-copyright = "2021, dioptra.io"
-author = "dioptra.io"
+copyright = "2021, Sorbonne Université"
+author = "Sorbonne Université"
 
 # Managed by bumpversion
 version = "0.9.1"
