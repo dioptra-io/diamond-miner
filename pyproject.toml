@@ -30,12 +30,12 @@ zstandard = ">=0.15.2,<0.18.0"
 bumpversion = "^0.6.0"
 coverage = {extras = ["toml"], version = "^6.3"}
 Cython = "^0.29.27"
-hypothesis = "^6.40.1"
-pytest = "^7.1.1"
+hypothesis = "^6.46.1"
+pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 Sphinx = "^4.5.0"
 sphinx-rtd-theme = "^1.0.0"
-sphinxcontrib-bibtex = "^2.2.1"
+sphinxcontrib-bibtex = "^2.4.2"
 
 [tool.pytest.ini_options]
 addopts = "--capture=no --doctest-modules --log-cli-level=info --strict-markers --verbosity=2"

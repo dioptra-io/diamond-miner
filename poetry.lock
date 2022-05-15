@@ -192,7 +192,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.40.2"
+version = "6.46.1"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -352,7 +352,7 @@ pybtex = ">=0.16"
 
 [[package]]
 name = "pych-client"
-version = "0.2.9"
+version = "0.2.10"
 description = "A ClickHouse client for Python, with a command-line interface."
 category = "main"
 optional = false
@@ -401,7 +401,7 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pytest"
-version = "7.1.1"
+version = "7.1.2"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
 optional = false
@@ -576,7 +576,7 @@ test = ["pytest"]
 
 [[package]]
 name = "sphinxcontrib-bibtex"
-version = "2.4.1"
+version = "2.4.2"
 description = "Sphinx extension for BibTeX style citations."
 category = "dev"
 optional = false
@@ -584,7 +584,7 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 docutils = ">=0.8"
-pybtex = ">=0.20"
+pybtex = ">=0.24"
 pybtex-docutils = ">=1.0.0"
 Sphinx = ">=2.1"
 
@@ -697,7 +697,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "565b2b785904d2b7079d8659954fbd8776a5fb51eb4c7ba110bb94229b089a97"
+content-hash = "4561ef74e154a9d4ba15e6df9fca8d32dd279d580dcce0791d3da26641b5369b"
 
 [metadata.files]
 alabaster = [
@@ -890,8 +890,8 @@ httpx = [
     {file = "httpx-0.22.0.tar.gz", hash = "sha256:d8e778f76d9bbd46af49e7f062467e3157a5a3d2ae4876a4bbfd8a51ed9c9cb4"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.40.2-py3-none-any.whl", hash = "sha256:cf2e300b018c1cb0647fabbd4fbbb40bf62bd17be11f82748092c8f9bc034efb"},
-    {file = "hypothesis-6.40.2.tar.gz", hash = "sha256:49e82f9aed63836e5c40081aaa795cffe9f4322f39caa188b903cfd4c6942733"},
+    {file = "hypothesis-6.46.1-py3-none-any.whl", hash = "sha256:42e1e86600f0910f1ead954c4e96ab3a1f3bd3225faef8ea1a96377368e10a62"},
+    {file = "hypothesis-6.46.1.tar.gz", hash = "sha256:2ef1753aeb8013e0c911601f445a3ea894bc19960043c505fe3313712093acf9"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
@@ -980,8 +980,8 @@ pybtex-docutils = [
     {file = "pybtex_docutils-1.0.1-py3-none-any.whl", hash = "sha256:42e379bd1d5473b9fd7be4b3a64ca291d4fdc9ae6c6854e52d1d0157c955bbfa"},
 ]
 pych-client = [
-    {file = "pych-client-0.2.9.tar.gz", hash = "sha256:3dbce08fafa9af4eeb091b47283ff6e030cea1520ac0693ac43b3c8955c4d67b"},
-    {file = "pych_client-0.2.9-py3-none-any.whl", hash = "sha256:86f45f4d64259bbac0e6cee996a671141a6a9e65e7fa598beacbd3dd374e3770"},
+    {file = "pych-client-0.2.10.tar.gz", hash = "sha256:28828c26942986806bf1b37bee1ad85c1ce66863376302dff185c2c9d3cbfc7c"},
+    {file = "pych_client-0.2.10-py3-none-any.whl", hash = "sha256:06855f3cb6fb6615347c85a4f0b21dba862636f1768a58218fbee9deafff2b4a"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
@@ -1033,8 +1033,8 @@ pyparsing = [
     {file = "pyparsing-3.0.7.tar.gz", hash = "sha256:18ee9022775d270c55187733956460083db60b37d0d0fb357445f3094eed3eea"},
 ]
 pytest = [
-    {file = "pytest-7.1.1-py3-none-any.whl", hash = "sha256:92f723789a8fdd7180b6b06483874feca4c48a5c76968e03bb3e7f806a1869ea"},
-    {file = "pytest-7.1.1.tar.gz", hash = "sha256:841132caef6b1ad17a9afde46dc4f6cfa59a05f9555aae5151f73bdf2820ca63"},
+    {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},
+    {file = "pytest-7.1.2.tar.gz", hash = "sha256:a06a0425453864a270bc45e71f783330a7428defb4230fb5e6a731fde06ecd45"},
 ]
 pytest-cov = [
     {file = "pytest-cov-3.0.0.tar.gz", hash = "sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470"},
@@ -1116,8 +1116,8 @@ sphinxcontrib-applehelp = [
     {file = "sphinxcontrib_applehelp-1.0.2-py2.py3-none-any.whl", hash = "sha256:806111e5e962be97c29ec4c1e7fe277bfd19e9652fb1a4392105b43e01af885a"},
 ]
 sphinxcontrib-bibtex = [
-    {file = "sphinxcontrib-bibtex-2.4.1.tar.gz", hash = "sha256:282223309bbaf34cd20a8fe1ba346fe8642f403a8930607e77a8cb08ae81fc5f"},
-    {file = "sphinxcontrib_bibtex-2.4.1-py3-none-any.whl", hash = "sha256:b7da94e960a855c07c6816c7b0f4e8619b5b3ada00a5cb99b1eaa847a788f779"},
+    {file = "sphinxcontrib-bibtex-2.4.2.tar.gz", hash = "sha256:65b023ee47f35f1f03ac4d71c824e67c624c7ecac1bb26e83623271a01f9da86"},
+    {file = "sphinxcontrib_bibtex-2.4.2-py3-none-any.whl", hash = "sha256:608512afde6b732148cdc9123550bd560bf48e071d1fb7bb1bab4f4437ff04f4"},
 ]
 sphinxcontrib-devhelp = [
     {file = "sphinxcontrib-devhelp-1.0.2.tar.gz", hash = "sha256:ff7f1afa7b9642e7060379360a67e9c41e8f3121f2ce9164266f61b9f4b338e4"},

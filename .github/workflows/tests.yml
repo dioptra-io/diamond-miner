@@ -23,7 +23,7 @@ jobs:
         run: poetry run tests/data/insert.py
       - name: Run tests
         run: poetry run pytest --cov=diamond_miner --cov-report=xml
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
 
   pypi:
     needs: [test]
@@ -40,11 +40,11 @@ jobs:
         with:
           platforms: all
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@2.5.0
         with:
           output-dir: dist
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: dist/*.whl
       - uses: dioptra-io/publish-python-action@v1
