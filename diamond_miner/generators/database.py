@@ -1,5 +1,5 @@
+from collections.abc import Iterable, Iterator
 from ipaddress import IPv6Address
-from typing import Iterable, Iterator, Optional
 
 from pych_client import ClickHouseClient
 
@@ -26,8 +26,8 @@ def probe_generator_from_database(
     mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
-    probe_ttl_geq: Optional[int] = None,
-    probe_ttl_leq: Optional[int] = None,
+    probe_ttl_geq: int | None = None,
+    probe_ttl_leq: int | None = None,
     subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
 ) -> Iterator[Probe]:
     """
@@ -58,7 +58,7 @@ def probe_generator_from_database(
                 addr_offset, port_offset = mapper.offset(flow_id, dst_prefix_int)
                 dst_addr = dst_prefix_int + addr_offset
                 src_port = probe_src_port + port_offset
-                if src_port > (2 ** 16 - 1):
+                if src_port > (2**16 - 1):
                     # TEMP: Log prefixes that overflows the port number and skip prefix.
                     logger.warning("Port overflow for %s", row)
                     break

@@ -2,10 +2,10 @@ import time
 from dataclasses import fields
 from logging import Logger
 from types import TracebackType
-from typing import Any, Dict, Optional, Type
+from typing import Any, Type
 
 
-def common_parameters(from_dataclass: Any, to_dataclass: Any) -> Dict[str, Any]:
+def common_parameters(from_dataclass: Any, to_dataclass: Any) -> dict[str, Any]:
     to_params = {field.name for field in fields(to_dataclass)}
     return {
         field.name: getattr(from_dataclass, field.name)
@@ -34,7 +34,7 @@ class Timer:
 
     @property
     def total_ms(self) -> float:
-        return self.total_time / 10 ** 6
+        return self.total_time / 10**6
 
 
 class LoggingTimer:
@@ -52,9 +52,9 @@ class LoggingTimer:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: Type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.timer.stop()
         self.logger.info("%s time_ms=%s", self.prefix, self.timer.total_ms)

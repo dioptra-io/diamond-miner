@@ -1,6 +1,6 @@
 import os
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import Iterable, Iterator, Tuple
 
 from pych_client import ClickHouseClient
 
@@ -32,7 +32,7 @@ def insert_probe_counts(
     measurement_id: str,
     round_: int,
     # prefix (/32 or / 128 if nothing specified), protocol, ttls, n_probes
-    prefixes: Iterable[Tuple[str, str, Iterable[int], int]],
+    prefixes: Iterable[tuple[str, str, Iterable[int], int]],
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4,
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6,
 ) -> None:

@@ -21,7 +21,7 @@ classifiers = [
 build = "build_ext.py"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.10,<4.0"
 pych-client = "^0.2.3"
 pygfc = "^1.0.5"
 zstandard = ">=0.15.2,<0.18.0"
@@ -31,6 +31,7 @@ bumpversion = "^0.6.0"
 coverage = {extras = ["toml"], version = "^6.3"}
 Cython = "^0.29.27"
 hypothesis = "^6.46.1"
+mypy = "^0.950"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 Sphinx = "^4.5.0"
@@ -81,4 +82,4 @@ requires = ["poetry-core>=1.0.0", "setuptools>=40.6.0", "Cython>=0.29.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-requires-python = ">=3.8"
+requires-python = ">=3.10"

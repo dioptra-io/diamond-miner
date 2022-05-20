@@ -1,5 +1,4 @@
 from ipaddress import IPv6Network
-from typing import Dict, List, Union
 
 from pych_client import ClickHouseClient
 
@@ -14,16 +13,16 @@ from diamond_miner.queries import (
 from diamond_miner.utilities import common_parameters
 
 ALL_ONES_V6 = (2**128) - 1
-Counts = Dict[IPv6Network, int]
+Counts = dict[IPv6Network, int]
 
 
 def subsets_for(
-    query: Union[LinksQuery, ProbesQuery, ResultsQuery],
+    query: LinksQuery | ProbesQuery | ResultsQuery,
     client: ClickHouseClient,
     measurement_id: str,
     *,
     max_items_per_subset: int = 8_000_000,
-) -> List[IPv6Network]:
+) -> list[IPv6Network]:
     """
     >>> from diamond_miner.test import client
     >>> from diamond_miner.queries import GetLinks, GetProbes, GetResults
@@ -51,7 +50,7 @@ def subsets_for(
     return split(counts, max_items_per_subset)
 
 
-def split(counts: Counts, max_items_per_subset: int) -> List[IPv6Network]:
+def split(counts: Counts, max_items_per_subset: int) -> list[IPv6Network]:
     """
     Return the IP networks such that there are no more than `max_items_per_subset`
     per network.

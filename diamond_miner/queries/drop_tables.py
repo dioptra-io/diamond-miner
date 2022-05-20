@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import (

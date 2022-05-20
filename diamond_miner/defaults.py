@@ -1,5 +1,4 @@
 from ipaddress import IPv6Network
-from typing import Dict, Union
 
 DEFAULT_FAILURE_RATE = 0.05
 """Default MDA failure rate."""
@@ -22,7 +21,7 @@ DEFAULT_PROBE_DST_PORT = 33434
 UNIVERSE_SUBSET = IPv6Network("::/0")
 """Set of all possible IP addresses."""
 
-PROTOCOLS: Dict[Union[int, str], Union[int, str]] = {
+PROTOCOLS: dict[int | str, int | str] = {
     1: "icmp",
     17: "udp",
     58: "icmp6",

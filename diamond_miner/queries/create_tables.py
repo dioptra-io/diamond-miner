@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import Sequence
 
 from diamond_miner.defaults import (
     DEFAULT_PREFIX_LEN_V4,

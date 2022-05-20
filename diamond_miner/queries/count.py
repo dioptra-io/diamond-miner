@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries.query import Query
@@ -20,7 +19,7 @@ class Count(Query):
     8
     """
 
-    query: Optional[Query] = None
+    query: Query | None = None
     "The query for which to count the nodes."
 
     def statement(

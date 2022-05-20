@@ -1,5 +1,5 @@
 from ipaddress import IPv4Network, IPv6Network
-from typing import Protocol, Tuple, Union
+from typing import Protocol
 
 
 class FlowMapper(Protocol):
@@ -9,10 +9,10 @@ class FlowMapper(Protocol):
         """Return the flow ID for a given address and port offset."""
         ...
 
-    def offset(self, flow_id: int, prefix: int) -> Tuple[int, int]:
+    def offset(self, flow_id: int, prefix: int) -> tuple[int, int]:
         """Return the address and port offset for a given flow ID."""
         ...
 
 
-Probe = Tuple[int, int, int, int, str]
-IPNetwork = Union[IPv4Network, IPv6Network]
+Probe = tuple[int, int, int, int, str]
+IPNetwork = IPv4Network | IPv6Network

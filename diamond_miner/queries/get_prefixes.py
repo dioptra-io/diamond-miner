@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import CreatePrefixesTable
@@ -26,7 +25,7 @@ class GetPrefixes(ResultsQuery):
     1
     """
 
-    reply_src_addr_in: Optional[IPNetwork] = None
+    reply_src_addr_in: IPNetwork | None = None
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

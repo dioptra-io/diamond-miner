@@ -1,6 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from ipaddress import ip_network
-from typing import Sequence
 
 import pytest
 from pych_client.exceptions import ClickHouseException

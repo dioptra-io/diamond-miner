@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import GetInvalidPrefixes
@@ -31,7 +30,7 @@ class GetNodes(ResultsQuery):
     include_probe_ttl: bool = False
     "If true, include the TTL at which `reply_src_addr` was seen."
 
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         columns = ["reply_src_addr"]
         if self.include_probe_ttl:
             columns.insert(0, "probe_ttl")

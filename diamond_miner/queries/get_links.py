@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
 from diamond_miner.queries import GetInvalidPrefixes
@@ -37,7 +36,7 @@ class GetLinks(LinksQuery):
     include_metadata: bool = False
     "If true, include the TTLs at which `near_addr` and `far_addr` were seen."
 
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         columns = ["near_addr", "far_addr"]
         if self.include_metadata:
             columns = ["near_ttl", "far_ttl", *columns]

@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Iterable, Optional
+from typing import Any
 
 from diamond_miner.typing import IPNetwork
 
@@ -14,7 +15,7 @@ def cut_ipv6(column: str, prefix_len_v4: int, prefix_len_v6: int) -> str:
     return f"toIPv6(cutIPv6({column}, {bytes_v6}, {bytes_v4}))"
 
 
-def eq(column: str, value: Optional[Any]) -> str:
+def eq(column: str, value: Any | None) -> str:
     """
     >>> eq("col", None)
     '1'
@@ -30,7 +31,7 @@ def eq(column: str, value: Optional[Any]) -> str:
     return f"{column} = {value}"
 
 
-def geq(column: str, value: Optional[Any]) -> str:
+def geq(column: str, value: Any | None) -> str:
     """
     >>> geq("col", None)
     '1'
@@ -46,7 +47,7 @@ def geq(column: str, value: Optional[Any]) -> str:
     return f"{column} >= {value}"
 
 
-def lt(column: str, value: Optional[Any]) -> str:
+def lt(column: str, value: Any | None) -> str:
     """
     >>> lt("col", None)
     '1'
@@ -62,7 +63,7 @@ def lt(column: str, value: Optional[Any]) -> str:
     return f"{column} < {value}"
 
 
-def leq(column: str, value: Optional[Any]) -> str:
+def leq(column: str, value: Any | None) -> str:
     """
     >>> leq("col", None)
     '1'
@@ -115,7 +116,7 @@ def ipv6(x: Any) -> str:
     return f"toIPv6('{x}')"
 
 
-def ip_eq(column: str, value: Optional[str]) -> str:
+def ip_eq(column: str, value: str | None) -> str:
     """
     >>> ip_eq("col", None)
     '1'
@@ -127,7 +128,7 @@ def ip_eq(column: str, value: Optional[str]) -> str:
     return f"{column} = {ipv6(value)}"
 
 
-def ip_in(column: str, subset: Optional[IPNetwork]) -> str:
+def ip_in(column: str, subset: IPNetwork | None) -> str:
     """
     >>> from ipaddress import ip_network
     >>> ip_in("col", None)
@@ -140,7 +141,7 @@ def ip_in(column: str, subset: Optional[IPNetwork]) -> str:
     return f"({column} >= {ipv6(subset[0])} AND {column} <= {ipv6(subset[-1])})"
 
 
-def ip_not_in(column: str, subset: Optional[IPNetwork]) -> str:
+def ip_not_in(column: str, subset: IPNetwork | None) -> str:
     """
     >>> from ipaddress import ip_network
     >>> ip_not_in("col", None)

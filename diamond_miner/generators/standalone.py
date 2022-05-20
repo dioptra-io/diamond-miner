@@ -1,5 +1,5 @@
+from collections.abc import Iterable, Iterator, Sequence
 from ipaddress import IPv4Network, IPv6Network, ip_network
-from typing import Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from diamond_miner.defaults import (
     DEFAULT_PREFIX_LEN_V4,
@@ -55,7 +55,7 @@ def count_prefixes(
 
 def split_prefix(
     prefix: str, prefix_len_v4: int, prefix_len_v6: int
-) -> Iterator[Tuple[int, int, int]]:
+) -> Iterator[tuple[int, int, int]]:
     network = ip_network(prefix.strip())
     if isinstance(network, IPv4Network):
         # We add 0xFFFF00000000 to convert the network address
@@ -69,7 +69,7 @@ def split_prefix(
             yield 6, x, prefix_size
 
 
-def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int) -> Sequence[int]:
+def subnets(network: IPv4Network | IPv6Network, new_prefix: int) -> Sequence[int]:
     """
     Faster version of :py:meth:`ipaddress.IPv4Network.subnets`.
     Returns only the network address as an integer.
@@ -91,7 +91,7 @@ def subnets(network: Union[IPv4Network, IPv6Network], new_prefix: int) -> Sequen
 
 
 def probe_generator(
-    prefixes: Sequence[Tuple[str, str]],  # /32 or / 128 if nothing specified
+    prefixes: Sequence[tuple[str, str]],  # /32 or / 128 if nothing specified
     flow_ids: Sequence[int],
     ttls: Sequence[int],
     *,
@@ -101,7 +101,7 @@ def probe_generator(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     mapper_v4: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
     mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
-    seed: Optional[int] = None,
+    seed: int | None = None,
 ) -> Iterator[Probe]:
     """
     Generate a probe for each prefix, flow ID and TTL, in a random order.
@@ -161,7 +161,7 @@ def probe_generator(
         # The random flow mapper will assign a random destination (in the /24) to each flow.
         mapper_v4 = RandomFlowMapper(prefix_size=256)
     """
-    prefixes_: List[Tuple[int, int, int, str]] = []
+    prefixes_: list[tuple[int, int, int, str]] = []
     for prefix, protocol in prefixes:
         for af, subprefix, subprefix_size in split_prefix(
             prefix, prefix_len_v4, prefix_len_v6
@@ -178,7 +178,7 @@ def probe_generator(
 
 def probe_generator_by_flow(
     prefixes: Iterable[
-        Tuple[str, str, Iterable[int]]
+        tuple[str, str, Iterable[int]]
     ],  # /32 or / 128 if nothing specified
     flow_ids: Sequence[int],
     *,
@@ -188,7 +188,7 @@ def probe_generator_by_flow(
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
     mapper_v4: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V4),
     mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
-    seed: Optional[int] = None,
+    seed: int | None = None,
 ) -> Iterator[Probe]:
     """
     Generate a probe for each prefix, flow id and TTL, in a random order.
@@ -201,7 +201,7 @@ def probe_generator_by_flow(
     excepted for ``prefixes`` which is a list of (prefix, protocol, TTLs) tuples,
     and the absence of the ``ttls`` parameter.
     """
-    prefixes_: List[Tuple[int, int, int, str, Iterable[int]]] = []
+    prefixes_: list[tuple[int, int, int, str, Iterable[int]]] = []
     for prefix, protocol, ttls in prefixes:
         for af, subprefix, subprefix_size in split_prefix(
             prefix, prefix_len_v4, prefix_len_v6

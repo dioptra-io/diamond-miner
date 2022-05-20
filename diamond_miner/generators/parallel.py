@@ -4,7 +4,6 @@ import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Optional, Tuple
 
 from pych_client import ClickHouseClient
 from zstandard import ZstdCompressor
@@ -34,8 +33,8 @@ def probe_generator_parallel(
     mapper_v6: FlowMapper = SequentialFlowMapper(DEFAULT_PREFIX_SIZE_V6),
     probe_src_port: int = DEFAULT_PROBE_SRC_PORT,
     probe_dst_port: int = DEFAULT_PROBE_DST_PORT,
-    probe_ttl_geq: Optional[int] = None,
-    probe_ttl_leq: Optional[int] = None,
+    probe_ttl_geq: int | None = None,
+    probe_ttl_leq: int | None = None,
     max_open_files: int = 8192,
     n_workers: int = (os.cpu_count() or 2) // 2,
 ) -> int:
@@ -109,8 +108,8 @@ def worker(
     mapper_v6: FlowMapper,
     probe_src_port: int,
     probe_dst_port: int,
-    probe_ttl_geq: int,
-    probe_ttl_leq: int,
+    probe_ttl_geq: int | None,
+    probe_ttl_leq: int | None,
     subset: IPNetwork,
     n_files: int,
 ) -> int:
@@ -129,14 +128,14 @@ def worker(
     # and the randomization but the more the memory usage.
     max_probes_in_memory = 1_000_000
 
-    outputs: List[Tuple] = []
+    outputs: list[tuple] = []
     for i in range(n_files):
         ctx = ZstdCompressor(level=1)
         file = prefix.with_suffix(f".{i}.csv.zst").open("wb")
         stream = ctx.stream_writer(file)
         outputs.append((ctx, file, stream))
 
-    probes_by_file: List[List[Probe]] = [[] for _ in range(n_files)]
+    probes_by_file: list[list[Probe]] = [[] for _ in range(n_files)]
     n_probes = 0
 
     for probe in probe_generator_from_database(
@@ -166,7 +165,7 @@ def worker(
     return n_probes
 
 
-def flush(probes_by_file: List[List[Probe]], outputs: List[Tuple]) -> None:
+def flush(probes_by_file: list[list[Probe]], outputs: list[tuple]) -> None:
     for file_id, probes in enumerate(probes_by_file):
         _, _, stream = outputs[file_id]
         random.shuffle(probes)

@@ -1,9 +1,10 @@
 import os
+from collections.abc import Iterable, Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 from functools import reduce
-from typing import Any, Iterable, Iterator, List, Optional, Sequence, Tuple
+from typing import Any
 
 from pych_client import ClickHouseClient
 
@@ -80,10 +81,10 @@ class Query:
         client: ClickHouseClient,
         measurement_id: str,
         *,
-        data: Optional[Any] = None,
-        limit: Optional[Tuple[int, int]] = None,
+        data: Any | None = None,
+        limit: tuple[int, int] | None = None,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-    ) -> List[dict]:
+    ) -> list[dict]:
         rows = []
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
@@ -103,8 +104,8 @@ class Query:
         client: ClickHouseClient,
         measurement_id: str,
         *,
-        data: Optional[Any] = None,
-        limit: Optional[Tuple[int, int]] = None,
+        data: Any | None = None,
+        limit: tuple[int, int] | None = None,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator[dict]:
         for subset in subsets:
@@ -125,7 +126,7 @@ class Query:
         measurement_id: str,
         *,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
-        limit: Optional[Tuple[int, int]] = None,
+        limit: tuple[int, int] | None = None,
         concurrent_requests: int = (os.cpu_count() or 2) // 2,
     ) -> None:
         logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
@@ -155,22 +156,22 @@ class LinksQuery(Query):
     filter_virtual: bool = False
     "If true, exclude virtual links: ``('::', '::')``."
 
-    near_or_far_addr: Optional[str] = None
+    near_or_far_addr: str | None = None
     "If specified, keep only the links that contains this IP address."
 
-    probe_protocol: Optional[int] = None
+    probe_protocol: int | None = None
     "If specified, keep only the links inferred from probes sent with this protocol."
 
-    probe_src_addr: Optional[str] = None
+    probe_src_addr: str | None = None
     """
     If specified, keep only the links inferred from probes sent by this address.
     This filter is relatively costly (IPv6 comparison on each row).
     """
 
-    round_eq: Optional[int] = None
+    round_eq: int | None = None
     "If specified, keep only the links from this round."
 
-    round_leq: Optional[int] = None
+    round_leq: int | None = None
     "If specified, keep only the links from this round or before."
 
     def filters(self, subset: IPNetwork) -> str:
@@ -204,10 +205,10 @@ class LinksQuery(Query):
 
 @dataclass(frozen=True)
 class PrefixesQuery(Query):
-    probe_protocol: Optional[int] = None
+    probe_protocol: int | None = None
     "If specified, keep only the links inferred from probes sent with this protocol."
 
-    probe_src_addr: Optional[str] = None
+    probe_src_addr: str | None = None
     """
     If specified, keep only the links inferred from probes sent by this address.
     This filter is relatively costly (IPv6 comparison on each row).
@@ -227,25 +228,25 @@ class PrefixesQuery(Query):
 
 @dataclass(frozen=True)
 class ProbesQuery(Query):
-    probe_protocol: Optional[int] = None
+    probe_protocol: int | None = None
     "If specified, keep only probes sent with this protocol."
 
-    probe_ttl_geq: Optional[int] = None
+    probe_ttl_geq: int | None = None
     "If specified, keep only the probes with TTL >= this value."
 
-    probe_ttl_leq: Optional[int] = None
+    probe_ttl_leq: int | None = None
     "If specified, keep only the probes with TTL <= this value."
 
-    round_eq: Optional[int] = None
+    round_eq: int | None = None
     "If specified, keep only the probes from this round."
 
-    round_geq: Optional[int] = None
+    round_geq: int | None = None
     "If specified, keep only the probes from this round or after."
 
-    round_leq: Optional[int] = None
+    round_leq: int | None = None
     "If specified, keep only the probes from this round or before."
 
-    round_lt: Optional[int] = None
+    round_lt: int | None = None
     "If specified, keep only the probes from before this round."
 
     def filters(self, subset: IPNetwork) -> str:
@@ -287,19 +288,19 @@ class ResultsQuery(Query):
     time_exceeded_only: bool = True
     "If true, ignore non ICMP time exceeded replies."
 
-    probe_protocol: Optional[int] = None
+    probe_protocol: int | None = None
     "If specified, keep only the replies to probes sent with this protocol."
 
-    probe_src_addr: Optional[str] = None
+    probe_src_addr: str | None = None
     """
     If specified, keep only the replies to probes sent by this address.
     This filter is relatively costly (IPv6 comparison on each row).
     """
 
-    round_eq: Optional[int] = None
+    round_eq: int | None = None
     "If specified, keep only the replies from this round."
 
-    round_leq: Optional[int] = None
+    round_leq: int | None = None
     "If specified, keep only the replies from this round or before."
 
     def filters(self, subset: IPNetwork) -> str:
