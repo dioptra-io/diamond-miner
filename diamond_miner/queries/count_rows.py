@@ -19,7 +19,7 @@ class CountLinksPerPrefix(LinksQuery):
     Count rows per prefix.
     """
 
-    prefix_len_v4: int = 8
+    prefix_len_v4: int = 16
     prefix_len_v6: int = 8
 
     def statement(
@@ -40,7 +40,7 @@ class CountProbesPerPrefix(ProbesQuery):
     Count the number of probes per prefix.
     """
 
-    prefix_len_v4: int = 8
+    prefix_len_v4: int = 16
     prefix_len_v6: int = 8
 
     def statement(
@@ -67,7 +67,7 @@ class CountResultsPerPrefix(ResultsQuery):
     [('::ffff:1.0.0.0', 2), ('::ffff:2.0.0.0', 1), ('::ffff:204.0.0.0', 1)]
     """
 
-    prefix_len_v4: int = 8
+    prefix_len_v4: int = 16
     prefix_len_v6: int = 8
 
     def statement(

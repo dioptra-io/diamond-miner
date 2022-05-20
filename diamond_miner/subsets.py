@@ -1,4 +1,4 @@
-from ipaddress import IPv6Network, ip_network
+from ipaddress import IPv6Network
 from typing import Dict, List, Union
 
 from pych_client import ClickHouseClient
@@ -13,6 +13,7 @@ from diamond_miner.queries import (
 )
 from diamond_miner.utilities import common_parameters
 
+ALL_ONES_V6 = (2**128) - 1
 Counts = Dict[IPv6Network, int]
 
 
@@ -27,11 +28,11 @@ def subsets_for(
     >>> from diamond_miner.test import client
     >>> from diamond_miner.queries import GetLinks, GetProbes, GetResults
     >>> subsets_for(GetLinks(), client, 'test_nsdi_example', max_items_per_subset=1)
-    [IPv6Network('::ffff:c800:0/104')]
+    [IPv6Network('::ffff:c800:0/112')]
     >>> subsets_for(GetProbes(round_eq=1), client, 'test_nsdi_example', max_items_per_subset=1)
-    [IPv6Network('::ffff:c800:0/104')]
+    [IPv6Network('::ffff:c800:0/112')]
     >>> subsets_for(GetResults(), client, 'test_nsdi_example', max_items_per_subset=1)
-    [IPv6Network('::ffff:c800:0/104')]
+    [IPv6Network('::ffff:c800:0/112')]
     """
     if isinstance(query, LinksQuery):
         count_query = CountLinksPerPrefix(**common_parameters(query, LinksQuery))
@@ -58,7 +59,7 @@ def split(counts: Counts, max_items_per_subset: int) -> List[IPv6Network]:
     :param counts: Number of items per prefix in the database table.
     :param max_items_per_subset: Maximum number of items per network.
 
-    >>> counts = {ip_network("::ffff:8.8.4.0/120"): 10, ip_network("::ffff:8.8.8.0/120"): 5}
+    >>> counts = {IPv6Network("::ffff:8.8.4.0/120"): 10, IPv6Network("::ffff:8.8.8.0/120"): 5}
     >>> split(counts, 15)
     [IPv6Network('::/0')]
     >>> split(counts, 10)
@@ -68,7 +69,7 @@ def split(counts: Counts, max_items_per_subset: int) -> List[IPv6Network]:
     >>> split({}, 10)
     []
     """
-    candidates = [(ip_network("::/0"), n_items(counts, ip_network("::/0")))]
+    candidates = [(IPv6Network("::/0"), n_items(counts, IPv6Network("::/0")))]
     subsets = []
 
     while candidates:
@@ -112,7 +113,28 @@ def n_items(counts: Counts, subset: IPv6Network) -> int:
     12
     """
     total = 0
-    for network, count_ in counts.items():
-        if network.subnet_of(subset):
-            total += count_
+    for network, count in counts.items():
+        if is_subnet_of(network, subset):
+            total += count
     return total
+
+
+def is_subnet_of(a: IPv6Network, b: IPv6Network) -> bool:
+    """
+    A faster version of IPv6Network.subnet_of(other).
+    >>> is_subnet_of(IPv6Network("1000::/16"), IPv6Network("1000::/16"))
+    True
+    >>> is_subnet_of(IPv6Network("1000::/17"), IPv6Network("1000::/16"))
+    True
+    >>> is_subnet_of(IPv6Network("1000::/15"), IPv6Network("1000::/16"))
+    False
+    >>> is_subnet_of(IPv6Network("1000::/16"), IPv6Network("2000::/16"))
+    False
+    """
+    a_net = a.network_address._ip  # type: ignore
+    b_net = b.network_address._ip  # type: ignore
+    if b_net <= a_net:
+        a_brd = a_net | (a.netmask._ip ^ ALL_ONES_V6)  # type: ignore
+        b_brd = b_net | (b.netmask._ip ^ ALL_ONES_V6)  # type: ignore
+        return b_brd >= a_brd  # type: ignore
+    return False
