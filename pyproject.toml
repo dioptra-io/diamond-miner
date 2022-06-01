@@ -34,7 +34,7 @@ hypothesis = "^6.46.10"
 mypy = "^0.960"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
-Sphinx = "^4.5.0"
+Sphinx = "^5.0.0"
 sphinx-rtd-theme = "^1.0.0"
 sphinxcontrib-bibtex = "^2.4.2"
 
