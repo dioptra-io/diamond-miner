@@ -28,7 +28,7 @@ zstandard = ">=0.15.2,<0.18.0"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "^0.6.0"
-coverage = {extras = ["toml"], version = "^6.3"}
+coverage = {extras = ["toml"], version = "^6.4"}
 Cython = "^0.29.30"
 hypothesis = "^6.46.10"
 mypy = "^0.950"
