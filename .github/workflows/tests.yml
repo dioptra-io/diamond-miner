@@ -1,10 +1,6 @@
 name: Tests
 
-on:
-  push:
-    paths-ignore: ['**.md']
-  pull_request:
-    paths-ignore: ['**.md']
+on: [push]
 
 jobs:
   test:
@@ -16,6 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
       - uses: dioptra-io/setup-poetry-action@v1
       - name: Install package
         run: poetry install
@@ -34,6 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
       - name: Set up QEMU
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v2
