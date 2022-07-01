@@ -11,7 +11,7 @@ jobs:
         ports: ['8123:8123']
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
       - uses: dioptra-io/setup-poetry-action@v1
@@ -31,7 +31,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
       - name: Set up QEMU
