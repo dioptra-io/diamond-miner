@@ -31,7 +31,7 @@ bumpversion = "^0.6.0"
 coverage = {extras = ["toml"], version = "^6.4"}
 Cython = "^0.29.30"
 hypothesis = "^6.48.2"
-mypy = "^0.960"
+mypy = "^0.961"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
 Sphinx = "^5.0.0"
