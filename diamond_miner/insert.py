@@ -1,4 +1,3 @@
-import os
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 
@@ -17,6 +16,7 @@ from diamond_miner.queries import InsertMDAProbes
 from diamond_miner.queries.query import Query, probes_table
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import IPNetwork
+from diamond_miner.utilities import available_cpus
 
 
 @dataclass(frozen=True)
@@ -76,7 +76,7 @@ def insert_mda_probe_counts(
     previous_round: int,
     adaptive_eps: bool = False,
     target_epsilon: float = DEFAULT_FAILURE_RATE,
-    concurrent_requests: int = (os.cpu_count() or 2) // 2,
+    concurrent_requests: int = max(available_cpus() // 8, 1),
 ) -> None:
     # TODO: set filter_partial and filter_virtual to false?
     query = InsertMDAProbes(

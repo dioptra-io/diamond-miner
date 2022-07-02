@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from diamond_miner.utilities import common_parameters
+from diamond_miner.utilities import available_cpus, common_parameters
+
+
+def test_available_cpus():
+    assert available_cpus() >= 1
 
 
 def test_common_parameters():

@@ -1,4 +1,3 @@
-import os
 import random
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -21,6 +20,7 @@ from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.queries import GetProbesDiff
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
+from diamond_miner.utilities import available_cpus
 
 
 def probe_generator_parallel(
@@ -36,7 +36,7 @@ def probe_generator_parallel(
     probe_ttl_geq: int | None = None,
     probe_ttl_leq: int | None = None,
     max_open_files: int = 8192,
-    n_workers: int = (os.cpu_count() or 2) // 2,
+    n_workers: int = max(available_cpus() // 8, 1),
 ) -> int:
     """
     Compute the probes to send given the previously discovered links.

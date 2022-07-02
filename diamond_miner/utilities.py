@@ -1,8 +1,18 @@
+import os
 import time
 from dataclasses import fields
 from logging import Logger
 from types import TracebackType
 from typing import Any, Type
+
+
+def available_cpus() -> int:
+    try:
+        # Number of CPUs available to the current process, if available.
+        return len(os.sched_getaffinity(0))  # type: ignore
+    except AttributeError:
+        # Fallback on the total number of CPUs in the system.
+        return os.cpu_count() or 1
 
 
 def common_parameters(from_dataclass: Any, to_dataclass: Any) -> dict[str, Any]:

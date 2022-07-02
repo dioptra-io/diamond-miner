@@ -1,4 +1,3 @@
-import os
 from collections.abc import Iterable, Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -22,7 +21,7 @@ from diamond_miner.queries.fragments import (
     or_,
 )
 from diamond_miner.typing import IPNetwork
-from diamond_miner.utilities import LoggingTimer
+from diamond_miner.utilities import LoggingTimer, available_cpus
 
 
 def links_table(measurement_id: str) -> str:
@@ -127,7 +126,7 @@ class Query:
         *,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
         limit: tuple[int, int] | None = None,
-        concurrent_requests: int = (os.cpu_count() or 2) // 2,
+        concurrent_requests: int = max(available_cpus() // 8, 1),
     ) -> None:
         logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
         with ThreadPoolExecutor(concurrent_requests) as executor:
