@@ -22,7 +22,7 @@ build = "build_ext.py"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-pych-client = "^0.2.3"
+pych-client = "^0.3.0"
 pygfc = "^1.0.5"
 zstandard = ">=0.15.2,<0.19.0"
 
