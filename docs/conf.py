@@ -22,7 +22,7 @@ copyright = "2021, Sorbonne Université"
 author = "Sorbonne Université"
 
 # Managed by bumpversion
-version = "0.10.2"
+version = "1.0.0"
 release = version
 
 # -- General configuration ---------------------------------------------------
