@@ -1,8 +1,8 @@
 """
 Functions for mapping flow IDs to addresses and ports.
 We make the flow ID start at 0.
-``prefix_size`` is the number of addresses in the prefix:
-``2 ** (32 - 24)`` for a /24 in IPv4.
+`prefix_size` is the number of addresses in the prefix:
+`2 ** (32 - 24)` for a /24 in IPv4.
 """
 import random
 

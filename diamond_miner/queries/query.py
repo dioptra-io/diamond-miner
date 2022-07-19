@@ -70,7 +70,7 @@ class Query:
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
-        # As a query user, prefer calling ``statements`` instead of ``statement`` as there
+        # As a query user, prefer calling `statements` instead of `statement` as there
         # is no guarantees that the query will implement this method and return a single statement.
         raise NotImplementedError
 
@@ -172,10 +172,10 @@ class LinksQuery(Query):
     "If true, exclude links inferred across rounds."
 
     filter_partial: bool = False
-    "If true, exclude partial links: ``('::', node)`` and ``(node, '::')``."
+    "If true, exclude partial links: `('::', node)` and `(node, '::')`."
 
     filter_virtual: bool = False
-    "If true, exclude virtual links: ``('::', '::')``."
+    "If true, exclude virtual links: `('::', '::')`."
 
     near_or_far_addr: str | None = None
     "If specified, keep only the links that contains this IP address."
@@ -196,7 +196,7 @@ class LinksQuery(Query):
     "If specified, keep only the links from this round or before."
 
     def filters(self, subset: IPNetwork) -> str:
-        """``WHERE`` clause common to all queries on the links table."""
+        """`WHERE` clause common to all queries on the links table."""
         s = []
         if subset != UNIVERSE_SUBSET:
             s += [ip_in("probe_dst_prefix", subset)]
@@ -238,7 +238,7 @@ class PrefixesQuery(Query):
     """
 
     def filters(self, subset: IPNetwork) -> str:
-        """``WHERE`` clause common to all queries on the prefixes table."""
+        """`WHERE` clause common to all queries on the prefixes table."""
         s = []
         if subset != UNIVERSE_SUBSET:
             s += [ip_in("probe_dst_prefix", subset)]
@@ -275,7 +275,7 @@ class ProbesQuery(Query):
     "If specified, keep only the probes from before this round."
 
     def filters(self, subset: IPNetwork) -> str:
-        """``WHERE`` clause common to all queries on the probes table."""
+        """`WHERE` clause common to all queries on the probes table."""
         s = []
         if subset != UNIVERSE_SUBSET:
             s += [ip_in("probe_dst_prefix", subset)]
@@ -331,7 +331,7 @@ class ResultsQuery(Query):
     "If specified, keep only the replies from this round or before."
 
     def filters(self, subset: IPNetwork) -> str:
-        """``WHERE`` clause common to all queries on the results table."""
+        """`WHERE` clause common to all queries on the results table."""
         s = []
         if subset != UNIVERSE_SUBSET:
             s += [ip_in("probe_dst_prefix", subset)]
