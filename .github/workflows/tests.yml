@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       clickhouse:
-        image: yandex/clickhouse-server
+        image: clickhouse/clickhouse-server
         ports: ['8123:8123']
     steps:
       - uses: actions/checkout@v3
@@ -22,6 +22,22 @@ jobs:
       - name: Run tests
         run: poetry run pytest --cov=diamond_miner --cov-report=xml
       - uses: codecov/codecov-action@v3
+
+  mkdocs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - uses: dioptra-io/setup-poetry-action@v1
+      - name: Install package
+        run: poetry install
+      - name: Build documentation
+        run: poetry run mkdocs build --strict
+      - name: Publish documentation
+        run: poetry run mkdocs gh-deploy --force --no-history --strict
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
 
   pypi:
     needs: [test]

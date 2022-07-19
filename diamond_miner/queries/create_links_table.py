@@ -8,9 +8,18 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateLinksTable(Query):
-    """Create the links table containing one line per (flow, link) pair."""
+    """
+    Create the links table containing one line per (flow, link) pair.
+
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import CreateLinksTable
+        >>> CreateLinksTable().execute(client, "test")
+        []
+    """
 
     storage_policy: StoragePolicy = StoragePolicy()
+    "ClickHouse storage policy to use."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

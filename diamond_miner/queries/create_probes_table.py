@@ -8,11 +8,21 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateProbesTable(Query):
-    """Create the table containing the cumulative number of probes sent over the rounds."""
+    """
+    Create the table containing the cumulative number of probes sent over the rounds.
+
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import CreateProbesTable
+        >>> CreateProbesTable().execute(client, "test")
+        []
+    """
 
     SORTING_KEY = "probe_protocol, probe_dst_prefix, probe_ttl"
+    "Columns by which the data is ordered."
 
     storage_policy: StoragePolicy = StoragePolicy()
+    "ClickHouse storage policy to use."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

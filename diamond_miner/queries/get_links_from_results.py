@@ -10,31 +10,33 @@ from diamond_miner.typing import IPNetwork
 class GetLinksFromResults(ResultsQuery):
     """
     Compute the links from the results table.
-    This returns one line per ``(flow, link)`` pair.
+    This returns one line per `(flow, link)` pair.
 
     We do not emit a link in the case of single reply in a traceroute.
-    For example: ``* * node * *``, does not generate a link.
-    However, ``* * node * * node'``, will generate ``(node, *)`` and ``(*, node')``.
+    For example: `* * node * *`, does not generate a link.
+    However, `* * node * * node'`, will generate `(node, *)` and `(*, node')`.
 
     We emit cross-rounds links.
     For example if flow N sees node A at TTL 10 at round 1 and flow N sees node B at TTL 11 at round 2,
-    we will emit ``(1, 10, A) - (2, 11, B)``.
+    we will emit `(1, 10, A) - (2, 11, B)`.
 
-    We assume that there exists a single (flow, ttl) pair over all rounds.
-    TODO: Assert this?
+    We assume that there exists a single (flow, ttl) pair over all rounds (TODO: assert this).
 
-    If ``round_eq`` is none, compute the links per flow, across all rounds.
+    If `round_eq` is none, compute the links per flow, across all rounds.
     Otherwise, compute the links per flow, for the specified round.
     This is useful if you want to update a `links` table round-by-round:
     such a table will contain only intra-round links but can be updated incrementally.
 
-    >>> from diamond_miner.test import client
-    >>> links = GetLinksFromResults().execute(client, "test_nsdi_example")
-    >>> len(links)
-    58
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetLinksFromResults
+        >>> links = GetLinksFromResults().execute(client, "test_nsdi_example")
+        >>> len(links)
+        58
     """
 
     ignore_invalid_prefixes: bool = True
+    "If true, exclude invalid prefixes from links computation."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

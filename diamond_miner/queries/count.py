@@ -8,15 +8,15 @@ from diamond_miner.typing import IPNetwork
 @dataclass(frozen=True)
 class Count(Query):
     """
-    Count the rows of a given query.
+    Count the number of rows returned by a given query.
 
-    >>> from diamond_miner.test import client
-    >>> from diamond_miner.queries.get_nodes import GetNodes
-    >>> from diamond_miner.queries.get_links import GetLinks
-    >>> Count(query=GetNodes()).execute(client, 'test_nsdi_example')[0]["count()"]
-    7
-    >>> Count(query=GetLinks()).execute(client, 'test_nsdi_example')[0]["count()"]
-    8
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetLinks, GetNodes
+        >>> Count(query=GetNodes()).execute(client, 'test_nsdi_example')[0]["count()"]
+        7
+        >>> Count(query=GetLinks()).execute(client, 'test_nsdi_example')[0]["count()"]
+        8
     """
 
     query: Query | None = None

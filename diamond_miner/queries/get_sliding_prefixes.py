@@ -11,8 +11,11 @@ class GetSlidingPrefixes(ResultsQuery):
     Get the prefixes to probe for a given sliding window.
     """
 
-    stopping_condition: int = 0  # number of stars
-    window_max_ttl: int = 0  # set to 0 to return every prefix
+    stopping_condition: int = 0
+    "Number of stars to allow."
+
+    window_max_ttl: int = 0
+    "Set to 0 to return every prefix."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

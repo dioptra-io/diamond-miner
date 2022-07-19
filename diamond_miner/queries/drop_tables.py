@@ -14,7 +14,15 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class DropTables(Query):
-    """Drop the tables associated to a measurement."""
+    """
+    Drop the tables associated to a measurement.
+
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import DropTables
+        >>> DropTables().execute(client, "test")
+        []
+    """
 
     def statements(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

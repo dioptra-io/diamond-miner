@@ -1,3 +1,6 @@
+"""
+Constants that are used as default values for function's arguments throughout the code.
+"""
 from ipaddress import IPv6Network
 
 DEFAULT_FAILURE_RATE = 0.05

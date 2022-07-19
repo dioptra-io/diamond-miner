@@ -8,7 +8,9 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class InsertPrefixes(ResultsQuery):
-    """Insert (invalid) prefixes into the prefixes table."""
+    """
+    Insert the results of the `GetPrefixesWithAmplification` and `GetPrefixesWithLoops` queries into the prefixes table.
+    """
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

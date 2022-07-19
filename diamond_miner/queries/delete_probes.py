@@ -4,6 +4,8 @@ from diamond_miner.typing import IPNetwork
 
 
 class DeleteProbes(ProbesQuery):
+    """Delete the probes matching the filter."""
+
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:

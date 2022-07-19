@@ -10,10 +10,12 @@ class GetResults(ResultsQuery):
     """
     Return all the columns from the results table.
 
-    >>> from diamond_miner.test import client
-    >>> rows = GetResults().execute(client, 'test_nsdi_example')
-    >>> len(rows)
-    85
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetResults
+        >>> rows = GetResults().execute(client, 'test_nsdi_example')
+        >>> len(rows)
+        85
     """
 
     def statement(

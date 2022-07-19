@@ -1,0 +1,50 @@
+site_name: Diamond-Miner
+repo_name: dioptra-io/diamond-miner
+repo_url: https://github.com/dioptra-io/diamond-miner
+theme:
+  name: material
+  features:
+    - navigation.tabs
+  icon:
+    logo: material/diamond-stone
+    repo: fontawesome/brands/github
+plugins:
+  - bibtex:
+      bib_file: "docs/bibliography.bib"
+  - mkdocstrings:
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+          options:
+            show_root_heading: true
+  - search
+markdown_extensions:
+  - footnotes
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+nav:
+  - index.md
+  - usage.md
+  - dev.md
+  - Reference:
+      - reference/defaults.md
+      - reference/queries.md
+      - reference/mappers.md
+      - reference/generators.md
+      - reference/helpers.md
+extra:
+  social:
+    - icon: material/web
+      link: http://dioptra.io
+    - icon: fontawesome/brands/github
+      link: https://github.com/dioptra-io
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/Dioptra-101576075023596/
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/68485078/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/DioptraTech

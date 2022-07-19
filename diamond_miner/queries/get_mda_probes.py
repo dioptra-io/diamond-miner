@@ -1,15 +1,32 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import DEFAULT_FAILURE_RATE, UNIVERSE_SUBSET
-from diamond_miner.queries.query import LinksQuery, links_table, probes_table
+from diamond_miner.queries.query import LinksQuery, links_table
 from diamond_miner.typing import IPNetwork
 
 
 @dataclass(frozen=True)
 class GetMDAProbes(LinksQuery):
+    """
+    Return the number of probes to send per prefix and per TTL according to the Diamond-Miner algorithm.
+
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetMDAProbes
+        >>> GetMDAProbes(round_leq=1).execute(client, "test_nsdi_lite")
+        [{'probe_protocol': 1, 'probe_dst_prefix': '::ffff:200.0.0.0', 'cumulative_probes': [12, 12, 12, 12], 'TTLs': [1, 2, 3, 4]}]
+    """
+
     adaptive_eps: bool = True
+
     dminer_lite: bool = True
+    "If true, use an heuristic that requires less probes to handle nested load-balancers."
+
     target_epsilon: float = DEFAULT_FAILURE_RATE
+    """
+    The desired failure rate of the MDA algorithm, that is, the probability of not detecting
+    all the outgoing edges of a load-balancer for a given prefix and TTL.
+    """
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
@@ -67,24 +84,4 @@ class GetMDAProbes(LinksQuery):
         FROM {links_table(measurement_id)} AS links_table
         WHERE {self.filters(subset)}
         GROUP BY (probe_protocol, probe_src_addr, probe_dst_prefix)
-        """
-
-
-@dataclass(frozen=True)
-class InsertMDAProbes(GetMDAProbes):
-    def statement(
-        self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
-    ) -> str:
-        assert self.round_leq
-        return f"""
-        INSERT INTO {probes_table(measurement_id)}
-        WITH
-            arrayJoin(arrayZip(TTLs, cumulative_probes)) AS ttl_probe
-        SELECT
-            probe_protocol,
-            probe_dst_prefix,
-            ttl_probe.1,
-            ttl_probe.2,
-            {self.round_leq + 1}
-        FROM ({super().statement(measurement_id, subset)})
         """

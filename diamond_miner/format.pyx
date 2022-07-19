@@ -8,12 +8,23 @@ from libc.stdlib cimport free, malloc
 cdef size_t INET6_ADDRSTRLEN = 46
 
 def format_probe(dst_addr_v6, uint16_t src_port, uint16_t dst_port, uint8_t ttl, str protocol):
+    """
+    Create a Caracal probe string.
+    Examples:
+        >>> from diamond_miner.format import format_probe
+        >>> format_probe(281470816487432, 24000, 33434, 1, "icmp")
+        '0:0:0:0:0:FFFF:808:808,24000,33434,1,icmp'
+    """
     return f"{format_ipv6(dst_addr_v6)},{src_port},{dst_port},{ttl},{protocol}"
 
 def format_ipv6(int_addr):
     """
-    Convert IPv6 uint128 to string.
-    Faster than building an ip_address object and calling str().
+    Convert an IPv6 UInt128 to a string.
+    Faster than building an [`IPv6Address`][ipaddress.IPv6Address] object and calling `str()`.
+    Examples:
+        >>> from diamond_miner.format import format_ipv6
+        >>> format_ipv6(281470816487432)
+        '0:0:0:0:0:FFFF:808:808,24000,33434,1,icmp'
     """
     cdef size_t size = INET6_ADDRSTRLEN + 1
     cdef char *c_str = <char *> malloc(size * sizeof(char))

@@ -8,7 +8,9 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class InsertLinks(ResultsQuery):
-    """Create the tables necessary for a measurement."""
+    """
+    Insert the results of the `GetLinksFromResults` query into the links table.
+    """
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
