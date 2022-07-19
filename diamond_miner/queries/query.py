@@ -25,27 +25,30 @@ from diamond_miner.utilities import LoggingTimer, available_cpus
 
 
 def links_table(measurement_id: str) -> str:
+    """Returns the name of the links table."""
     return f"links__{measurement_id}".replace("-", "_")
 
 
 def prefixes_table(measurement_id: str) -> str:
+    """Returns the name of the prefixes table."""
     return f"prefixes__{measurement_id}".replace("-", "_")
 
 
 def probes_table(measurement_id: str) -> str:
+    """Returns the name of the probes table."""
     return f"probes__{measurement_id}".replace("-", "_")
 
 
 def results_table(measurement_id: str) -> str:
+    """Returns the name of the results table."""
     return f"results__{measurement_id}".replace("-", "_")
 
 
 @dataclass(frozen=True)
 class StoragePolicy:
     """
-    See
-    - https://clickhouse.com/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-ttl
-    - https://clickhouse.com/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-multiple-volumes
+    - [TTL for Columns and Tables](https://clickhouse.com/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-ttl)
+    - [Using Multiple Block Devices for Data Storage](https://clickhouse.com/docs/en/engines/table-engines/mergetree-family/mergetree/#table_engine-mergetree-multiple-volumes)
     """
 
     name: str = "default"
@@ -58,9 +61,7 @@ class StoragePolicy:
 
 @dataclass(frozen=True)
 class Query:
-    """
-    TODO
-    """
+    """Base class for every query."""
 
     @property
     def name(self) -> str:
@@ -88,6 +89,15 @@ class Query:
         limit: tuple[int, int] | None = None,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> list[dict]:
+        """
+        Execute the query and return each row as a dict.
+        Args:
+            client: ClickHouse client.
+            measurement_id: Measurement id.
+            data: str or bytes iterator containing data to send.
+            limit: (limit, offset) tuple.
+            subsets: Iterable of IP networks on which to execute the query independently.
+        """
         rows = []
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
@@ -111,6 +121,9 @@ class Query:
         limit: tuple[int, int] | None = None,
         subsets: Iterable[IPNetwork] = (UNIVERSE_SUBSET,),
     ) -> Iterator[dict]:
+        """
+        Execute the query and return each row as a dict, as they are received from the database.
+        """
         for subset in subsets:
             for i, statement in enumerate(self.statements(measurement_id, subset)):
                 with LoggingTimer(
@@ -132,6 +145,9 @@ class Query:
         limit: tuple[int, int] | None = None,
         concurrent_requests: int = max(available_cpus() // 8, 1),
     ) -> None:
+        """
+        Execute the query concurrently on the specified subsets.
+        """
         logger.info("query=%s concurrent_requests=%s", self.name, concurrent_requests)
         with ThreadPoolExecutor(concurrent_requests) as executor:
             futures = [
@@ -150,6 +166,8 @@ class Query:
 
 @dataclass(frozen=True)
 class LinksQuery(Query):
+    """Base class for queries on the links table."""
+
     filter_inter_round: bool = False
     "If true, exclude links inferred across rounds."
 
@@ -208,6 +226,8 @@ class LinksQuery(Query):
 
 @dataclass(frozen=True)
 class PrefixesQuery(Query):
+    """Base class for queries on the prefixes table."""
+
     probe_protocol: int | None = None
     "If specified, keep only the links inferred from probes sent with this protocol."
 
@@ -231,6 +251,8 @@ class PrefixesQuery(Query):
 
 @dataclass(frozen=True)
 class ProbesQuery(Query):
+    """Base class for queries on the probes table."""
+
     probe_protocol: int | None = None
     "If specified, keep only probes sent with this protocol."
 
@@ -276,6 +298,8 @@ class ProbesQuery(Query):
 
 @dataclass(frozen=True)
 class ResultsQuery(Query):
+    """Base class for queries on the results table."""
+
     filter_destination_host: bool = True
     "If true, ignore the replies from the destination host."
 

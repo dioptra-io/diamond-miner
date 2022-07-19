@@ -24,13 +24,14 @@ from .get_invalid_prefixes import (
 )
 from .get_links import GetLinks
 from .get_links_from_results import GetLinksFromResults
-from .get_mda_probes import GetMDAProbes, InsertMDAProbes
+from .get_mda_probes import GetMDAProbes
 from .get_nodes import GetNodes
 from .get_prefixes import GetPrefixes
 from .get_probes import GetProbes, GetProbesDiff
 from .get_results import GetResults
 from .get_sliding_prefixes import GetSlidingPrefixes
 from .insert_links import InsertLinks
+from .insert_mda_probes import InsertMDAProbes
 from .insert_prefixes import InsertPrefixes
 from .insert_results import InsertResults
 from .query import (

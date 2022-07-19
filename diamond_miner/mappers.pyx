@@ -22,6 +22,12 @@ cdef class SequentialFlowMapper:
     """
     Maps flow 0 to address 0, flow 1 to address 1, and so on until we have done
     the whole prefix. It then increases the port number in the same manner.
+
+    Examples:
+        >>> from diamond_miner.mappers import SequentialFlowMapper
+        >>> mapper = SequentialFlowMapper()
+        >>> mapper.offset(1)
+        >>> (1, 0)
     """
 
     cdef uint128_t prefix_size
@@ -41,9 +47,15 @@ cdef class SequentialFlowMapper:
 
 cdef class IntervalFlowMapper:
     """
-    Similar to the :py:class:`SequentialFlowMapper` but with an increment >= 1.
+    Similar to the [`SequentialFlowMapper`](diamond_miner.mappers.SequentialFlowMapper) but with an increment >= 1.
     This allows to target addresses .1, .33, .65, ... in priority,
-    which are more likely to respond to probes :cite:`fan2010selecting`.
+    which are more likely to respond to probes[@fan2010selecting].
+
+    Examples:
+        >>> from diamond_miner.mappers import IntervalFlowMapper
+        >>> mapper = IntervalFlowMapper()
+        >>> mapper.offset(1)
+        >>> (33, 0)
     """
 
     cdef uint128_t period
@@ -79,6 +91,12 @@ cdef class ReverseByteFlowMapper:
     """
     Maps flow ``n`` to address ``reverse(n)`` until we have done the whole prefix.
     It then increases the port number sequentially.
+
+    Examples:
+        >>> from diamond_miner.mappers import ReverseByteFlowMapper
+        >>> mapper = ReverseByteFlowMapper()
+        >>> mapper.offset(1)
+        >>> (129, 0)
     """
 
     cpdef uint128_t flow_id(self, uint128_t addr_offset, uint16_t port_offset, uint128_t prefix = 0):
@@ -106,9 +124,17 @@ cdef class ReverseByteFlowMapper:
 
 cdef class RandomFlowMapper:
     """
-    Similar to the :py:class:`SequentialFlowMapper` but with a random mapping
-    between flow IDs and addresses.
+    Similar to the [`SequentialFlowMapper`](diamond_miner.mappers.SequentialFlowMapper)
+    but with a random mapping between flow IDs and addresses.
     The mapping is randomized by prefix.
+
+    Examples:
+        >>> from diamond_miner.mappers import RandomFlowMapper
+        >>> mapper = RandomFlowMapper(seed=2022)
+        >>> mapper.offset(1, prefix=1)
+        >>> (34, 0)
+        >>> mapper.offset(1, prefix=2)
+        >>> (145, 0)
     """
 
     cdef list permutations

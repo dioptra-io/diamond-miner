@@ -52,6 +52,9 @@ For a more complex example, to handle measurements with billion of probes and re
 - [`iris/commons/clickhouse.py`](https://github.com/dioptra-io/iris/blob/main/iris/commons/clickhouse.py)
 - [`iris/worker/inner_pipeline/diamond_miner.py`](https://github.com/dioptra-io/iris/blob/main/iris/worker/inner_pipeline/diamond_miner.py)
 
+Sliding prefixes.
+Subsets.
+
 ## Alternative probing tools
 
 You can use other tools such as Scamper, as long as ...

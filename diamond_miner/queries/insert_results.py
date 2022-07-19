@@ -7,7 +7,9 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class InsertResults(Query):
-    """Insert measurement results from a CSV file."""
+    """
+    Insert measurement results from a CSV file.
+    """
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
