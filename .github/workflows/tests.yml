@@ -24,7 +24,6 @@ jobs:
       - uses: codecov/codecov-action@v3
 
   mkdocs:
-    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
