@@ -12,7 +12,7 @@ from diamond_miner.defaults import (
 )
 from diamond_miner.format import format_ipv6
 from diamond_miner.generators.standalone import split_prefix
-from diamond_miner.queries import InsertMDAProbes
+from diamond_miner.queries.insert_mda_probes import InsertMDAProbes
 from diamond_miner.queries.query import Query, probes_table
 from diamond_miner.subsets import subsets_for
 from diamond_miner.typing import IPNetwork

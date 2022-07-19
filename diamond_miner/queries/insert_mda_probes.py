@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from diamond_miner.defaults import UNIVERSE_SUBSET
-from diamond_miner.queries import GetMDAProbes, probes_table
+from diamond_miner.queries.get_mda_probes import GetMDAProbes
+from diamond_miner.queries.query import probes_table
 from diamond_miner.typing import IPNetwork
 
 
