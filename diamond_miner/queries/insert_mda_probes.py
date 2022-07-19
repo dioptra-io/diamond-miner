@@ -9,7 +9,7 @@ from diamond_miner.typing import IPNetwork
 @dataclass(frozen=True)
 class InsertMDAProbes(GetMDAProbes):
     """
-    Insert the result of the [`GetMDAProbes`](diamond_miner.queries.GetMDAProbes) queries
+    Insert the result of the `GetMDAProbes` queries
     into the probes table.
     """
 

@@ -47,7 +47,7 @@ cdef class SequentialFlowMapper:
 
 cdef class IntervalFlowMapper:
     """
-    Similar to the [`SequentialFlowMapper`](diamond_miner.mappers.SequentialFlowMapper) but with an increment >= 1.
+    Similar to the `SequentialFlowMapper` but with an increment >= 1.
     This allows to target addresses .1, .33, .65, ... in priority,
     which are more likely to respond to probes[@fan2010selecting].
 
@@ -89,7 +89,7 @@ cdef class IntervalFlowMapper:
 
 cdef class ReverseByteFlowMapper:
     """
-    Maps flow ``n`` to address ``reverse(n)`` until we have done the whole prefix.
+    Maps flow `n` to address `reverse(n)` until we have done the whole prefix.
     It then increases the port number sequentially.
 
     Examples:
@@ -124,8 +124,7 @@ cdef class ReverseByteFlowMapper:
 
 cdef class RandomFlowMapper:
     """
-    Similar to the [`SequentialFlowMapper`](diamond_miner.mappers.SequentialFlowMapper)
-    but with a random mapping between flow IDs and addresses.
+    Similar to the `SequentialFlowMapper` but with a random mapping between flow IDs and addresses.
     The mapping is randomized by prefix.
 
     Examples:

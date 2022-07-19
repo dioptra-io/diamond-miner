@@ -9,8 +9,7 @@ from diamond_miner.typing import IPNetwork
 @dataclass(frozen=True)
 class InsertLinks(ResultsQuery):
     """
-    Insert the results of the [GetLinksFromResults](diamond_miner.queries.GetLinksFromResults) query into
-    the links table.
+    Insert the results of the `GetLinksFromResults` query into the links table.
     """
 
     def statement(

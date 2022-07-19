@@ -14,8 +14,7 @@ from diamond_miner.typing import IPNetwork
 class GetInvalidPrefixes(PrefixesQuery):
     """
     Return the prefixes with unexpected behavior
-    (see [`GetPrefixesWithAmplification`][diamond_miner.queries.GetPrefixesWithAmplification]
-    and [`GetPrefixesWithLoops`](diamond_miner.queries.GetPrefixesWithLoops)).
+    (see `GetPrefixesWithAmplification` and `GetPrefixesWithLoops`.
 
     Examples:
         >>> from diamond_miner.test import client

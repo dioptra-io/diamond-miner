@@ -9,8 +9,7 @@ from diamond_miner.typing import IPNetwork
 @dataclass(frozen=True)
 class InsertPrefixes(ResultsQuery):
     """
-    Insert the results of the [GetPrefixesWithAmplification](diamond_miner.queries.GetPrefixesWithAmplification]
-    and [GetPrefixesWithLoops](diamond_miner.queries.GetPrefixesWithLoops) queries into the prefixes table.
+    Insert the results of the `GetPrefixesWithAmplification` and `GetPrefixesWithLoops` queries into the prefixes table.
     """
 
     def statement(
