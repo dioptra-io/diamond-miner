@@ -18,6 +18,9 @@ poetry run pre-commit install
 # Run the tests
 poetry run pytest
 
+# Preview the documentation
+poetry run mkdocs serve --watch diamond_miner --watch docs
+
 # Commit...
 
 # Tag a new version
