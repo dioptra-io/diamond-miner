@@ -8,25 +8,27 @@ class GetProbes(ProbesQuery):
     """
     Return the cumulative number of probes sent at a specified round.
 
-    >>> from diamond_miner.test import client
-    >>> row = GetProbes(round_eq=1).execute(client, 'test_nsdi_example')[0]
-    >>> row["probe_protocol"]
-    1
-    >>> row["probe_dst_prefix"]
-    '::ffff:200.0.0.0'
-    >>> sorted(row["probes_per_ttl"])
-    [[1, 6], [2, 6], [3, 6], [4, 6]]
-    >>> row = GetProbes(round_eq=2).execute(client, 'test_nsdi_example')[0]
-    >>> sorted(row["probes_per_ttl"])
-    [[1, 11], [2, 18], [3, 18], [4, 18]]
-    >>> row = GetProbes(round_eq=3).execute(client, 'test_nsdi_example')[0]
-    >>> sorted(row["probes_per_ttl"])
-    [[1, 11], [2, 20], [3, 27], [4, 27]]
-    >>> row = GetProbes(round_eq=3, probe_ttl_geq=2, probe_ttl_leq=3).execute(client, 'test_nsdi_example')[0]
-    >>> sorted(row["probes_per_ttl"])
-    [[2, 20], [3, 27]]
-    >>> GetProbes(round_eq=4).execute(client, 'test_nsdi_example')
-    []
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetProbes
+        >>> row = GetProbes(round_eq=1).execute(client, 'test_nsdi_example')[0]
+        >>> row["probe_protocol"]
+        1
+        >>> row["probe_dst_prefix"]
+        '::ffff:200.0.0.0'
+        >>> sorted(row["probes_per_ttl"])
+        [[1, 6], [2, 6], [3, 6], [4, 6]]
+        >>> row = GetProbes(round_eq=2).execute(client, 'test_nsdi_example')[0]
+        >>> sorted(row["probes_per_ttl"])
+        [[1, 11], [2, 18], [3, 18], [4, 18]]
+        >>> row = GetProbes(round_eq=3).execute(client, 'test_nsdi_example')[0]
+        >>> sorted(row["probes_per_ttl"])
+        [[1, 11], [2, 20], [3, 27], [4, 27]]
+        >>> row = GetProbes(round_eq=3, probe_ttl_geq=2, probe_ttl_leq=3).execute(client, 'test_nsdi_example')[0]
+        >>> sorted(row["probes_per_ttl"])
+        [[2, 20], [3, 27]]
+        >>> GetProbes(round_eq=4).execute(client, 'test_nsdi_example')
+        []
     """
 
     def statement(
@@ -48,22 +50,24 @@ class GetProbesDiff(ProbesQuery):
     """
     Return the number of probes sent at a specific round and at the previous round.
 
-    >>> from diamond_miner.test import client
-    >>> row = GetProbesDiff(round_eq=1).execute(client, 'test_nsdi_example')[0]
-    >>> row["probe_protocol"]
-    1
-    >>> row["probe_dst_prefix"]
-    '::ffff:200.0.0.0'
-    >>> sorted(row["probes_per_ttl"])
-    [[1, 6, 0], [2, 6, 0], [3, 6, 0], [4, 6, 0]]
-    >>> row = GetProbesDiff(round_eq=2).execute(client, 'test_nsdi_example')[0]
-    >>> sorted(row["probes_per_ttl"])
-    [[1, 11, 6], [2, 18, 6], [3, 18, 6], [4, 18, 6]]
-    >>> row = GetProbesDiff(round_eq=3).execute(client, 'test_nsdi_example')[0]
-    >>> sorted(row["probes_per_ttl"])
-    [[1, 11, 11], [2, 20, 18], [3, 27, 18], [4, 27, 18]]
-    >>> GetProbesDiff(round_eq=4).execute(client, 'test_nsdi_example')
-    []
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetProbesDiff
+        >>> row = GetProbesDiff(round_eq=1).execute(client, 'test_nsdi_example')[0]
+        >>> row["probe_protocol"]
+        1
+        >>> row["probe_dst_prefix"]
+        '::ffff:200.0.0.0'
+        >>> sorted(row["probes_per_ttl"])
+        [[1, 6, 0], [2, 6, 0], [3, 6, 0], [4, 6, 0]]
+        >>> row = GetProbesDiff(round_eq=2).execute(client, 'test_nsdi_example')[0]
+        >>> sorted(row["probes_per_ttl"])
+        [[1, 11, 6], [2, 18, 6], [3, 18, 6], [4, 18, 6]]
+        >>> row = GetProbesDiff(round_eq=3).execute(client, 'test_nsdi_example')[0]
+        >>> sorted(row["probes_per_ttl"])
+        [[1, 11, 11], [2, 20, 18], [3, 27, 18], [4, 27, 18]]
+        >>> GetProbesDiff(round_eq=4).execute(client, 'test_nsdi_example')
+        []
     """
 
     def statement(

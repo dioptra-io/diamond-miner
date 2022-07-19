@@ -1,3 +1,14 @@
+"""
+Wrappers around ClickHouse SQL queries.
+
+The queries operate on different kind of tables.
+Refer to the following superclasses for more information:
+[Query][diamond_miner.queries.Query],
+[LinksQuery][diamond_miner.queries.LinksQuery],
+[PrefixesQuery][diamond_miner.queries.PrefixesQuery],
+[ProbesQuery][diamond_miner.queries.ProbesQuery],
+[ResultsQuery][diamond_miner.queries.ResultsQuery].
+"""
 from .count import Count
 from .count_rows import CountLinksPerPrefix, CountProbesPerPrefix, CountResultsPerPrefix
 from .create_links_table import CreateLinksTable
@@ -21,6 +32,7 @@ from .get_results import GetResults
 from .get_sliding_prefixes import GetSlidingPrefixes
 from .insert_links import InsertLinks
 from .insert_prefixes import InsertPrefixes
+from .insert_results import InsertResults
 from .query import (
     LinksQuery,
     PrefixesQuery,
@@ -60,6 +72,7 @@ __all__ = (
     "InsertMDAProbes",
     "InsertLinks",
     "InsertPrefixes",
+    "InsertResults",
     "Query",
     "LinksQuery",
     "PrefixesQuery",

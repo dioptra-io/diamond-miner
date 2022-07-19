@@ -12,20 +12,23 @@ class GetPrefixes(ResultsQuery):
     """
     Return the destination prefixes for which replies have been received.
 
-    >>> from diamond_miner.test import client
-    >>> from ipaddress import ip_network
-    >>> rows = GetPrefixes().execute(client, 'test_nsdi_example')
-    >>> len(rows)
-    1
-    >>> rows = GetPrefixes().execute(client, 'test_invalid_prefixes')
-    >>> len(rows)
-    3
-    >>> rows = GetPrefixes(reply_src_addr_in=ip_network("150.0.1.0/24")).execute(client, 'test_invalid_prefixes')
-    >>> len(rows)
-    1
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetPrefixes
+        >>> from ipaddress import ip_network
+        >>> rows = GetPrefixes().execute(client, 'test_nsdi_example')
+        >>> len(rows)
+        1
+        >>> rows = GetPrefixes().execute(client, 'test_invalid_prefixes')
+        >>> len(rows)
+        3
+        >>> rows = GetPrefixes(reply_src_addr_in=ip_network("150.0.1.0/24")).execute(client, 'test_invalid_prefixes')
+        >>> len(rows)
+        1
     """
 
     reply_src_addr_in: IPNetwork | None = None
+    "If specified, keep only the replies from this network."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

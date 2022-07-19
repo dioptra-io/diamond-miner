@@ -12,13 +12,27 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreateResultsTable(Query):
-    """Create the table used to store the measurement results from the prober."""
+    """
+    Create the table used to store the measurement results from the prober.
+
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import CreateResultsTable
+        >>> CreateResultsTable().execute(client, "test")
+        []
+    """
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix, probe_dst_addr, probe_src_port, probe_dst_port, probe_ttl"
+    "Columns by which the data is ordered."
 
     prefix_len_v4: int = DEFAULT_PREFIX_LEN_V4
+    "The prefix length used to compute the IPv4 prefix of an IP address."
+
     prefix_len_v6: int = DEFAULT_PREFIX_LEN_V6
+    "The prefix length used to compute the IPv6 prefix of an IP address."
+
     storage_policy: StoragePolicy = StoragePolicy()
+    "ClickHouse storage policy to use."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

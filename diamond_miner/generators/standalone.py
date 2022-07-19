@@ -106,26 +106,26 @@ def probe_generator(
     """
     Generate a probe for each prefix, flow ID and TTL, in a random order.
 
-    :param prefixes: A list of (prefix, protocol) tuples. The protocol can be ``icmp``, ``icmp6`` or ``udp``.
-    :param flow_ids: The flow IDs to probe.
-    :param ttls: The TTLs to probe.
-    :param prefix_len_v4: The prefix length to which the IPv4 prefixes will be split to.
-    :param prefix_len_v6: The prefix length to which the IPv6 prefixes will be split to.
-    :param probe_src_port: The minimum source port of the probes (can be incremented by the flow mapper).
-    :param probe_dst_port: The destination port of the probes (constant).
-    :param mapper_v4: The flow mapper for IPv4 probes.
-    :param mapper_v6: The flow mapper for IPv6 probes.
-    :param seed: The seed of the random permutation (two calls with the same seed will yield the probes in the same order).
+    Args:
+        prefixes: A list of (prefix, protocol) tuples. The protocol can be ``icmp``, ``icmp6`` or ``udp``.
+        flow_ids: The flow IDs to probe.
+        ttls: The TTLs to probe.
+        prefix_len_v4: The prefix length to which the IPv4 prefixes will be split to.
+        prefix_len_v6: The prefix length to which the IPv6 prefixes will be split to.
+        probe_src_port: The minimum source port of the probes (can be incremented by the flow mapper).
+        probe_dst_port: The destination port of the probes (constant).
+        mapper_v4: The flow mapper for IPv4 probes.
+        mapper_v6: The flow mapper for IPv6 probes.
+        seed: The seed of the random permutation (two calls with the same seed will yield the probes in the same order).
 
-    This function is very versatile, it can generate Tokyo-Ping :cite:`pelsser2013paris`,
-    Paris-Traceroute :cite:`augustin2006avoiding` or Yarrp-like :cite:`beverly2016yarrp` probes.
+    Examples:
+        This function is very versatile, it can generate Tokyo-Ping[@pelsser2013paris],
+        Paris-Traceroute[@augustin2006avoiding] or Yarrp-like[@beverly2016yarrp] probes.
 
-    For ICMP probes, the source port is encoded by caracal in the checksum field of the ICMP header
-    which is generally used by routers for per-flow load-balancing.
+        For ICMP probes, the source port is encoded by caracal in the checksum field of the ICMP header
+        which is generally used by routers for per-flow load-balancing.
 
-    .. code-block:: python
-
-        # Example: ICMP ping towards Google DNS servers with 2 flows per address and a TTL of 32.
+        ```python title="ICMP ping towards Google DNS servers with 2 flows per address and a TTL of 32"
         prefixes = [("8.8.8.8/32", "icmp"), ("2001:4860:4860::8888/128", "icmp6")]
         prefix_len_v4 = 32
         prefix_len_v6 = 128
@@ -135,23 +135,26 @@ def probe_generator(
         # When given a prefix size of 1, the sequential flow mapper will only vary the port.
         mapper_v4 = SequentialFlowMapper(prefix_size=1)
         mapper_v6 = SequentialFlowMapper(prefix_size=1)
+        ```
 
-        # Example: ICMP ping towards 1.0.0.0/24 with 1 flow per address and a TTL of 32.
+        ```python title="ICMP ping towards 1.0.0.0/24 with 1 flow per address and a TTL of 32"
         prefixes = [("1.0.0.0/24", "icmp")]
         prefix_len_v4 = 32 # The generator will cut the /24 in 256 /32.
         flow_ids = range(1)
         ttls = [32]
         # Same flow mappers as above.
+        ```
 
-        # Example: UDP traceroute towards 1.0.0.0/24 with 2 flows per address.
+        ```python title="UDP traceroute towards 1.0.0.0/24 with 2 flows per address"
         # 256 addresses * 2 flows * 30 TTLs = 15,360 probes.
         prefixes = [("1.0.0.0/24", "udp")]
         prefix_len_v4 = 32 # The generator will cut the /24 in 256 /32.
         flow_ids = range(2)
         ttls = range(2, 32)
         # Same flow mappers as above.
+        ```
 
-        # Example: UDP traceroute towards 1.0.0.0/24 with 6 flows **per prefix**.
+        ```python title="UDP traceroute towards 1.0.0.0/24 with 6 flows **per prefix**"
         # 1 prefix * 6 flows * 30 TTLs = 180 probes.
         prefixes = [("1.0.0.0/24", "udp")]
         prefix_len_v4 = 24 # We want to target the prefix, not its individual addresses.
@@ -160,6 +163,7 @@ def probe_generator(
 
         # The random flow mapper will assign a random destination (in the /24) to each flow.
         mapper_v4 = RandomFlowMapper(prefix_size=256)
+        ```
     """
     prefixes_: list[tuple[int, int, int, str]] = []
     for prefix, protocol in prefixes:
@@ -192,14 +196,17 @@ def probe_generator_by_flow(
 ) -> Iterator[Probe]:
     """
     Generate a probe for each prefix, flow id and TTL, in a random order.
-    This function differs from :func:`probe_generator` in two aspects:
+    This function differs from [probe_generator][diamond_miner.generators.probe_generator] in two aspects:
 
-        * The TTLs are specified for each prefixes, and not globally.
-        * All the probes for a given prefix and flow id are generated sequentially.
+    - The TTLs are specified for each prefixes, and not globally.
+    - All the probes for a given prefix and flow id are generated sequentially.
 
-    The parameters and output are identical to :func:`probe_generator`,
-    excepted for ``prefixes`` which is a list of (prefix, protocol, TTLs) tuples,
-    and the absence of the ``ttls`` parameter.
+    The parameters and output are identical to [probe_generator][diamond_miner.generators.probe_generator],
+    excepted for `prefixes` which is a list of (prefix, protocol, TTLs) tuples,
+    and the absence of the `ttls` parameter.
+
+    Args:
+        prefixes: TODO
     """
     prefixes_: list[tuple[int, int, int, str, Iterable[int]]] = []
     for prefix, protocol, ttls in prefixes:

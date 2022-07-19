@@ -58,6 +58,10 @@ class StoragePolicy:
 
 @dataclass(frozen=True)
 class Query:
+    """
+    TODO
+    """
+
     @property
     def name(self) -> str:
         return self.__class__.__name__

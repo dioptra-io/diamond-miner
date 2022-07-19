@@ -40,8 +40,19 @@ def probe_generator_parallel(
 ) -> int:
     """
     Compute the probes to send given the previously discovered links.
-    This function shuffle the probes on-disk using the following algorithm:
-    https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/
+    This function shuffle the probes on-disk:
+    [External-memory shuffling in linear time?](https://lemire.me/blog/2010/03/15/external-memory-shuffling-in-linear-time/)
+
+    Args:
+        filepath: Output file (Zstd-compressed CSV file); will be overwritten.
+        client: ClickHouse client.
+        measurement_id: Measurement id.
+        round_: Number of the round for which to generate the probes.
+        mapper_v4: The flow mapper for IPv4 probes.
+        mapper_v6: The flow mapper for IPv6 probes.
+        probe_src_port: The minimum source port of the probes (can be incremented by the flow mapper).
+        probe_dst_port: The destination port of the probes (constant).
+
     """
     # TODO: These subsets are sub-optimal, `CountProbesPerPrefix` should count
     # the actual number of probes to be sent, not the total number of probes sent.

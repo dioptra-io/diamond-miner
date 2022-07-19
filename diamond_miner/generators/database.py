@@ -32,16 +32,18 @@ def probe_generator_from_database(
 ) -> Iterator[Probe]:
     """
     TODO: Doctest, note that this doesn't randomize probes.
-    >>> from ipaddress import ip_address
-    >>> from diamond_miner.insert import insert_probe_counts
-    >>> from diamond_miner.test import client, create_tables
-    >>> create_tables(client, "test_probe_gen")
-    >>> insert_probe_counts(client, "test_probe_gen", 1, [("8.8.0.0/23", "icmp", [1, 2], 2)])
-    >>> probes = list(probe_generator_from_database(client, "test_probe_gen", 1))
-    >>> len(probes)
-    8
-    >>> (str(ip_address(probes[0][0])), *probes[0][1:])
-    ('::ffff:808:100', 24000, 33434, 1, 'icmp')
+
+    Examples:
+        >>> from ipaddress import ip_address
+        >>> from diamond_miner.insert import insert_probe_counts
+        >>> from diamond_miner.test import client, create_tables
+        >>> create_tables(client, "test_probe_gen")
+        >>> insert_probe_counts(client, "test_probe_gen", 1, [("8.8.0.0/23", "icmp", [1, 2], 2)])
+        >>> probes = list(probe_generator_from_database(client, "test_probe_gen", 1))
+        >>> len(probes)
+        8
+        >>> (str(ip_address(probes[0][0])), *probes[0][1:])
+        ('::ffff:808:100', 24000, 33434, 1, 'icmp')
     """
     rows = GetProbesDiff(
         round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq

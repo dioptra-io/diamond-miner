@@ -11,15 +11,17 @@
 
 ## 🚀 Quickstart
 
-Diamond-Miner is implemented as a Python library which computes the probes to send.
-To actually send the probes, we recommend [Caracal](https://github.com/dioptra-io/caracal) but you can use the tool of your liking, such as [yarrp](https://github.com/cmand/yarrp) or [scamper](https://www.caida.org/catalog/software/scamper/) as long as you convert its output to the expected format described in the documentation.
+`diamond-miner` is a Python library to build large-scale Internet topology surveys.
+It implements the Diamond-Miner algorithm to map load-balanced paths,
+but it can also be used to implement other kind of measurements such as [Yarrp]((https://github.com/cmand/yarrp))-style traceroutes.
 
 To get started, install Diamond-Miner and head over to the [documentation](https://dioptra-io.github.io/diamond-miner/):
 ```bash
+# Requires Python 3.10+
 pip install diamond-miner
 ```
 
-## Publications
+## Publication
 
 Diamond-Miner has been presented and published at [NSDI 2020](https://www.usenix.org/conference/nsdi20/presentation/vermeulen).
 Since then, the code has been refactored and separated in the [`diamond-miner`](https://github.com/dioptra-io/diamond-miner) and [`caracal`](https://github.com/dioptra-io/caracal) repositories.

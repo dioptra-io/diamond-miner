@@ -8,11 +8,21 @@ from diamond_miner.typing import IPNetwork
 
 @dataclass(frozen=True)
 class CreatePrefixesTable(Query):
-    """Create the table containing (invalid) prefixes."""
+    """
+    Create the table containing (invalid) prefixes.
+
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import CreatePrefixesTable
+        >>> CreatePrefixesTable().execute(client, "test")
+        []
+    """
 
     SORTING_KEY = "probe_protocol, probe_src_addr, probe_dst_prefix"
+    "Columns by which the data is ordered."
 
     storage_policy: StoragePolicy = StoragePolicy()
+    "ClickHouse storage policy to use."
 
     def statement(
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET

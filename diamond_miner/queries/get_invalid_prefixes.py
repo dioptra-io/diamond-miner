@@ -14,12 +14,15 @@ from diamond_miner.typing import IPNetwork
 class GetInvalidPrefixes(PrefixesQuery):
     """
     Return the prefixes with unexpected behavior
-    (see :class:`GetPrefixesWithAmplification` and :class:`GetPrefixesWithLoops`).
+    (see [`GetPrefixesWithAmplification`][diamond_miner.queries.GetPrefixesWithAmplification]
+    and [`GetPrefixesWithLoops`](diamond_miner.queries.GetPrefixesWithLoops)).
 
-    >>> from diamond_miner.test import client
-    >>> rows = GetInvalidPrefixes().execute(client, "test_invalid_prefixes")
-    >>> [x["probe_dst_prefix"] for x in rows]
-    ['::ffff:201.0.0.0', '::ffff:202.0.0.0']
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetInvalidPrefixes
+        >>> rows = GetInvalidPrefixes().execute(client, "test_invalid_prefixes")
+        >>> [x["probe_dst_prefix"] for x in rows]
+        ['::ffff:201.0.0.0', '::ffff:202.0.0.0']
     """
 
     def statement(
@@ -37,12 +40,15 @@ class GetPrefixesWithAmplification(ResultsQuery):
     """
     Return the prefixes for which we have more than one reply per (flow ID, TTL).
 
-    .. important:: This query assumes that a single probe is sent per (flow ID, TTL) pair.
+    Important:
+        This query assumes that a single probe is sent per (flow ID, TTL) pair.
 
-    >>> from diamond_miner.test import client
-    >>> rows = GetPrefixesWithAmplification().execute(client, "test_invalid_prefixes")
-    >>> [x["probe_dst_prefix"] for x in rows]
-    ['::ffff:202.0.0.0']
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetPrefixesWithAmplification
+        >>> rows = GetPrefixesWithAmplification().execute(client, "test_invalid_prefixes")
+        >>> [x["probe_dst_prefix"] for x in rows]
+        ['::ffff:202.0.0.0']
     """
 
     def statement(
@@ -75,12 +81,15 @@ class GetPrefixesWithLoops(ResultsQuery):
     """
     Return the prefixes for which an IP address appears multiple time for a single flow ID.
 
-    .. note:: Prefixes with amplification (multiple replies per probe) may trigger a false positive
-              for this query, since we do not check that the IP appears at two *different* TTLs.
+    Important:
+        Prefixes with amplification (multiple replies per probe) may trigger a false positive
+        for this query, since we do not check that the IP appears at two *different* TTLs.
 
-    >>> from diamond_miner.test import client
-    >>> GetPrefixesWithLoops().execute(client, "test_invalid_prefixes")
-    [{'probe_protocol': 1, 'probe_src_addr': '::ffff:100.0.0.1', 'probe_dst_prefix': '::ffff:201.0.0.0', 'has_loops': 1}]
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetPrefixesWithLoops
+        >>> GetPrefixesWithLoops().execute(client, "test_invalid_prefixes")
+        [{'probe_protocol': 1, 'probe_src_addr': '::ffff:100.0.0.1', 'probe_dst_prefix': '::ffff:201.0.0.0', 'has_loops': 1}]
     """
 
     def statement(

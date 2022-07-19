@@ -12,22 +12,24 @@ class GetLinks(LinksQuery):
     """
     Return the links pre-computed in the links table.
 
-    >>> from diamond_miner.test import client
-    >>> links = GetLinks(filter_invalid_prefixes=False).execute(client, 'test_invalid_prefixes')
-    >>> len(links)
-    3
-    >>> links = GetLinks(filter_invalid_prefixes=True).execute(client, 'test_invalid_prefixes')
-    >>> len(links)
-    1
-    >>> links = GetLinks(include_metadata=False).execute(client, 'test_nsdi_example')
-    >>> len(links)
-    8
-    >>> links = GetLinks(include_metadata=True).execute(client, 'test_nsdi_example')
-    >>> len(links)
-    8
-    >>> links = GetLinks(near_or_far_addr="150.0.6.1").execute(client, 'test_nsdi_example')
-    >>> len(links)
-    3
+    Examples:
+        >>> from diamond_miner.test import client
+        >>> from diamond_miner.queries import GetLinks
+        >>> links = GetLinks(filter_invalid_prefixes=False).execute(client, 'test_invalid_prefixes')
+        >>> len(links)
+        3
+        >>> links = GetLinks(filter_invalid_prefixes=True).execute(client, 'test_invalid_prefixes')
+        >>> len(links)
+        1
+        >>> links = GetLinks(include_metadata=False).execute(client, 'test_nsdi_example')
+        >>> len(links)
+        8
+        >>> links = GetLinks(include_metadata=True).execute(client, 'test_nsdi_example')
+        >>> len(links)
+        8
+        >>> links = GetLinks(near_or_far_addr="150.0.6.1").execute(client, 'test_nsdi_example')
+        >>> len(links)
+        3
     """
 
     filter_invalid_prefixes: bool = False
