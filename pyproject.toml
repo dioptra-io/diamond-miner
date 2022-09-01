@@ -31,7 +31,7 @@ bumpversion = "^0.6.0"
 coverage = {extras = ["toml"], version = "^6.4"}
 Cython = "^0.29.32"
 hypothesis = "^6.54.1"
-mkdocs-bibtex = "^2.8.1"
+mkdocs-bibtex = "^2.8.3"
 mkdocs-material = "^8.3.9"
 mkdocstrings = {extras = ["python"], version = "^0.19.0"}
 mypy = "^0.971"
