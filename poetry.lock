@@ -383,7 +383,7 @@ validators = ">=0.19.0"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.3.9"
+version = "8.4.2"
 description = "Documentation that simply works"
 category = "dev"
 optional = false
@@ -785,7 +785,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "39c32ad74446d352a6571d47f70f693e47a185bcc26be143b04fdf3491f6a54a"
+content-hash = "050b1c1c1198f4c1ba8d888d159b7c0666a8f88553c50020dbe506eabbe2d738"
 
 [metadata.files]
 anyio = [
@@ -1098,8 +1098,8 @@ mkdocs-bibtex = [
     {file = "mkdocs-bibtex-2.8.3.tar.gz", hash = "sha256:787d8cbe97736d26cc9d38843df49479d3589b0cf10e7931ec1a89e9f533891c"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.3.9.tar.gz", hash = "sha256:dc82b667d2a83f0de581b46a6d0949732ab77e7638b87ea35b770b33bc02e75a"},
-    {file = "mkdocs_material-8.3.9-py2.py3-none-any.whl", hash = "sha256:263f2721f3abe533b61f7c8bed435a0462620912742c919821ac2d698b4bfe67"},
+    {file = "mkdocs-material-8.4.2.tar.gz", hash = "sha256:704c64c3fff126a3923c2961d95f26b19be621342a6a4e49ed039f0bb7a5c540"},
+    {file = "mkdocs_material-8.4.2-py2.py3-none-any.whl", hash = "sha256:166287bb0e4197804906bf0389a852d5ced43182c30127ac8b48a4e497ecd7e5"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
