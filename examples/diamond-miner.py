@@ -34,6 +34,7 @@ if __name__ == "__main__":
     with ClickHouseClient(**credentials) as client:
         CreateTables().execute(client, measurement_id)
         for round_ in range(1, 10):
+            logging.info("round=%s", round_)
             if round_ == 1:
                 # Compute the initial probes
                 insert_probe_counts(
@@ -63,6 +64,7 @@ if __name__ == "__main__":
                 measurement_id=measurement_id,
                 round_=round_,
             )
+            logging.info("n_probes=%s", n_probes)
             if n_probes == 0:
                 break
 
