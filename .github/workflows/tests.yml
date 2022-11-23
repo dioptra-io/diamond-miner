@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    paths-ignore: ['**.md']
+    paths-ignore: ["**.md"]
   pull_request:
-    paths-ignore: ['**.md']
+    paths-ignore: ["**.md"]
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
     services:
       clickhouse:
         image: yandex/clickhouse-server
-        ports: ['8123:8123']
+        ports: ["8123:8123"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -21,7 +21,7 @@ jobs:
           key: ${{ runner.os }}
       - uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

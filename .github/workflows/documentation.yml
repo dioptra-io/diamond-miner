@@ -2,8 +2,8 @@ name: Documentation
 
 on:
   push:
-    branches: [ main ]
-    paths-ignore: ['**.md']
+    branches: [main]
+    paths-ignore: ["**.md"]
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          python-version: "3.x"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -25,6 +25,6 @@ jobs:
         uses: crazy-max/ghaction-github-pages@v2
         with:
           target_branch: gh-pages
-          build_dir:  docs/_build/html
+          build_dir: docs/_build/html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
