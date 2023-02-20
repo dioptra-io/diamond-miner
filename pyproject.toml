@@ -79,7 +79,7 @@ skip = ["*-musllinux_*"]
 archs = ["x86_64", "aarch64"]
 
 [tool.cibuildwheel.macos]
-archs = ["x86_64", "arm64"]
+archs = ["universal2"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=40.6.0", "Cython>=0.29.0"]
