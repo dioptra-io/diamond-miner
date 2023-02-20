@@ -18,25 +18,29 @@ classifiers = [
     "Topic :: Internet",
     "Typing :: Typed"
 ]
-build = "build_ext.py"
+
+[tool.poetry.build]
+# https://github.com/python-poetry/poetry/issues/7470
+script = "build_ext.py"
+generate-setup-file = true
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-pych-client = "^0.3.0"
+pych-client = "^0.3.1"
 pygfc = "^1.0.5"
 zstandard = ">=0.15.2,<0.19.0"
 
 [tool.poetry.dev-dependencies]
 bumpversion = "^0.6.0"
-coverage = {extras = ["toml"], version = "^6.4"}
-Cython = "^0.29.32"
-hypothesis = "^6.54.4"
-mkdocs-bibtex = "^2.8.3"
-mkdocs-material = "^8.4.2"
-mkdocstrings = {extras = ["python"], version = "^0.19.0"}
-mypy = "^0.971"
-pytest = "^7.1.2"
-pytest-cov = "^3.0.0"
+coverage = {extras = ["toml"], version = "^7.1.0"}
+Cython = "^0.29.33"
+hypothesis = "^6.68.2"
+mkdocs-bibtex = "^2.8.13"
+mkdocs-material = "^9.0.13"
+mkdocstrings = {extras = ["python"], version = "^0.20.0"}
+mypy = "^1.0.1"
+pytest = "^7.2.1"
+pytest-cov = "^4.0.0"
 
 [tool.pytest.ini_options]
 addopts = "--capture=no --doctest-modules --ignore=examples --log-cli-level=info --strict-markers --verbosity=2"
