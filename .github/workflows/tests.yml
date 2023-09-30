@@ -14,13 +14,14 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - uses: dioptra-io/setup-poetry-action@v1
       - name: Install package
-        run: poetry install
+        run: |
+          python -m venv venv
+          ./venv/bin/pip install -e .[dev]
       - name: Insert test data
-        run: poetry run tests/data/insert.py
+        run: ./venv/bin/python tests/data/insert.py
       - name: Run tests
-        run: poetry run pytest --cov=diamond_miner --cov-report=xml
+        run: ./venv/bin/pytest --cov=diamond_miner --cov-report=xml
       - uses: codecov/codecov-action@v3
 
   mkdocs:
@@ -30,13 +31,14 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - uses: dioptra-io/setup-poetry-action@v1
       - name: Install package
-        run: poetry install
+        run: |
+          python -m venv venv
+          ./venv/bin/pip install -e .[dev]
       - name: Build documentation
-        run: poetry run mkdocs build --strict
+        run: ./venv/bin/mkdocs build --strict
       - name: Publish documentation
-        run: poetry run mkdocs gh-deploy --force --no-history --strict
+        run: ./venv/bin/mkdocs gh-deploy --force --no-history --strict
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
 
   pypi:
