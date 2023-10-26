@@ -16,7 +16,7 @@ setup(
     ),
     python_requires=">=3.10",
     install_requires=[
-        "pych-client~=0.3.1",
+        "pych-client~=0.4.0",
         "pygfc~=1.0.5",
         "zstandard>=0.15.2,<0.19.0",
     ],
