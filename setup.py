@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="diamond-miner",
-    version="1.0.4",
+    version="1.0.5",
     license="MIT",
     description="High-speed, Internet-scale, load-balanced paths discovery.",
     author="Kevin Vermeulen, Matthieu Gouel, Maxime Mouchet",
