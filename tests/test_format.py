@@ -12,8 +12,8 @@ def test_format_ipv6(addr):
 
 
 def test_format_probe():
-    assert format_probe(0, 0, 0, 0, "icmp") == "0:0:0:0:0:0:0:0,0,0,0,icmp"
+    assert format_probe(0, 0, 0, 0, "icmp") == "::,0,0,0,icmp"
     assert (
-        format_probe(2 ** 128 - 1, 2 ** 16 - 1, 2 ** 16 - 1, 2 ** 8 - 1, "udp")
-        == "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF,65535,65535,255,udp"
+        format_probe(2**128 - 1, 2**16 - 1, 2**16 - 1, 2**8 - 1, "udp")
+        == "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff,65535,65535,255,udp"
     )
