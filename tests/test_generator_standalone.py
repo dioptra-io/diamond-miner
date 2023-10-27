@@ -30,7 +30,7 @@ def test_probe_generator_63():
         prefix_len_v6=64,
         flow_ids=[10],
         ttls=[41],
-        mapper_v6=SequentialFlowMapper(prefix_size=2 ** 64),
+        mapper_v6=SequentialFlowMapper(prefix_size=2**64),
     )
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
@@ -71,7 +71,7 @@ def test_probe_generator_23():
         prefix_len_v4=24,
         flow_ids=[10],
         ttls=[41],
-        mapper_v4=SequentialFlowMapper(prefix_size=2 ** 8),
+        mapper_v4=SequentialFlowMapper(prefix_size=2**8),
     )
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
@@ -97,7 +97,7 @@ def test_probe_generator_by_flow():
         prefix_len_v4=24,
         prefix_len_v6=128,
         flow_ids=[10, 11],
-        mapper_v4=SequentialFlowMapper(prefix_size=2 ** 8),
+        mapper_v4=SequentialFlowMapper(prefix_size=2**8),
         mapper_v6=SequentialFlowMapper(prefix_size=1),
     )
     probes = [x for x in generator]
