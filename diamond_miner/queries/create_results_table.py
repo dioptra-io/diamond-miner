@@ -38,7 +38,7 @@ class CreateResultsTable(Query):
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
         return f"""
-        SET allow_suspicious_ttl_expressions = 1
+        SET allow_suspicious_ttl_expressions = 1;
         CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (
             -- Since we do not order by capture timestamp, this column compresses badly.
