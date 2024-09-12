@@ -17,7 +17,7 @@ class GetMDAProbes(LinksQuery):
         [{'probe_protocol': 1, 'probe_dst_prefix': '::ffff:200.0.0.0', 'cumulative_probes': [12, 12, 12, 12], 'TTLs': [1, 2, 3, 4]}]
     """
 
-    adaptive_eps: bool = True
+    adaptive_eps: bool = False
 
     dminer_lite: bool = True
     "If true, use an heuristic that requires less probes to handle nested load-balancers."
