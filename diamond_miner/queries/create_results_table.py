@@ -110,6 +110,6 @@ class CreateResultsTable(Query):
         )
         ENGINE MergeTree
         ORDER BY ({self.SORTING_KEY})
-        TTL {date_time(self.storage_policy.archive_on)} TO VOLUME '{self.storage_policy.archive_to}'
+        TTL toDateTime('2100-01-01 00:00:00') TO VOLUME '{self.storage_policy.archive_to}'
         SETTINGS storage_policy = '{self.storage_policy.name}'
         """
