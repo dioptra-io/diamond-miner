@@ -38,6 +38,7 @@ class CreateResultsTable(Query):
         self, measurement_id: str, subset: IPNetwork = UNIVERSE_SUBSET
     ) -> str:
         return f"""
+        SET allow_suspicious_ttl_expressions = 1
         CREATE TABLE IF NOT EXISTS {results_table(measurement_id)}
         (
             -- Since we do not order by capture timestamp, this column compresses badly.
@@ -110,6 +111,6 @@ class CreateResultsTable(Query):
         )
         ENGINE MergeTree
         ORDER BY ({self.SORTING_KEY})
-        TTL toDateTime('2100-01-01 00:00:00') TO VOLUME '{self.storage_policy.archive_to}'
+        TTL {date_time(self.storage_policy.archive_on)} TO VOLUME '{self.storage_policy.archive_to}'
         SETTINGS storage_policy = '{self.storage_policy.name}'
         """
