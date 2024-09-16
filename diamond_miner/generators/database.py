@@ -16,6 +16,7 @@ from diamond_miner.mappers import SequentialFlowMapper
 from diamond_miner.queries import GetProbesDiff
 from diamond_miner.typing import FlowMapper, IPNetwork, Probe
 
+max_probes = 0
 
 def probe_generator_from_database(
     client: ClickHouseClient,
@@ -45,6 +46,11 @@ def probe_generator_from_database(
         >>> (str(ip_address(probes[0][0])), *probes[0][1:])
         ('::ffff:808:100', 24000, 33434, 1, 'icmp')
     """
+    global max_probes
+    if max_probes == 0:
+        max_probes = 4095 # XXX make this a parameter
+        logger.info("capping the number of probes to send at %d", max_probes)
+
     rows = GetProbesDiff(
         round_eq=round_, probe_ttl_geq=probe_ttl_geq, probe_ttl_leq=probe_ttl_leq
     ).execute_iter(client, measurement_id, subsets=subsets)
@@ -60,8 +66,8 @@ def probe_generator_from_database(
                 addr_offset, port_offset = mapper.offset(flow_id, dst_prefix_int)
                 dst_addr = dst_prefix_int + addr_offset
                 src_port = probe_src_port + port_offset
-                if src_port > (2**16 - 1):
-                    # TEMP: Log prefixes that overflows the port number and skip prefix.
-                    logger.warning("Port overflow for %s", row)
+                # Note that port_offset is actually the number of probes sent after having already sent 256 probes.
+                if port_offset > max_probes:
+                    logger.warning("not probing %s after having already sent %d probes", row, max_probes+256)
                     break
                 yield dst_addr, src_port, probe_dst_port, ttl, protocol_str  # type: ignore

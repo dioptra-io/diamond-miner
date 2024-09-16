@@ -12,7 +12,7 @@ These components can be pieced together to conduct various kind of topology meas
 
 To run the examples below, you need a running [ClickHouse](https://clickhouse.com) server:
 ```bash
-docker run --rm -d -p 8123:8123 clickhouse/clickhouse-server:22.6
+docker run --rm -d -p 8123:8123 clickhouse/clickhouse-server:22.8
 ```
 
 You also need [`pycaracal`](https://github.com/dioptra-io/caracal) and [`pych-client`](https://github.com/dioptra-io/pych-client).

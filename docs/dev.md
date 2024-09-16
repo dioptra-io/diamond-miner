@@ -31,7 +31,7 @@ poetry run bumpversion patch # or minor/major
 Most tests require a running instance of ClickHouse with pre-populated tables.
 To start a ClickHouse server and insert the test data:
 ```bash
-docker run --rm -d -p 8123:8123 clickhouse/clickhouse-server:22.6
+docker run --rm -d -p 8123:8123 clickhouse/clickhouse-server:22.8
 poetry run python tests/data/insert.py
 ```
 

@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       clickhouse:
-        image: clickhouse/clickhouse-server
+        image: clickhouse/clickhouse-server:22.8
         ports: ["8123:8123"]
     steps:
       - uses: actions/checkout@v3
