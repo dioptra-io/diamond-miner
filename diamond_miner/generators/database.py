@@ -44,7 +44,7 @@ def probe_generator_from_database(
         >>> len(probes)
         8
         >>> (str(ip_address(probes[0][0])), *probes[0][1:])
-        ('::ffff:808:100', 24000, 33434, 1, 'icmp')
+        ('::ffff:8.8.1.0', 24000, 33434, 1, 'icmp')
     """
     global max_probes
     if max_probes == 0:

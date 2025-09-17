@@ -57,7 +57,7 @@ def test_probe_generator_32():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 6
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert str(ip_address(addr)) == "::ffff:808:808"
+        assert str(ip_address(addr)) == "::ffff:8.8.8.8"
         assert src_port in range(24010, 24013)
         assert dst_port == 33434
         assert ttl in range(41, 43)
@@ -76,10 +76,7 @@ def test_probe_generator_23():
     probes = [x for x in generator]
     assert len(probes) == len(set(probes)) == 2
     for addr, src_port, dst_port, ttl, protocol in probes:
-        assert str(ip_address(addr)) in [
-            "::ffff:0:a",
-            "::ffff:0:10a",
-        ]
+        assert str(ip_address(addr)) in ["::ffff:0.0.0.10", "::ffff:0.0.1.10"]
         assert src_port == 24000
         assert dst_port == 33434
         assert ttl == 41
@@ -104,10 +101,10 @@ def test_probe_generator_by_flow():
     assert len(probes) == len(set(probes)) == 16
     for addr, src_port, dst_port, ttl, protocol in probes:
         assert str(ip_address(addr)) in [
-            "::ffff:0:a",
-            "::ffff:0:b",
-            "::ffff:0:10a",
-            "::ffff:0:10b",
+            "::ffff:0.0.0.10",
+            "::ffff:0.0.0.11",
+            "::ffff:0.0.1.10",
+            "::ffff:0.0.1.11",
             "2001:4860:4860::8888",
         ]
         assert src_port in [24000, 24010, 24011]
