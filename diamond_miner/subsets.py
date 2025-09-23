@@ -28,11 +28,11 @@ def subsets_for(
         >>> from diamond_miner.test import client
         >>> from diamond_miner.queries import GetLinks, GetProbes, GetResults
         >>> subsets_for(GetLinks(), client, 'test_nsdi_example', max_items_per_subset=1)
-        [IPv6Network('::ffff:c800:0/112')]
+        [IPv6Network('::ffff:200.0.0.0/112')]
         >>> subsets_for(GetProbes(round_eq=1), client, 'test_nsdi_example', max_items_per_subset=1)
-        [IPv6Network('::ffff:c800:0/112')]
+        [IPv6Network('::ffff:200.0.0.0/112')]
         >>> subsets_for(GetResults(), client, 'test_nsdi_example', max_items_per_subset=1)
-        [IPv6Network('::ffff:c800:0/112')]
+        [IPv6Network('::ffff:200.0.0.0/112')]
     """
     if isinstance(query, LinksQuery):
         count_query = CountLinksPerPrefix(**common_parameters(query, LinksQuery))
@@ -65,9 +65,9 @@ def split(counts: Counts, max_items_per_subset: int) -> list[IPv6Network]:
         >>> split(counts, 15)
         [IPv6Network('::/0')]
         >>> split(counts, 10)
-        [IPv6Network('::ffff:808:0/117'), IPv6Network('::ffff:808:800/117')]
+        [IPv6Network('::ffff:8.8.0.0/117'), IPv6Network('::ffff:8.8.8.0/117')]
         >>> split(counts, 1) # Impossible case, should return the minimal feasible networks.
-        [IPv6Network('::ffff:808:400/120'), IPv6Network('::ffff:808:800/120')]
+        [IPv6Network('::ffff:8.8.4.0/120'), IPv6Network('::ffff:8.8.8.0/120')]
         >>> split({}, 10)
         []
     """
@@ -95,7 +95,7 @@ def addr_to_network(addr: str, prefix_len_v4: int, prefix_len_v6: int) -> IPv6Ne
     """
     Examples:
         >>> addr_to_network("::ffff:8.8.8.0", 24, 64)
-        IPv6Network('::ffff:808:800/120')
+        IPv6Network('::ffff:8.8.8.0/120')
         >>> addr_to_network("2001:4860:4860:1234::", 24, 64)
         IPv6Network('2001:4860:4860:1234::/64')
     """
