@@ -9,7 +9,7 @@ jobs:
       clickhouse:
         image: clickhouse/clickhouse-server:25.7
         ports: ["8123:8123"]
-	volumes:
+        volumes:
           - ./.github/clickhouse/users.d:/etc/clickhouse-server/users.d
     steps:
       - uses: actions/checkout@v3
