@@ -26,8 +26,7 @@ jobs:
 
       - name: Create ClickHouse profile config
         run: |
-          mkdir -p ch-config/config.d
-          cat > ch-config/config.d/profiles.xml <<'EOF'
+          cat > ch-config/users.d/profiles.xml <<'EOF'
           <clickhouse>
             <profiles>
               <default>
@@ -40,8 +39,8 @@ jobs:
         run: |
           echo "Contents of users.d/default.xml:"
           cat ch-config/users.d/default.xml
-          echo "Contents of config.d/profiles.xml:"
-          cat ch-config/config.d/profiles.xml
+          echo "Contents of users.d/profiles.xml:"
+          cat ch-config/users.d/profiles.xml
 
       - name: Start ClickHouse
         run: |
