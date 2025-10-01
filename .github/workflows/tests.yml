@@ -18,6 +18,9 @@ jobs:
                 <networks><ip>::/0</ip></networks>
                 <profile>default</profile>
                 <quota>default</quota>
+                <settings>
+                  <allow_suspicious_ttl_expressions>1</allow_suspicious_ttl_expressions>
+                 </settings>
               </default>
             </users>
           </clickhouse>
