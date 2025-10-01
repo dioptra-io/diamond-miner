@@ -51,16 +51,19 @@ jobs:
             -v $PWD/ch-config/config.d:/etc/clickhouse-server/config.d:ro \
             clickhouse/clickhouse-server:25.7
           
-      - name: Show ClickHouse logs
-        run: docker logs clickhouse
-
+      - name: Check container status
+        run: docker ps -a
+      
       - name: Wait for ClickHouse
         run: |
           for i in {1..30}; do
             if curl -s http://localhost:8123/ping; then exit 0; fi
             sleep 1
           done
-          echo "ClickHouse did not start" && exit 1
+          echo "ClickHouse did not start, dumping logs and container info:"
+          docker logs clickhouse || echo "No logs"
+          docker ps -a
+          exit 1
 
       - uses: actions/setup-python@v4
         with:
