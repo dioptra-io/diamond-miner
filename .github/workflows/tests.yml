@@ -43,8 +43,6 @@ jobs:
           echo "Contents of config.d/profiles.xml:"
           cat ch-config/config.d/profiles.xml
 
-      - name: Show ClickHouse logs
-        run: docker logs clickhouse
       - name: Start ClickHouse
         run: |
           docker run -d --name clickhouse \
@@ -52,6 +50,9 @@ jobs:
             -v $PWD/ch-config/users.d:/etc/clickhouse-server/users.d:ro \
             -v $PWD/ch-config/config.d:/etc/clickhouse-server/config.d:ro \
             clickhouse/clickhouse-server:25.7
+          
+      - name: Show ClickHouse logs
+        run: docker logs clickhouse
 
       - name: Wait for ClickHouse
         run: |
