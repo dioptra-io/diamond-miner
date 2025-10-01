@@ -48,7 +48,7 @@ jobs:
           docker run -d --name clickhouse \
             -p 8123:8123 -p 9000:9000 \
             -v $PWD/ch-config/users.d:/etc/clickhouse-server/users.d:ro \
-            -v $PWD/ch-config/config.d:/etc/clickhouse-server/config.d:ro \
+            #-v $PWD/ch-config/config.d:/etc/clickhouse-server/config.d:ro \
             clickhouse/clickhouse-server:25.7
           
       - name: Check container status
