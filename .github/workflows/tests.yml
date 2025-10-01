@@ -13,6 +13,21 @@ jobs:
           - ./.github/clickhouse/users.d:/etc/clickhouse-server/users.d:ro
     steps:
       - uses: actions/checkout@v3
+      - name: Prepare ClickHouse config
+        run: |
+          mkdir -p /tmp/ch-config/users.d
+          cat > /tmp/ch-config/users.d/default.xml <<'EOF'
+          <clickhouse>
+            <users>
+              <default>
+                <password></password>
+                <networks><ip>::/0</ip></networks>
+                <profile>default</profile>
+                <quota>default</quota>
+              </default>
+            </users>
+          </clickhouse>
+          EOF
       - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
