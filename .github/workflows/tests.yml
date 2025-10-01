@@ -11,7 +11,6 @@ jobs:
       - name: Create ClickHouse user config
         run: |
           mkdir -p ch-config/users.d
-
           cat > ch-config/users.d/default.xml <<'EOF'
           <clickhouse>
             <users>
@@ -37,7 +36,15 @@ jobs:
             </profiles>
           </clickhouse>
           EOF
+      - name: Show ClickHouse config files content
+        run: |
+          echo "Contents of users.d/default.xml:"
+          cat ch-config/users.d/default.xml
+          echo "Contents of config.d/profiles.xml:"
+          cat ch-config/config.d/profiles.xml
 
+      - name: Show ClickHouse logs
+        run: docker logs clickhouse
       - name: Start ClickHouse
         run: |
           docker run -d --name clickhouse \
