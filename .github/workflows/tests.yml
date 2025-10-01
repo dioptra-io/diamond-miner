@@ -7,11 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Prepare ClickHouse config
-        run: |
-          mkdir -p ch-config/users.d ch-config/config.d
 
-          tee ch-config/users.d/default.xml > /dev/null <<'EOF'
+      - name: Create ClickHouse user config
+        run: |
+          mkdir -p ch-config/users.d
+
+          cat > ch-config/users.d/default.xml <<'EOF'
           <clickhouse>
             <users>
               <default>
@@ -24,7 +25,10 @@ jobs:
           </clickhouse>
           EOF
 
-          tee ch-config/config.d/profiles.xml > /dev/null <<'EOF'
+      - name: Create ClickHouse profile config
+        run: |
+          mkdir -p ch-config/config.d
+          cat > ch-config/config.d/profiles.xml <<'EOF'
           <clickhouse>
             <profiles>
               <default>
@@ -33,6 +37,7 @@ jobs:
             </profiles>
           </clickhouse>
           EOF
+
       - name: Start ClickHouse
         run: |
           docker run -d --name clickhouse \
@@ -40,12 +45,7 @@ jobs:
             -v $PWD/ch-config/users.d:/etc/clickhouse-server/users.d:ro \
             -v $PWD/ch-config/config.d:/etc/clickhouse-server/config.d:ro \
             clickhouse/clickhouse-server:25.7
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-      - uses: dioptra-io/setup-poetry-action@v1
-      - name: Install package
-        run: poetry install
+
       - name: Wait for ClickHouse
         run: |
           for i in {1..30}; do
@@ -53,6 +53,14 @@ jobs:
             sleep 1
           done
           echo "ClickHouse did not start" && exit 1
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - uses: dioptra-io/setup-poetry-action@v1
+      - name: Install package
+        run: poetry install
+
       - name: Insert test data
         run: poetry run python tests/data/insert.py
       - name: Run tests
