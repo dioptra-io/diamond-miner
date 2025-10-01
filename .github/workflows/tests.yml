@@ -35,12 +35,6 @@ jobs:
             </profiles>
           </clickhouse>
           EOF
-      - name: Show ClickHouse config files content
-        run: |
-          echo "Contents of users.d/default.xml:"
-          cat ch-config/users.d/default.xml
-          echo "Contents of users.d/profiles.xml:"
-          cat ch-config/users.d/profiles.xml
 
       - name: Start ClickHouse
         run: |
@@ -48,13 +42,10 @@ jobs:
             -p 8123:8123 -p 9000:9000 \
             -v $PWD/ch-config/users.d:/etc/clickhouse-server/users.d:ro \
             clickhouse/clickhouse-server:25.7
-          
-      - name: Check container status
-        run: docker ps -a
       
       - name: Wait for ClickHouse
         run: |
-          for i in {1..120}; do
+          for i in {1..60}; do
             if curl -s http://localhost:8123/ping; then exit 0; fi
             sleep 1
           done
@@ -69,7 +60,6 @@ jobs:
       - uses: dioptra-io/setup-poetry-action@v1
       - name: Install package
         run: poetry install
-
       - name: Insert test data
         run: poetry run python tests/data/insert.py
       - name: Run tests
