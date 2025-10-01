@@ -9,18 +9,28 @@ jobs:
       - uses: actions/checkout@v3
       - name: Prepare ClickHouse config
         run: |
-          mkdir -p ch-config/users.d
-          cat > ch-config/users.d/default.xml <<'EOF'
+          mkdir -p ch-config/users.d ch-config/config.d
+
+          tee ch-config/users.d/default.xml > /dev/null <<'EOF'
           <clickhouse>
             <users>
               <default>
-                <password></password>
+                <password>password</password>
                 <networks><ip>::/0</ip></networks>
                 <profile>default</profile>
                 <quota>default</quota>
-                <allow_suspicious_ttl_expressions>1</allow_suspicious_ttl_expressions>
               </default>
             </users>
+          </clickhouse>
+          EOF
+
+          tee ch-config/config.d/profiles.xml > /dev/null <<'EOF'
+          <clickhouse>
+            <profiles>
+              <default>
+                <allow_suspicious_ttl_expressions>1</allow_suspicious_ttl_expressions>
+              </default>
+            </profiles>
           </clickhouse>
           EOF
       - name: Start ClickHouse
