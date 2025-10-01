@@ -6,7 +6,7 @@ from pych_client import ClickHouseClient
 url = environ.get("DIAMOND_MINER_TEST_DATABASE_URL", "http://localhost:8123")
 
 base_url = environ.get("DIAMOND_MINER_TEST_DATABASE_URL", "http://localhost:8123")
-client = ClickHouseClient(base_url=base_url, database="default", username="default")
+client = ClickHouseClient(base_url=base_url, database="default", username="default", password="password")
 
 
 def create_tables(client: ClickHouseClient, measurement_id: str) -> None:
