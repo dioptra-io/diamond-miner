@@ -5,12 +5,55 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      clickhouse:
-        image: clickhouse/clickhouse-server:22.8
-        ports: ["8123:8123"]
     steps:
       - uses: actions/checkout@v3
+
+      - name: Create ClickHouse user config
+        run: |
+          mkdir -p ch-config/users.d
+          cat > ch-config/users.d/default.xml <<'EOF'
+          <clickhouse>
+            <users>
+              <default>
+                <password></password>
+                <networks><ip>::/0</ip></networks>
+                <profile>default</profile>
+                <quota>default</quota>
+              </default>
+            </users>
+          </clickhouse>
+          EOF
+
+      - name: Create ClickHouse profile config
+        run: |
+          cat > ch-config/users.d/profiles.xml <<'EOF'
+          <clickhouse>
+            <profiles>
+              <default>
+                <allow_suspicious_ttl_expressions>1</allow_suspicious_ttl_expressions>
+              </default>
+            </profiles>
+          </clickhouse>
+          EOF
+
+      - name: Start ClickHouse
+        run: |
+          docker run -d --name clickhouse \
+            -p 8123:8123 -p 9000:9000 \
+            -v $PWD/ch-config/users.d:/etc/clickhouse-server/users.d:ro \
+            clickhouse/clickhouse-server:25.7
+      
+      - name: Wait for ClickHouse
+        run: |
+          for i in {1..60}; do
+            if curl -s http://localhost:8123/ping; then exit 0; fi
+            sleep 1
+          done
+          echo "ClickHouse did not start, dumping logs and container info:"
+          docker logs clickhouse || echo "No logs"
+          docker ps -a
+          exit 1
+
       - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
