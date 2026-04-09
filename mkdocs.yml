@@ -14,10 +14,10 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          import:
-            - https://docs.python.org/3/objects.inv
           options:
             show_root_heading: true
+            import:
+              - https://docs.python.org/3/objects.inv
   - search
 markdown_extensions:
   - footnotes
