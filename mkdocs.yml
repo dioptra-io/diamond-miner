@@ -16,8 +16,8 @@ plugins:
         python:
           options:
             show_root_heading: true
-            import:
-              - https://docs.python.org/3/objects.inv
+          inventories:
+            - https://docs.python.org/3/objects.inv
   - search
 markdown_extensions:
   - footnotes
