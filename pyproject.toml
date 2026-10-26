@@ -20,8 +20,8 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-pych-client = "^0.4.1"
+python = ">=3.11,<4.0"
+pych-client = "^0.4.7"
 pygfc = "^1.0.5"
 zstandard = "^0.21.0"
 tqdm = "^4.66.1"
